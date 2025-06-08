@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Hanging Mobile</title> ... <!-- same styles --> </head>
+<body>
+<h1>Hanging Mobile</h1>
+<div class="gallery">
+  <a href="#img1"><img src="images/mobile1.jpg"></a>
+  <a href="#img2"><img src="images/mobile2.jpg"></a>
+</div>
+<div id="img1" class="lightbox"><a href="#" class="close">&times;</a><img src="images/mobile1.jpg"></div>
+<div id="img2" class="lightbox"><a href="#" class="close">&times;</a><img src="images/mobile2.jpg"></div>
+<a class="back" href="index.html">← Back to Home</a>
+</body></html>
