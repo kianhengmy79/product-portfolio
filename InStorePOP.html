@@ -2,36 +2,104 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>In-Store POP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>In-store POP Gallery</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f9f9f9; }
-    h1 { padding: 20px; }
-    .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px; }
-    .gallery img { width: 200px; cursor: pointer; border: 2px solid #ccc; transition: 0.3s; }
-    .gallery img:hover { border-color: #333; }
-    .lightbox { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-    .lightbox img { max-width: 90%; max-height: 90%; }
-    .lightbox:target { display: flex; }
-    .close { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; text-decoration: none; font-weight: bold; }
-    a.back { display: block; margin: 20px; text-decoration: none; color: #007BFF; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    h1 {
+      padding: 20px;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      padding: 20px;
+    }
+    .gallery img {
+      width: 200px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: 0.3s;
+    }
+    .gallery img:hover {
+      border-color: #333;
+    }
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+    }
+    .lightbox:target {
+      display: flex;
+    }
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 30px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a.back {
+      display: block;
+      margin: 20px;
+      text-decoration: none;
+      color: #007BFF;
+    }
   </style>
 </head>
 <body>
-  <h1>In-Store POP</h1>
-
+  <h1>In-store POP Gallery</h1>
   <div class="gallery">
-    <a href="#img1"><img src="images/A5%20JFun%20Points%20Reminder.jpg" alt="A5 JFun Points Reminder" /></a>
-    <a href="#img2"><img src="images/BWM%20July%203%20for%20$19.jpg" alt="BWM July 3 for $19" /></a>
+    <a href="#img1"><img src="images/InStorePOP%20Image1.jpg" alt="In-store POP Image 1" /></a>
+    <a href="#img2"><img src="images/InStorePOP%20Image2.jpg" alt="In-store POP Image 2" /></a>
+    <a href="#img3"><img src="images/InStorePOP%20Image3.jpg" alt="In-store POP Image 3" /></a>
+    <a href="#img4"><img src="images/InStorePOP%20Image4.jpg" alt="In-store POP Image 4" /></a>
+    <a href="#img5"><img src="images/InStorePOP%20Image5.jpg" alt="In-store POP Image 5" /></a>
+    <a href="#img6"><img src="images/InStorePOP%20Image6.jpg" alt="In-store POP Image 6" /></a>
   </div>
 
   <div id="img1" class="lightbox">
     <a href="#" class="close">&times;</a>
-    <img src="images/A5%20JFun%20Points%20Reminder.jpg" alt="A5 JFun Points Reminder" />
+    <img src="images/InStorePOP%20Image1.jpg" alt="In-store POP Image 1" />
   </div>
-
   <div id="img2" class="lightbox">
     <a href="#" class="close">&times;</a>
-    <img src="images/BWM%20July%203%20for%20$19.jpg" alt="BWM July 3 for $19" />
+    <img src="images/InStorePOP%20Image2.jpg" alt="In-store POP Image 2" />
+  </div>
+  <div id="img3" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/InStorePOP%20Image3.jpg" alt="In-store POP Image 3" />
+  </div>
+  <div id="img4" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/InStorePOP%20Image4.jpg" alt="In-store POP Image 4" />
+  </div>
+  <div id="img5" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/InStorePOP%20Image5.jpg" alt="In-store POP Image 5" />
+  </div>
+  <div id="img6" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/InStorePOP%20Image6.jpg" alt="In-store POP Image 6" />
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
