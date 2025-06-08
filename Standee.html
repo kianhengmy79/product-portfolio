@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Standee</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f9f9f9; }
+    h1 { padding: 20px; }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      padding: 20px;
+    }
+    .gallery img {
+      width: 200px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: 0.3s;
+    }
+    .gallery img:hover {
+      border-color: #333;
+    }
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+    }
+    .lightbox:target {
+      display: flex;
+    }
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 30px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a.back {
+      display: block;
+      margin: 20px;
+      text-decoration: none;
+      color: #007BFF;
+    }
+  </style>
+</head>
+<body>
+  <h1>Standee</h1>
+
+  <div class="gallery">
+    <a href="#img1"><img src="images/IMG_20200114_001729.png" alt="IMG 20200114 001729" /></a>
+    <a href="#img2"><img src="images/IMG_20200114_001746.png" alt="IMG 20200114 001746" /></a>
+    <a href="#img3"><img src="images/Killingy-display-Stand-Cup-and-Building_03-01.png" alt="Killiney Stand Cup Building 01" /></a>
+    <a href="#img4"><img src="images/Killingy-display-Stand-Cup-and-Building_03-02.png" alt="Killiney Stand Cup Building 02" /></a>
+    <a href="#img5"><img src="images/5cf566ce-b581-4ff0-9227-f4d420a3b815.jpg" alt="5cf566ce b581 4ff0 9227 f4d420a3b815" /></a>
+    <a href="#img6"><img src="images/April Atrium Shelve deco 01-05.jpg" alt="April Atrium Shelve deco 01-05" /></a>
+    <a href="#img7"><img src="images/April Atrium Shelve deco 01-06.jpg" alt="April Atrium Shelve deco 01-06" /></a>
+    <a href="#img8"><img src="images/SVR Standee Power Wing Jan 2024 New-02.jpg" alt="SVR Standee Power Wing Jan 2024 New-02" /></a>
+    <a href="#img9"><img src="images/SVR Standee Power Wing Jan 2024.jpg" alt="SVR Standee Power Wing Jan 2024" /></a>
+  </div>
+
+  <!-- Lightboxes -->
+  <div id="img1" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/IMG_20200114_001729.png" alt="IMG 20200114 001729" />
+  </div>
+  <div id="img2" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/IMG_20200114_001746.png" alt="IMG 20200114 001746" />
+  </div>
+  <div id="img3" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/Killingy-display-Stand-Cup-and-Building_03-01.png" alt="Killiney Stand Cup Building 01" />
+  </div>
+  <div id="img4" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/Killingy-display-Stand-Cup-and-Building_03-02.png" alt="Killiney Stand Cup Building 02" />
+  </div>
+  <div id="img5" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/5cf566ce-b581-4ff0-9227-f4d420a3b815.jpg" alt="5cf566ce b581 4ff0 9227 f4d420a3b815" />
+  </div>
+  <div id="img6" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/April Atrium Shelve deco 01-05.jpg" alt="April Atrium Shelve deco 01-05" />
+  </div>
+  <div id="img7" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/April Atrium Shelve deco 01-06.jpg" alt="April Atrium Shelve deco 01-06" />
+  </div>
+  <div id="img8" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/SVR Standee Power Wing Jan 2024 New-02.jpg" alt="SVR Standee Power Wing Jan 2024 New-02" />
+  </div>
+  <div id="img9" class="lightbox">
+    <a href="#" class="close">&times;</a>
+    <img src="images/SVR Standee Power Wing Jan 2024.jpg" alt="SVR Standee Power Wing Jan 2024" />
+  </div>
+
+  <a class="back" href="index.html">← Back to Home</a>
+</body>
+</html>
