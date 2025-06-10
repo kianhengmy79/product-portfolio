@@ -4,8 +4,16 @@
   <meta charset="UTF-8" />
   <title>Superimpose Display</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f9f9f9; }
-    h1 { padding: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    h1 {
+      padding: 20px;
+    }
     .gallery {
       display: flex;
       flex-wrap: wrap;
@@ -44,16 +52,33 @@
       top: 20px;
       right: 30px;
       color: white;
-      font-size: 30px;
+      font-size: 40px;
       text-decoration: none;
       font-weight: bold;
     }
-    a.back {
+    .back {
       display: block;
-      margin: 20px;
+      margin: 30px auto;
       text-decoration: none;
-      color: #007BFF;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
     }
+    .nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      color: white;
+      text-decoration: none;
+      padding: 0 10px;
+      user-select: none;
+    }
+    .prev { left: 20px; }
+    .next { right: 20px; }
   </style>
 </head>
 <body>
@@ -73,43 +98,64 @@
   </div>
 
   <!-- Lightboxes -->
+  <!-- Each lightbox includes prev/next navigation and close button -->
   <div id="img1" class="lightbox">
+    <a href="#img10" class="nav-button prev">&#10094;</a>
+    <a href="#img2" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Gift-Shop-Deco-01.jpg" alt="Gift Shop Deco" />
   </div>
   <div id="img2" class="lightbox">
+    <a href="#img1" class="nav-button prev">&#10094;</a>
+    <a href="#img3" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/GoGuru-Book-Store-Deco-Superimpose-02.png" alt="GoGuru Book Store Deco" />
   </div>
   <div id="img3" class="lightbox">
+    <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#img4" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Pillar-Super-Impose-01.jpg" alt="Pillar Superimpose" />
   </div>
   <div id="img4" class="lightbox">
+    <a href="#img3" class="nav-button prev">&#10094;</a>
+    <a href="#img5" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Rain-forest-golden-wheel-photo-booth.jpg" alt="Rainforest Golden Wheel" />
   </div>
   <div id="img5" class="lightbox">
+    <a href="#img4" class="nav-button prev">&#10094;</a>
+    <a href="#img6" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/SGFlyer-Never-ending-fortune-03.png" alt="SG Flyer Never-ending fortune 03" />
   </div>
   <div id="img6" class="lightbox">
+    <a href="#img5" class="nav-button prev">&#10094;</a>
+    <a href="#img7" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/SGFlyer-Never-ending-fortune-3D-02-11.png" alt="SG Flyer 3D 02-11" />
   </div>
   <div id="img7" class="lightbox">
+    <a href="#img6" class="nav-button prev">&#10094;</a>
+    <a href="#img8" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/SGFlyer-Never-ending-fortune-04.png" alt="SG Flyer Never-ending fortune 04" />
   </div>
   <div id="img8" class="lightbox">
+    <a href="#img7" class="nav-button prev">&#10094;</a>
+    <a href="#img9" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Dermo3 Header board 04-01.jpg" alt="Dermo3 Header board" />
   </div>
   <div id="img9" class="lightbox">
+    <a href="#img8" class="nav-button prev">&#10094;</a>
+    <a href="#img10" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Ice Cream Museum Event-01.jpg" alt="Ice Cream Museum Event 01" />
   </div>
   <div id="img10" class="lightbox">
+    <a href="#img9" class="nav-button prev">&#10094;</a>
+    <a href="#img1" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Ice Cream Museum Event-02.jpg" alt="Ice Cream Museum Event 02" />
   </div>
