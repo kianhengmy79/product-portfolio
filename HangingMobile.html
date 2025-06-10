@@ -4,8 +4,16 @@
   <meta charset="UTF-8" />
   <title>Hanging Mobile</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f9f9f9; }
-    h1 { padding: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    h1 {
+      padding: 20px;
+    }
     .gallery {
       display: flex;
       flex-wrap: wrap;
@@ -44,15 +52,36 @@
       top: 20px;
       right: 30px;
       color: white;
-      font-size: 30px;
+      font-size: 40px;
       text-decoration: none;
       font-weight: bold;
     }
-    a.back {
+    .back {
       display: block;
-      margin: 20px;
+      margin: 30px auto;
       text-decoration: none;
-      color: #007BFF;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
+    }
+    .nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      color: white;
+      text-decoration: none;
+      padding: 0 10px;
+      user-select: none;
+    }
+    .prev {
+      left: 20px;
+    }
+    .next {
+      right: 20px;
     }
   </style>
 </head>
@@ -74,42 +103,62 @@
 
   <!-- Lightboxes -->
   <div id="img1" class="lightbox">
+    <a href="#img10" class="nav-button prev">&#10094;</a>
+    <a href="#img2" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/25%20Anniversary%20HM.jpg" alt="25 Anniversary HM" />
   </div>
   <div id="img2" class="lightbox">
+    <a href="#img1" class="nav-button prev">&#10094;</a>
+    <a href="#img3" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/HM44.jpg" alt="HM44" />
   </div>
   <div id="img3" class="lightbox">
+    <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#img4" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/HM45.jpg" alt="HM45" />
   </div>
   <div id="img4" class="lightbox">
+    <a href="#img3" class="nav-button prev">&#10094;</a>
+    <a href="#img5" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/All%2019%20Sep%2088%20Promo-05.jpg" alt="Sep 88 Promo 05" />
   </div>
   <div id="img5" class="lightbox">
+    <a href="#img4" class="nav-button prev">&#10094;</a>
+    <a href="#img6" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/GSS%20$5%20Coupon%20Topper.jpg" alt="GSS $5 Coupon Topper" />
   </div>
   <div id="img6" class="lightbox">
+    <a href="#img5" class="nav-button prev">&#10094;</a>
+    <a href="#img7" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/JFun%20Hanging%20Mobile.jpg" alt="JFun Hanging Mobile" />
   </div>
   <div id="img7" class="lightbox">
+    <a href="#img6" class="nav-button prev">&#10094;</a>
+    <a href="#img8" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Naxos%2025%20Ann%20Sales_Topper.jpg" alt="Naxos 25 Ann Sales Topper" />
   </div>
   <div id="img8" class="lightbox">
+    <a href="#img7" class="nav-button prev">&#10094;</a>
+    <a href="#img9" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Climate%20Voucher%20Accept%20here%20Topper-05.jpg" alt="Climate Voucher Accept here Topper" />
   </div>
   <div id="img9" class="lightbox">
+    <a href="#img8" class="nav-button prev">&#10094;</a>
+    <a href="#img10" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Fridge%20header%20poster.jpg" alt="Fridge header poster" />
   </div>
   <div id="img10" class="lightbox">
+    <a href="#img9" class="nav-button prev">&#10094;</a>
+    <a href="#img1" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/CNY%202025%20A1%20Poster%2001-05.jpg" alt="CNY 2025 A1 Poster 01-05" />
   </div>
