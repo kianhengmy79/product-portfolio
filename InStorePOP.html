@@ -2,80 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>In-store POP</title>
+  <title>Campaign</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      background: #333;
-      color: white;
-      padding: 15px;
-    }
-
-    nav {
-      display: inline-block;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 8px;
-      padding: 0 10px;
-      border-right: 1px solid white;
-    }
-
-    nav a:last-child {
-      border-right: none;
-    }
-
-    .container {
-      padding: 20px;
-    }
-
-    .ca-button {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-
-    .ca-button:hover {
-      background-color: #0056b3;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f9f9f9; }
+    h1 { padding: 20px; }
+    .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px; }
+    .gallery img { width: 200px; cursor: pointer; border: 2px solid #ccc; transition: 0.3s; }
+    .gallery img:hover { border-color: #333; }
+    .lightbox { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+    .lightbox img { max-width: 90%; max-height: 90%; }
+    .lightbox:target { display: flex; }
+    .close { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; text-decoration: none; font-weight: bold; }
+    a.back { display: block; margin: 20px; text-decoration: none; color: #007BFF; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>My Portfolio</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="Campaign.html">Campaign</a>
-      <a href="InStorePOP.html">In-store POP</a>
-      <a href="PackagingPrintProduction.html">Packaging & Print Production</a>
-      <a href="DisplaySuperimpose.html">Display Superimpose</a>
-      <a href="PromotionPoster.html">Promotion Poster</a>
-      <a href="HangingMobile.html">Hanging Mobile</a>
-      <a href="DigitalPanel.html">Digital Panel</a>
-      <a href="Standee.html">Standee</a>
-      <a href="LogoDesign.html">Logo Design</a>
-    </nav>
-  </header>
-
-  <div class="container">
-    <h2>In-store POP</h2>
-    <p>Details about your In-store Point of Purchase projects go here.</p>
-
-    <!-- Call to Action button -->
-    <a href="Contact.html" class="ca-button">Contact Me</a>
+  <h1>Campaign</h1>
+  <div class="gallery">
+    <a href="#img1"><img src="images/Bedok%20Spalon%20Body%20Relaxation%20Massage%20A1%20Poster.jpg" alt="Bedok Spalon Body Relaxation Massage A1 Poster" /></a>
+    <a href="#img2"><img src="images/Mosquitno%20Online%20Ad%2002.jpg" alt="Mosquitno Online Ad 02" /></a>
+    <a href="#img3"><img src="images/Kings%20Potong%20A5%20Tentcard%2005-01.jpg" alt="Kings Potong A5 Tentcard 05-01" /></a>
+    <a href="#img4"><img src="images/Magnolia%20A4%20Poster%2001-01.jpg" alt="Magnolia A4 Poster 01-01" /></a>
+    <a href="#img5"><img src="images/Magnolia%20A4%20Poster%2001-02.jpg" alt="Magnolia A4 Poster 01-02" /></a>
+    <a href="#img6"><img src="images/Spalon%20Jun%20Promo%20A4%204.jpg" alt="Spalon Jun Promo A4 4" /></a>
+    <a href="#img7"><img src="images/Spalon%20May%20Promo-01.jpg" alt="Spalon May Promo-01" /></a>
+    <a href="#img8"><img src="images/spalon.jpg" alt="Spalon" /></a>
+    <a href="#img9"><img src="images/Spalon%20A4%20poster%2003.jpg" alt="Spalon A4 poster 03" /></a>
+    <a href="#img10"><img src="images/6.jpg" alt="6" /></a>
+    <a href="#img11"><img src="images/12.jpg" alt="12" /></a>
+    <a href="#img12"><img src="images/A5%20JFun%20Points%20Reminder.jpg" alt="A5 JFun Points Reminder" /></a>
+    <a href="#img13"><img src="images/CNY%202025%20Epic%20Feast.jpg" alt="CNY 2025 Epic Feast" /></a>
+    <a href="#img14"><img src="images/Cleaning%20Aids%20and%20Accessories.jpg" alt="Cleaning Aids and Accessories" /></a>
+    <a href="#img15"><img src="images/BWM%20July%203%20for%20$19.jpg" alt="BWM July 3 for $19" /></a>
+    <a href="#img16"><img src="images/Canister%20KV-02.jpg" alt="Canister KV-02" /></a>
+    <a href="#img17"><img src="images/Colleterial%20Template_A4.jpg" alt="Colleterial Template A4" /></a>
+    <a href="#img18"><img src="images/GSS%20$5%20Coupon.jpg" alt="GSS $5 Coupon" /></a>
+    <a href="#img19"><img src="images/Japan%20Home%20Atrium%20Fair-01.jpg" alt="Japan Home Atrium Fair-01" /></a>
+    <a href="#img20"><img src="images/TORI%20Cookware%20New%20Launch.jpg" alt="TORI Cookware New Launch" /></a>
   </div>
+
+  <div id="img1" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Bedok%20Spalon%20Body%20Relaxation%20Massage%20A1%20Poster.jpg" alt="Bedok Spalon Body Relaxation Massage A1 Poster" /></div>
+  <div id="img2" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Mosquitno%20Online%20Ad%2002.jpg" alt="Mosquitno Online Ad 02" /></div>
+  <div id="img3" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Kings%20Potong%20A5%20Tentcard%2005-01.jpg" alt="Kings Potong A5 Tentcard 05-01" /></div>
+  <div id="img4" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Magnolia%20A4%20Poster%2001-01.jpg" alt="Magnolia A4 Poster 01-01" /></div>
+  <div id="img5" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Magnolia%20A4%20Poster%2001-02.jpg" alt="Magnolia A4 Poster 01-02" /></div>
+  <div id="img6" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Spalon%20Jun%20Promo%20A4%204.jpg" alt="Spalon Jun Promo A4 4" /></div>
+  <div id="img7" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Spalon%20May%20Promo-01.jpg" alt="Spalon May Promo-01" /></div>
+  <div id="img8" class="lightbox"><a href="#" class="close">&times;</a><img src="images/spalon.jpg" alt="Spalon" /></div>
+  <div id="img9" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Spalon%20A4%20poster%2003.jpg" alt="Spalon A4 poster 03" /></div>
+  <div id="img10" class="lightbox"><a href="#" class="close">&times;</a><img src="images/6.jpg" alt="6" /></div>
+  <div id="img11" class="lightbox"><a href="#" class="close">&times;</a><img src="images/12.jpg" alt="12" /></div>
+  <div id="img12" class="lightbox"><a href="#" class="close">&times;</a><img src="images/A5%20JFun%20Points%20Reminder.jpg" alt="A5 JFun Points Reminder" /></div>
+  <div id="img13" class="lightbox"><a href="#" class="close">&times;</a><img src="images/CNY%202025%20Epic%20Feast.jpg" alt="CNY 2025 Epic Feast" /></div>
+  <div id="img14" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Cleaning%20Aids%20and%20Accessories.jpg" alt="Cleaning Aids and Accessories" /></div>
+  <div id="img15" class="lightbox"><a href="#" class="close">&times;</a><img src="images/BWM%20July%203%20for%20$19.jpg" alt="BWM July 3 for $19" /></div>
+  <div id="img16" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Canister%20KV-02.jpg" alt="Canister KV-02" /></div>
+  <div id="img17" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Colleterial%20Template_A4.jpg" alt="Colleterial Template A4" /></div>
+  <div id="img18" class="lightbox"><a href="#" class="close">&times;</a><img src="images/GSS%20$5%20Coupon.jpg" alt="GSS $5 Coupon" /></div>
+  <div id="img19" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Japan%20Home%20Atrium%20Fair-01.jpg" alt="Japan Home Atrium Fair-01" /></div>
+  <div id="img20" class="lightbox"><a href="#" class="close">&times;</a><img src="images/TORI%20Cookware%20New%20Launch.jpg" alt="TORI Cookware New Launch" /></div>
+
+  <a class="back" href="index.html">← Back to Home</a>
 </body>
 </html>
