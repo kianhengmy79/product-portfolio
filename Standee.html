@@ -4,8 +4,16 @@
   <meta charset="UTF-8" />
   <title>Standee</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f9f9f9; }
-    h1 { padding: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    h1 {
+      padding: 20px;
+    }
     .gallery {
       display: flex;
       flex-wrap: wrap;
@@ -26,9 +34,11 @@
       display: none;
       position: fixed;
       z-index: 1000;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.8);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
       justify-content: center;
       align-items: center;
     }
@@ -44,15 +54,36 @@
       top: 20px;
       right: 30px;
       color: white;
-      font-size: 30px;
+      font-size: 40px;
       text-decoration: none;
       font-weight: bold;
     }
-    a.back {
+    .back {
       display: block;
-      margin: 20px;
+      margin: 30px auto;
       text-decoration: none;
-      color: #007BFF;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
+    }
+    .nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      color: white;
+      text-decoration: none;
+      padding: 0 10px;
+      user-select: none;
+    }
+    .prev {
+      left: 20px;
+    }
+    .next {
+      right: 20px;
     }
   </style>
 </head>
@@ -67,46 +98,64 @@
     <a href="#img5"><img src="images/SVR.jpg" alt="SVR" /></a>
     <a href="#img6"><img src="images/April05.jpg" alt="April05" /></a>
     <a href="#img7"><img src="images/April06.jpg" alt="April06" /></a>
-    <a href="#img8"><img src="images/SVR%20Standee%20Power%20Wing%20Jan%202024%2002.jpg" alt="SVR%20Standee%20Power%20Wing%20Jan%202024%2002" /></a>
-    <a href="#img9"><img src="images/SVR%20Standee%20Power%20Wing%20Jan%202024.jpg" alt="SVR%20Standee%20Power%20Wing%20Jan%202024" /></a>
+    <a href="#img8"><img src="images/SVR%20Standee%20Power%20Wing%20Jan%202024%2002.jpg" alt="SVR Power Wing 02" /></a>
+    <a href="#img9"><img src="images/SVR%20Standee%20Power%20Wing%20Jan%202024.jpg" alt="SVR Power Wing" /></a>
   </div>
 
-  <!-- Lightboxes -->
+  <!-- Lightboxes with navigation -->
   <div id="img1" class="lightbox">
+    <a href="#img9" class="nav-button prev">&#10094;</a>
+    <a href="#img2" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/IMG_20200114_001729.png" alt="IMG_20200114_001729" />
   </div>
   <div id="img2" class="lightbox">
+    <a href="#img1" class="nav-button prev">&#10094;</a>
+    <a href="#img3" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/IMG_20200114_001746.png" alt="IMG_20200114_001746" />
   </div>
   <div id="img3" class="lightbox">
+    <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#img4" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Killiney01.png" alt="Killiney01" />
   </div>
   <div id="img4" class="lightbox">
+    <a href="#img3" class="nav-button prev">&#10094;</a>
+    <a href="#img5" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Killiney02.png" alt="Killiney02" />
   </div>
   <div id="img5" class="lightbox">
+    <a href="#img4" class="nav-button prev">&#10094;</a>
+    <a href="#img6" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/SVR.jpg" alt="SVR" />
   </div>
   <div id="img6" class="lightbox">
+    <a href="#img5" class="nav-button prev">&#10094;</a>
+    <a href="#img7" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/April05.jpg" alt="April05" />
   </div>
   <div id="img7" class="lightbox">
+    <a href="#img6" class="nav-button prev">&#10094;</a>
+    <a href="#img8" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/April06.jpg" alt="April06" />
   </div>
   <div id="img8" class="lightbox">
+    <a href="#img7" class="nav-button prev">&#10094;</a>
+    <a href="#img9" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
-    <img src="images/SVR%20Standee%20Power%20Wing%20Jan%202024%2002.jpg" alt="SVR%20Standee%20Power%20Wing%20Jan%202024%2002" />
+    <img src="images/SVR%20Standee%20Power%20Wing%20Jan%202024%2002.jpg" alt="SVR Power Wing 02" />
   </div>
   <div id="img9" class="lightbox">
+    <a href="#img8" class="nav-button prev">&#10094;</a>
+    <a href="#img1" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
-    <img src="images/SVR%20Standee%20Power%20Wing%20Jan%202024.jpg" alt="SVR%20Standee%20Power%20Wing%20Jan%202024" />
+    <img src="images/SVR%20Standee%20Power%20Wing%20Jan%202024.jpg" alt="SVR Power Wing" />
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
