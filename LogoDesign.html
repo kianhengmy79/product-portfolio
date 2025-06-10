@@ -38,7 +38,7 @@
       left: 0; 
       width: 100%; 
       height: 100%; 
-      background-color: rgba(0,0,0,0.8); 
+      background-color: rgba(0, 0, 0, 0.8); 
       justify-content: center; 
       align-items: center; 
     }
@@ -54,15 +54,33 @@
       top: 20px; 
       right: 30px; 
       color: white; 
-      font-size: 30px; 
+      font-size: 40px; 
       font-weight: bold; 
       text-decoration: none; 
     }
-    a.back { 
+    .nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      color: white;
+      text-decoration: none;
+      padding: 0 10px;
+      user-select: none;
+    }
+    .prev { left: 20px; }
+    .next { right: 20px; }
+
+    .back { 
       display: block; 
-      margin: 20px; 
-      color: #007BFF; 
+      margin: 30px auto; 
       text-decoration: none; 
+      color: #333; 
+      font-size: 18px; 
+      padding: 8px 18px; 
+      background-color: #e0e0e0; 
+      border-radius: 6px; 
+      width: fit-content; 
     }
   </style>
 </head>
@@ -78,12 +96,18 @@
     </a>
   </div>
 
+  <!-- Lightbox for Image 1 -->
   <div id="img1" class="lightbox">
+    <a href="#img2" class="nav-button next">&#10095;</a>
+    <a href="#img2" class="nav-button prev">&#10094;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/25%20Anniversary%20KV-03.jpg" alt="25 Anniversary KV-03" />
   </div>
 
+  <!-- Lightbox for Image 2 -->
   <div id="img2" class="lightbox">
+    <a href="#img1" class="nav-button next">&#10095;</a>
+    <a href="#img1" class="nav-button prev">&#10094;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/The%20Chisol%20Factory%20Logo.jpg" alt="The Chisol Factory Logo" />
   </div>
