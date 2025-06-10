@@ -4,16 +4,87 @@
   <meta charset="UTF-8">
   <title>Digital Panel</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f9f9f9; }
-    h1 { padding: 20px; }
-    .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px; }
-    .gallery img { width: 200px; cursor: pointer; border: 2px solid #ccc; transition: 0.3s; }
-    .gallery img:hover { border-color: #333; }
-    .lightbox { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-    .lightbox img { max-width: 90%; max-height: 90%; }
-    .lightbox:target { display: flex; }
-    .close { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; text-decoration: none; font-weight: bold; }
-    a.back { display: block; margin: 20px; text-decoration: none; color: #007BFF; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    h1 {
+      padding: 20px;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      padding: 20px;
+    }
+    .gallery img {
+      width: 200px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: 0.3s;
+    }
+    .gallery img:hover {
+      border-color: #333;
+    }
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+    }
+    .lightbox:target {
+      display: flex;
+    }
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 40px; /* increased size */
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .back {
+      display: block;
+      margin: 30px auto;
+      text-decoration: none;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
+    }
+    .nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      color: white;
+      text-decoration: none;
+      padding: 0 10px;
+      user-select: none;
+    }
+    .prev {
+      left: 20px;
+    }
+    .next {
+      right: 20px;
+    }
   </style>
 </head>
 <body>
@@ -26,10 +97,33 @@
     <a href="#img4"><img src="images/Naxos%2025%20Ann%20Sales%20TV%20Slide%20LR.jpg" alt="Naxos 25 Ann Slide" /></a>
   </div>
 
-  <div id="img1" class="lightbox"><a href="#" class="close">&times;</a><img src="images/CSM%20Complimentary%20Digital%20DTE%20online%2010080x1920.jpg" alt=""></div>
-  <div id="img2" class="lightbox"><a href="#" class="close">&times;</a><img src="images/CSM%20Digital%20Poster-01-01.jpg" alt=""></div>
-  <div id="img3" class="lightbox"><a href="#" class="close">&times;</a><img src="images/JFun%20App%20TV%20Slide%20LR.jpg" alt=""></div>
-  <div id="img4" class="lightbox"><a href="#" class="close">&times;</a><img src="images/Naxos%2025%20Ann%20Sales%20TV%20Slide%20LR.jpg" alt=""></div>
+  <div id="img1" class="lightbox">
+    <a href="#img4" class="nav-button prev">&#10094;</a>
+    <a href="#img2" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/CSM%20Complimentary%20Digital%20DTE%20online%2010080x1920.jpg" alt="CSM DTE">
+  </div>
+
+  <div id="img2" class="lightbox">
+    <a href="#img1" class="nav-button prev">&#10094;</a>
+    <a href="#img3" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/CSM%20Digital%20Poster-01-01.jpg" alt="CSM Digital Poster">
+  </div>
+
+  <div id="img3" class="lightbox">
+    <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#img4" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/JFun%20App%20TV%20Slide%20LR.jpg" alt="JFun App TV Slide">
+  </div>
+
+  <div id="img4" class="lightbox">
+    <a href="#img3" class="nav-button prev">&#10094;</a>
+    <a href="#img1" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Naxos%2025%20Ann%20Sales%20TV%20Slide%20LR.jpg" alt="Naxos 25 Ann Slide">
+  </div>
 
   <a class="back" href="index.html">← Back to Home</a>
 </body>
