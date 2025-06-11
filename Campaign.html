@@ -38,19 +38,22 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0,0,0,0.85);
+      background-color: rgba(0,0,0,0.9);
       justify-content: center;
       align-items: center;
       overflow: hidden;
       touch-action: pan-y;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .lightbox:target {
+      display: flex;
+      opacity: 1;
     }
     .lightbox img {
       max-width: 90%;
       max-height: 90%;
-      transition: transform 0.3s ease;
-    }
-    .lightbox:target {
-      display: flex;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
     .close {
       position: absolute;
@@ -60,6 +63,7 @@
       font-size: 40px;
       text-decoration: none;
       font-weight: bold;
+      z-index: 1100;
     }
     .back {
       display: block;
@@ -76,11 +80,17 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 40px;
+      font-size: 60px;
       color: white;
       text-decoration: none;
-      padding: 0 10px;
+      padding: 0 15px;
       user-select: none;
+      opacity: 0.7;
+      transition: opacity 0.3s;
+      z-index: 1100;
+    }
+    .nav-button:hover {
+      opacity: 1;
     }
     .prev { left: 20px; }
     .next { right: 20px; }
@@ -136,27 +146,24 @@
   <script>
     document.querySelectorAll('.lightbox').forEach(lightbox => {
       let touchStartX = 0;
-      let touchEndX = 0;
       let img = lightbox.querySelector('img');
 
       lightbox.addEventListener('touchstart', function(e) {
         touchStartX = e.changedTouches[0].screenX;
         img.style.transition = 'none';
-      }, false);
+      });
 
       lightbox.addEventListener('touchmove', function(e) {
         let deltaX = e.changedTouches[0].screenX - touchStartX;
         img.style.transform = `translateX(${deltaX}px)`;
-      }, false);
+      });
 
       lightbox.addEventListener('touchend', function(e) {
-        touchEndX = e.changedTouches[0].screenX;
-        let deltaX = touchEndX - touchStartX;
+        let deltaX = e.changedTouches[0].screenX - touchStartX;
         img.style.transition = 'transform 0.3s ease';
         img.style.transform = 'translateX(0)';
 
-        const threshold = 50; // swipe distance
-
+        const threshold = 50;
         if (deltaX < -threshold) {
           const next = lightbox.querySelector('.next');
           if (next) next.click();
@@ -164,7 +171,28 @@
           const prev = lightbox.querySelector('.prev');
           if (prev) prev.click();
         }
-      }, false);
+      });
+    });
+
+    // Keyboard support
+    document.addEventListener('keydown', function(e) {
+      const hash = window.location.hash;
+      if (!hash.startsWith("#img")) return;
+
+      const currentLightbox = document.querySelector(hash);
+      if (!currentLightbox) return;
+
+      if (e.key === "ArrowRight") {
+        const next = currentLightbox.querySelector('.next');
+        if (next) next.click();
+      }
+      if (e.key === "ArrowLeft") {
+        const prev = currentLightbox.querySelector('.prev');
+        if (prev) prev.click();
+      }
+      if (e.key === "Escape") {
+        window.location.hash = "";
+      }
     });
   </script>
 </body>
