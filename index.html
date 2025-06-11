@@ -7,45 +7,52 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
       margin: 0;
       padding: 0;
-    }
-
-    header {
-      background: #333;
-      color: white;
-      padding: 15px;
+      background: #f9f9f9;
     }
 
     nav {
-      display: inline-block;
+      background: #333;
+      padding: 15px 0;
+      text-align: center;
+      width: 100%;
     }
 
     nav a {
       color: white;
       text-decoration: none;
-      font-size: 8px;
-      padding: 0 10px;
-      border-right: 1px solid white;
+      font-size: 14px;
+      padding: 0 15px;
+      display: inline-block;
     }
 
-    nav a:last-child {
-      border-right: none;
+    nav a:hover {
+      color: #ffcc00;
     }
 
     .container {
       padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .product {
-      margin: 20px;
+      margin: 15px;
       padding: 20px;
       border: 1px solid #ddd;
-      display: inline-block;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       width: 200px;
       cursor: pointer;
-      vertical-align: top;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
     a.product-link {
@@ -53,23 +60,37 @@
       color: inherit;
       display: inline-block;
     }
+
+    h3 {
+      margin: 0;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      nav a {
+        font-size: 12px;
+        padding: 0 8px;
+      }
+      .product {
+        width: 150px;
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>My Portfolio</h1>
-    <nav>
-      <a href="Campaign.html">Campaign</a>
-      <a href="InStorePOP.html">In-store POP</a>
-      <a href="PackagingPrintProduction.html">Packaging & Print Production</a>
-      <a href="DisplaySuperimpose.html">Display Superimpose</a>
-      <a href="PromotionPoster.html">Promotion Poster</a>
-      <a href="HangingMobile.html">Hanging Mobile</a>
-      <a href="DigitalPanel.html">Digital Panel</a>
-      <a href="Standee.html">Standee</a>
-      <a href="LogoDesign.html">Logo Design</a>
-    </nav>
-  </header>
+
+  <nav>
+    <a href="Campaign.html">Campaign</a>
+    <a href="InStorePOP.html">In-store POP</a>
+    <a href="PackagingPrintProduction.html">Packaging & Print Production</a>
+    <a href="DisplaySuperimpose.html">Display Superimpose</a>
+    <a href="PromotionPoster.html">Promotion Poster</a>
+    <a href="HangingMobile.html">Hanging Mobile</a>
+    <a href="DigitalPanel.html">Digital Panel</a>
+    <a href="Standee.html">Standee</a>
+    <a href="LogoDesign.html">Logo Design</a>
+  </nav>
 
   <div class="container">
     <a href="Campaign.html" class="product-link">
