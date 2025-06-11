@@ -41,6 +41,7 @@
       background-color: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
+      touch-action: pan-y;
     }
     .lightbox img {
       max-width: 90%;
@@ -79,12 +80,8 @@
       padding: 0 10px;
       user-select: none;
     }
-    .prev {
-      left: 20px;
-    }
-    .next {
-      right: 20px;
-    }
+    .prev { left: 20px; }
+    .next { right: 20px; }
   </style>
 </head>
 <body>
@@ -133,5 +130,34 @@
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
+
+  <script>
+    document.querySelectorAll('.lightbox').forEach(lightbox => {
+      let touchstartX = 0;
+      let touchendX = 0;
+
+      lightbox.addEventListener('touchstart', function(e) {
+        touchstartX = e.changedTouches[0].screenX;
+      }, false);
+
+      lightbox.addEventListener('touchend', function(e) {
+        touchendX = e.changedTouches[0].screenX;
+        handleGesture();
+      }, false);
+
+      function handleGesture() {
+        const threshold = 50; // Minimum swipe distance in px
+        if (touchendX < touchstartX - threshold) {
+          const next = lightbox.querySelector('.next');
+          if (next) next.click();
+        }
+        if (touchendX > touchstartX + threshold) {
+          const prev = lightbox.querySelector('.prev');
+          if (prev) prev.click();
+        }
+      }
+    });
+  </script>
+
 </body>
 </html>
