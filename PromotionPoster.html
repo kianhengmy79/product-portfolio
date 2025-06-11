@@ -7,7 +7,8 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
       background: #f9f9f9;
     }
     h1 {
@@ -33,8 +34,10 @@
       display: none;
       position: fixed;
       z-index: 1000;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background-color: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
@@ -51,28 +54,31 @@
       top: 20px;
       right: 30px;
       color: white;
-      font-size: 40px; /* bigger */
+      font-size: 40px; /* increased size */
       text-decoration: none;
       font-weight: bold;
-      cursor: pointer;
       user-select: none;
+    }
+    .back {
+      display: block;
+      margin: 30px auto;
+      text-decoration: none;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
     }
     .nav-button {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 50px;
+      font-size: 40px;
       color: white;
       text-decoration: none;
-      padding: 0 15px;
+      padding: 0 10px;
       user-select: none;
-      cursor: pointer;
-      font-weight: bold;
-      line-height: 1;
-      transition: color 0.3s ease;
-    }
-    .nav-button:hover {
-      color: #ccc;
     }
     .prev {
       left: 20px;
@@ -80,36 +86,25 @@
     .next {
       right: 20px;
     }
-    a.back {
-      display: block;
-      margin: 20px;
-      text-decoration: none;
-      color: #007BFF;
-      font-size: 18px;
-      user-select: none;
-      width: fit-content;
-      margin-left: auto;
-      margin-right: auto;
-    }
   </style>
 </head>
 <body>
   <h1>Promotion Poster</h1>
   <div class="gallery">
-    <a href="#img1"><img src="images/Xmas%202024%20All-07.jpg" alt="Xmas 2024" /></a>
-    <a href="#img2"><img src="images/Personal%20Care%20%26%20Beauty%20Product%20B4G1%20Apr%202025.jpg" alt="Personal Care B4G1" /></a>
-    <a href="#img3"><img src="images/Poster%20for%20Esplanade%20MRT%20Station.jpg" alt="Esplanade Poster" /></a>
-    <a href="#img4"><img src="images/Climate%20Voucher%20Accept%20here%20poster%20FA-04.jpg" alt="Poster FA-04" /></a>
-    <a href="#img5"><img src="images/Adhoc%20A1-02.jpg" alt="Adhoc A1-02" /></a>
-    <a href="#img6"><img src="images/Housekeeping%20Essential%20Product%20B4G1%20Apr%202025.jpg" alt="Housekeeping B4G1" /></a>
-    <a href="#img7"><img src="images/Crazy%20Deal%204%20July%20A1.jpg" alt="Crazy Deal July" /></a>
-    <a href="#img8"><img src="images/CNY%202025%20A1%20Poster%2001-03.jpg" alt="CNY 2025 Poster 03" /></a>
-    <a href="#img9"><img src="images/All%2019%20Sep%2088%20Promo-02.jpg" alt="Sep 88 Promo" /></a>
-    <a href="#img10"><img src="images/A1%20Joint%20Template_V1%20GSS.jpg" alt="A1 Template GSS" /></a>
-    <a href="#img11"><img src="images/A1%20Joint%20Template_V1%20copy.jpg" alt="A1 Template Copy" /></a>
-    <a href="#img12"><img src="images/88%20%20Mar%2024%20All%20Artwork%20n_A5%20F.jpg" alt="88 Mar Artwork" /></a>
-    <a href="#img13"><img src="images/NVS%20Complementary%20Ad_Interactive%20Directory%20654x872px%20copy%204.jpg" alt="NVS Ad 4" /></a>
-    <a href="#img14"><img src="images/NVS%20Complementary%20Ad_Interactive%20Directory%20654x872px%20copy%203.jpg" alt="NVS Ad 3" /></a>
+    <a href="#img1"><img src="images/Xmas%202024%20All-07.jpg" alt="Xmas 2024"></a>
+    <a href="#img2"><img src="images/Personal%20Care%20%26%20Beauty%20Product%20B4G1%20Apr%202025.jpg" alt="Personal Care B4G1"></a>
+    <a href="#img3"><img src="images/Poster%20for%20Esplanade%20MRT%20Station.jpg" alt="Esplanade Poster"></a>
+    <a href="#img4"><img src="images/Climate%20Voucher%20Accept%20here%20poster%20FA-04.jpg" alt="Poster FA-04"></a>
+    <a href="#img5"><img src="images/Adhoc%20A1-02.jpg" alt="Adhoc A1-02"></a>
+    <a href="#img6"><img src="images/Housekeeping%20Essential%20Product%20B4G1%20Apr%202025.jpg" alt="Housekeeping B4G1"></a>
+    <a href="#img7"><img src="images/Crazy%20Deal%204%20July%20A1.jpg" alt="Crazy Deal July"></a>
+    <a href="#img8"><img src="images/CNY%202025%20A1%20Poster%2001-03.jpg" alt="CNY 2025 Poster 03"></a>
+    <a href="#img9"><img src="images/All%2019%20Sep%2088%20Promo-02.jpg" alt="Sep 88 Promo"></a>
+    <a href="#img10"><img src="images/A1%20Joint%20Template_V1%20GSS.jpg" alt="A1 Template GSS"></a>
+    <a href="#img11"><img src="images/A1%20Joint%20Template_V1%20copy.jpg" alt="A1 Template Copy"></a>
+    <a href="#img12"><img src="images/88%20%20Mar%2024%20All%20Artwork%20n_A5%20F.jpg" alt="88 Mar Artwork"></a>
+    <a href="#img13"><img src="images/NVS%20Complementary%20Ad_Interactive%20Directory%20654x872px%20copy%204.jpg" alt="NVS Ad 4"></a>
+    <a href="#img14"><img src="images/NVS%20Complementary%20Ad_Interactive%20Directory%20654x872px%20copy%203.jpg" alt="NVS Ad 3"></a>
   </div>
 
   <!-- Lightboxes with navigation -->
@@ -165,4 +160,39 @@
     <a href="#img8" class="nav-button prev">&#10094;</a>
     <a href="#img10" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
-    <img src="images/All%2019%20Sep
+    <img src="images/All%2019%20Sep%2088%20Promo-02.jpg" alt="Sep 88 Promo" />
+  </div>
+  <div id="img10" class="lightbox">
+    <a href="#img9" class="nav-button prev">&#10094;</a>
+    <a href="#img11" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/A1%20Joint%20Template_V1%20GSS.jpg" alt="A1 Template GSS" />
+  </div>
+  <div id="img11" class="lightbox">
+    <a href="#img10" class="nav-button prev">&#10094;</a>
+    <a href="#img12" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/A1%20Joint%20Template_V1%20copy.jpg" alt="A1 Template Copy" />
+  </div>
+  <div id="img12" class="lightbox">
+    <a href="#img11" class="nav-button prev">&#10094;</a>
+    <a href="#img13" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/88%20%20Mar%2024%20All%20Artwork%20n_A5%20F.jpg" alt="88 Mar Artwork" />
+  </div>
+  <div id="img13" class="lightbox">
+    <a href="#img12" class="nav-button prev">&#10094;</a>
+    <a href="#img14" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/NVS%20Complementary%20Ad_Interactive%20Directory%20654x872px%20copy%204.jpg" alt="NVS Ad 4" />
+  </div>
+  <div id="img14" class="lightbox">
+    <a href="#img13" class="nav-button prev">&#10094;</a>
+    <a href="#img1" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/NVS%20Complementary%20Ad_Interactive%20Directory%20654x872px%20copy%203.jpg" alt="NVS Ad 3" />
+  </div>
+
+  <a class="back" href="index.html">← Back to Home</a>
+</body>
+</html>
