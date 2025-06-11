@@ -49,13 +49,11 @@
     }
     .close {
       position: absolute;
-      top: 20px;
-      right: 30px;
+      top: 20px; right: 30px;
       color: white;
       font-size: 40px;
       text-decoration: none;
       font-weight: bold;
-      cursor: pointer;
       user-select: none;
     }
     a.back {
@@ -79,7 +77,6 @@
       text-decoration: none;
       padding: 0 10px;
       user-select: none;
-      cursor: pointer;
     }
     .prev {
       left: 20px;
@@ -92,7 +89,6 @@
 <body>
   <h1>Packaging & Print Production</h1>
   <div class="gallery">
-    <!-- Existing Images First -->
     <a href="#img1"><img src="images/Calendar%20But.png" alt="Calendar But" /></a>
     <a href="#img2"><img src="images/Equiom.png" alt="Equiom" /></a>
     <a href="#img3"><img src="images/Equiom-Ang-Pao_01-01.png" alt="Equiom Ang Pao 01-01" /></a>
@@ -103,8 +99,6 @@
     <a href="#img8"><img src="images/Samanco_Decal_06-01.png" alt="Samanco Decal 06-01" /></a>
     <a href="#img9"><img src="images/TERRY_BOX_02_3D_Open.png" alt="TERRY BOX 02 3D Open" /></a>
     <a href="#img10"><img src="images/TERRY-BOX-03-pop-up-ok.png" alt="TERRY BOX 03 pop up ok" /></a>
-
-    <!-- New Images moved to the bottom -->
     <a href="#img-new1"><img src="images/Chisol%20Tooth%20brush%20Promotion%2002.jpg" alt="Chisol Tooth brush Promotion 02" /></a>
     <a href="#img-new2"><img src="images/Chisol%20Tooth%20brush%20Promotion.jpg" alt="Chisol Tooth brush Promotion" /></a>
     <a href="#img-new3"><img src="images/Christmas%20cards%202023%2014-04.jpg" alt="Christmas cards 2023 14-04" /></a>
@@ -119,56 +113,177 @@
     <a href="#img-new12"><img src="images/Wall04.jpg" alt="Wall 04" /></a>
     <a href="#img-new13"><img src="images/XYM%20Gift%20Box%20Super%20Impose%20Black.jpg" alt="XYM Gift Box Super Impose Black" /></a>
     <a href="#img-new14"><img src="images/XYM%20Gift%20Box%20Super%20Impose%20White.jpg" alt="XYM Gift Box Super Impose White" /></a>
-
-    <!-- Added New Images -->
     <a href="#img-new15"><img src="images/HK%20Exhibition%20Tendar%20Ad%2009%20ok%202.jpg" alt="HK Exhibition Tendar Ad 09 ok 2" /></a>
     <a href="#img-new16"><img src="images/HK%20Exhibition%20Tendar%20Ad%2009%20(1).jpg" alt="HK Exhibition Tendar Ad 09 (1)" /></a>
     <a href="#img-new17"><img src="images/The%20Chisol%20Factory%20Tooth%20Brush%20Packaging%20ok.jpg" alt="The Chisol Factory Tooth Brush Packaging ok" /></a>
   </div>
 
   <!-- Lightboxes with navigation -->
-
   <div id="img1" class="lightbox">
+    <a href="#img10" class="nav-button prev">&#10094;</a>
     <a href="#img2" class="nav-button next">&#10095;</a>
-    <a href="#img-new17" class="nav-button prev">&#10094;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Calendar%20But.png" alt="Calendar But" />
   </div>
   <div id="img2" class="lightbox">
-    <a href="#img3" class="nav-button next">&#10095;</a>
     <a href="#img1" class="nav-button prev">&#10094;</a>
+    <a href="#img3" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Equiom.png" alt="Equiom" />
   </div>
   <div id="img3" class="lightbox">
-    <a href="#img4" class="nav-button next">&#10095;</a>
     <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#img4" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Equiom-Ang-Pao_01-01.png" alt="Equiom Ang Pao 01-01" />
   </div>
   <div id="img4" class="lightbox">
-    <a href="#img5" class="nav-button next">&#10095;</a>
     <a href="#img3" class="nav-button prev">&#10094;</a>
+    <a href="#img5" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Equiom-Ang-Pao_01-07.png" alt="Equiom Ang Pao 01-07" />
   </div>
   <div id="img5" class="lightbox">
-    <a href="#img6" class="nav-button next">&#10095;</a>
     <a href="#img4" class="nav-button prev">&#10094;</a>
+    <a href="#img6" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Magnolia_Freezer_Decal_Buy_1_free_1_02-01.png" alt="Magnolia Freezer Decal Buy 1 Free 1" />
   </div>
   <div id="img6" class="lightbox">
-    <a href="#img7" class="nav-button next">&#10095;</a>
     <a href="#img5" class="nav-button prev">&#10094;</a>
+    <a href="#img7" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Samanco_Decal_01-01.png" alt="Samanco Decal 01-01" />
   </div>
   <div id="img7" class="lightbox">
-    <a href="#img8" class="nav-button next">&#10095;</a>
     <a href="#img6" class="nav-button prev">&#10094;</a>
+    <a href="#img8" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
     <img src="images/Samanco_Decal_01-02.png" alt="Samanco Decal 01-02" />
   </div>
   <div id="img8" class="lightbox">
-    <a href="#img9" class="nav-button
+    <a href="#img7" class="nav-button prev">&#10094;</a>
+    <a href="#img9" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Samanco_Decal_06-01.png" alt="Samanco Decal 06-01" />
+  </div>
+  <div id="img9" class="lightbox">
+    <a href="#img8" class="nav-button prev">&#10094;</a>
+    <a href="#img10" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/TERRY_BOX_02_3D_Open.png" alt="TERRY BOX 02 3D Open" />
+  </div>
+  <div id="img10" class="lightbox">
+    <a href="#img9" class="nav-button prev">&#10094;</a>
+    <a href="#img-new1" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/TERRY-BOX-03-pop-up-ok.png" alt="TERRY BOX 03 pop up ok" />
+  </div>
+
+  <!-- New images lightboxes with circular navigation -->
+  <div id="img-new1" class="lightbox">
+    <a href="#img10" class="nav-button prev">&#10094;</a>
+    <a href="#img-new2" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Chisol%20Tooth%20brush%20Promotion%2002.jpg" alt="Chisol Tooth brush Promotion 02" />
+  </div>
+  <div id="img-new2" class="lightbox">
+    <a href="#img-new1" class="nav-button prev">&#10094;</a>
+    <a href="#img-new3" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Chisol%20Tooth%20brush%20Promotion.jpg" alt="Chisol Tooth brush Promotion" />
+  </div>
+  <div id="img-new3" class="lightbox">
+    <a href="#img-new2" class="nav-button prev">&#10094;</a>
+    <a href="#img-new4" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Christmas%20cards%202023%2014-04.jpg" alt="Christmas cards 2023 14-04" />
+  </div>
+  <div id="img-new4" class="lightbox">
+    <a href="#img-new3" class="nav-button prev">&#10094;</a>
+    <a href="#img-new5" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Christmas%20cards%202023%2014-05.jpg" alt="Christmas cards 2023 14-05" />
+  </div>
+  <div id="img-new5" class="lightbox">
+    <a href="#img-new4" class="nav-button prev">&#10094;</a>
+    <a href="#img-new6" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/San%20Shield%20UAPSP%20Box%20New%20Design%20Chi-01.jpg" alt="San Shield UAPSP Box New Design Chi-01" />
+  </div>
+  <div id="img-new6" class="lightbox">
+    <a href="#img-new5" class="nav-button prev">&#10094;</a>
+    <a href="#img-new7" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Spalon%20Gift%20Voucher%2004-07.jpg" alt="Spalon Gift Voucher 04-07" />
+  </div>
+  <div id="img-new7" class="lightbox">
+    <a href="#img-new6" class="nav-button prev">&#10094;</a>
+    <a href="#img-new8" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Spalon%20Gift%20Voucher%2004-12.jpg" alt="Spalon Gift Voucher 04-12" />
+  </div>
+  <div id="img-new8" class="lightbox">
+    <a href="#img-new7" class="nav-button prev">&#10094;</a>
+    <a href="#img-new9" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Spalon%20Paperbag%202-08.jpg" alt="Spalon Paperbag 2-08" />
+  </div>
+  <div id="img-new9" class="lightbox">
+    <a href="#img-new8" class="nav-button prev">&#10094;</a>
+    <a href="#img-new10" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Thank%20you%20Card%202023-04.jpg" alt="Thank you Card 2023-04" />
+  </div>
+  <div id="img-new10" class="lightbox">
+    <a href="#img-new9" class="nav-button prev">&#10094;</a>
+    <a href="#img-new11" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Thank%20you%20Card%202023-05.jpg" alt="Thank you Card 2023-05" />
+  </div>
+  <div id="img-new11" class="lightbox">
+    <a href="#img-new10" class="nav-button prev">&#10094;</a>
+    <a href="#img-new12" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Wall03.jpg" alt="Wall 03" />
+  </div>
+  <div id="img-new12" class="lightbox">
+    <a href="#img-new11" class="nav-button prev">&#10094;</a>
+    <a href="#img-new13" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Wall04.jpg" alt="Wall 04" />
+  </div>
+  <div id="img-new13" class="lightbox">
+    <a href="#img-new12" class="nav-button prev">&#10094;</a>
+    <a href="#img-new14" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/XYM%20Gift%20Box%20Super%20Impose%20Black.jpg" alt="XYM Gift Box Super Impose Black" />
+  </div>
+  <div id="img-new14" class="lightbox">
+    <a href="#img-new13" class="nav-button prev">&#10094;</a>
+    <a href="#img-new15" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/XYM%20Gift%20Box%20Super%20Impose%20White.jpg" alt="XYM Gift Box Super Impose White" />
+  </div>
+  <div id="img-new15" class="lightbox">
+    <a href="#img-new14" class="nav-button prev">&#10094;</a>
+    <a href="#img-new16" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/HK%20Exhibition%20Tendar%20Ad%2009%20ok%202.jpg" alt="HK Exhibition Tendar Ad 09 ok 2" />
+  </div>
+  <div id="img-new16" class="lightbox">
+    <a href="#img-new15" class="nav-button prev">&#10094;</a>
+    <a href="#img-new17" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/HK%20Exhibition%20Tendar%20Ad%2009%20(1).jpg" alt="HK Exhibition Tendar Ad 09 (1)" />
+  </div>
+  <div id="img-new17" class="lightbox">
+    <a href="#img-new16" class="nav-button prev">&#10094;</a>
+    <a href="#img1" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/The%20Chisol%20Factory%20Tooth%20Brush%20Packaging%20ok.jpg" alt="The Chisol Factory Tooth Brush Packaging ok" />
+  </div>
+
+  <a href="index.html" class="back">&#8592; Back to Home</a>
+</body>
+</html>
