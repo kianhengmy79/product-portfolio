@@ -3,7 +3,12 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Campaign PRO Gallery</title>
+  <title>Campaign Ultra Pro Gallery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PhotoSwipe CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/photoswipe@5/dist/photoswipe.css">
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -68,9 +73,6 @@
       cursor: pointer;
     }
   </style>
-
-  <!-- PhotoSwipe CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/photoswipe@5/dist/photoswipe.css">
 </head>
 
 <body>
@@ -79,19 +81,19 @@
 
   <div class="gallery" id="gallery">
     <a href="images/CNY%202025%20Print%20Collaterals.jpg">
-      <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" />
+      <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" loading="lazy" />
     </a>
     <a href="images/KH%20May%202024%20Meeting%202.jpg">
-      <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" />
+      <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" loading="lazy" />
     </a>
     <a href="images/88%20%20Mar%2024%20All%20Artwork.jpg">
-      <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" />
+      <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" loading="lazy" />
     </a>
     <a href="images/JapanFair.jpg">
-      <img src="images/JapanFair.jpg" alt="Japan Fair" />
+      <img src="images/JapanFair.jpg" alt="Japan Fair" loading="lazy" />
     </a>
     <a href="images/Xmas%202024%20Show%20Card_Collateral.jpg">
-      <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" />
+      <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" loading="lazy" />
     </a>
   </div>
 
@@ -99,50 +101,59 @@
 
   <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div>
 
-  <!-- PhotoSwipe -->
+  <!-- PhotoSwipe Lightbox -->
   <script type="module">
     import PhotoSwipeLightbox from 'https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.esm.js';
 
-    // Auto-read image size
-    async function getImageSize(url) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-        img.onerror = reject;
-        img.src = url;
-      });
+    // Auto detect image sizes
+    async function buildItems() {
+      const galleryElements = document.querySelectorAll('#gallery a');
+      const items = [];
+
+      for (let el of galleryElements) {
+        const href = el.getAttribute('href');
+        const size = await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = reject;
+          img.src = href;
+        });
+
+        items.push({
+          src: href,
+          width: size.width,
+          height: size.height
+        });
+      }
+      return items;
     }
 
-    const galleryElements = document.querySelectorAll('#gallery a');
-    const items = [];
+    // Build gallery after images load
+    (async () => {
+      const items = await buildItems();
 
-    for (let el of galleryElements) {
-      const href = el.getAttribute('href');
-      const size = await getImageSize(href);
-      items.push({
-        src: href,
-        width: size.width,
-        height: size.height
+      const lightbox = new PhotoSwipeLightbox({
+        dataSource: items,
+        pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js'),
+        paddingFn: () => ({ top: 30, bottom: 100, left: 10, right: 10 }),
+        zoom: true,
+        wheelToZoom: true,
+        bgOpacity: 0.9,
       });
-    }
 
-    const lightbox = new PhotoSwipeLightbox({
-      dataSource: items,
-      pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js'),
-      paddingFn: () => ({ top: 30, bottom: 120, left: 10, right: 10 }),
-    });
-
-    lightbox.on('uiRegister', function () {
-      lightbox.pswp.ui.registerElement({
-        name: 'custom-close',
-        order: 9,
-        isButton: true,
-        html: '&times;',
-        onClick: () => lightbox.pswp.close()
+      // Add custom close button at bottom center
+      lightbox.on('uiRegister', function () {
+        lightbox.pswp.ui.registerElement({
+          name: 'custom-close',
+          order: 9,
+          isButton: true,
+          html: '&times;',
+          onClick: () => lightbox.pswp.close()
+        });
       });
-    });
 
-    lightbox.init();
+      lightbox.init();
+    })();
   </script>
 
 </body>
