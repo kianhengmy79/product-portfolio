@@ -1,326 +1,179 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8" />
-
   <title>Campaign</title>
-
   <style>
-
     body {
-
       font-family: Arial, sans-serif;
-
       text-align: center;
-
       margin: 0;
-
       padding: 0;
-
       background: #f9f9f9;
-
     }
-
     h1 {
-
       padding: 20px;
-
     }
-
     .gallery {
-
       display: flex;
-
       flex-wrap: wrap;
-
       justify-content: center;
-
       gap: 15px;
-
       padding: 20px;
-
     }
-
     .gallery img {
-
       width: 200px;
-
       cursor: pointer;
-
       border: 2px solid #ccc;
-
       transition: 0.3s;
-
     }
-
     .gallery img:hover {
-
       border-color: #333;
-
     }
-
     .lightbox {
-
       display: none;
-
       position: fixed;
-
       z-index: 1000;
-
       top: 0;
-
       left: 0;
-
       width: 100%;
-
       height: 100%;
-
       background-color: rgba(0,0,0,0.8);
-
       justify-content: center;
-
       align-items: center;
-
       touch-action: pan-y;
-
+      flex-direction: column;
     }
-
     .lightbox img {
-
       max-width: 90%;
-
       max-height: 90%;
-
+      transition: transform 0.3s;
+      cursor: zoom-in;
     }
-
+    .lightbox img.enlarged {
+      transform: scale(1.8);
+      cursor: zoom-out;
+    }
     .lightbox:target {
-
       display: flex;
-
     }
-
     .close {
-
       position: absolute;
-
       top: 20px;
-
-      right: 30px;
-
+      left: 50%;
+      transform: translateX(-50%);
       color: white;
-
       font-size: 40px;
-
       text-decoration: none;
-
       font-weight: bold;
-
     }
-
     .back {
-
       display: block;
-
       margin: 30px auto;
-
       text-decoration: none;
-
       color: #333;
-
       font-size: 18px;
-
       padding: 8px 18px;
-
       background-color: #e0e0e0;
-
       border-radius: 6px;
-
       width: fit-content;
-
     }
-
     .nav-button {
-
       position: absolute;
-
       top: 50%;
-
       transform: translateY(-50%);
-
       font-size: 40px;
-
       color: white;
-
       text-decoration: none;
-
       padding: 0 10px;
-
       user-select: none;
-
     }
-
     .prev { left: 20px; }
-
     .next { right: 20px; }
-
   </style>
-
 </head>
 
 <body>
 
   <h1>Campaign</h1>
-
   <div class="gallery">
-
     <a href="#img1"><img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" /></a>
-
     <a href="#img2"><img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" /></a>
-
     <a href="#img3"><img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" /></a>
-
     <a href="#img4"><img src="images/JapanFair.jpg" alt="Japan Fair" /></a>
-
     <a href="#img5"><img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" /></a>
-
   </div>
-
-
 
   <div id="img1" class="lightbox">
-
     <a href="#img5" class="nav-button prev">&#10094;</a>
-
     <a href="#img2" class="nav-button next">&#10095;</a>
-
     <a href="#" class="close">&times;</a>
-
     <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" />
-
   </div>
-
-
 
   <div id="img2" class="lightbox">
-
     <a href="#img1" class="nav-button prev">&#10094;</a>
-
     <a href="#img3" class="nav-button next">&#10095;</a>
-
     <a href="#" class="close">&times;</a>
-
     <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" />
-
   </div>
-
-
 
   <div id="img3" class="lightbox">
-
     <a href="#img2" class="nav-button prev">&#10094;</a>
-
     <a href="#img4" class="nav-button next">&#10095;</a>
-
     <a href="#" class="close">&times;</a>
-
     <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" />
-
   </div>
-
-
 
   <div id="img4" class="lightbox">
-
     <a href="#img3" class="nav-button prev">&#10094;</a>
-
     <a href="#img5" class="nav-button next">&#10095;</a>
-
     <a href="#" class="close">&times;</a>
-
     <img src="images/JapanFair.jpg" alt="Japan Fair" />
-
   </div>
-
-
 
   <div id="img5" class="lightbox">
-
     <a href="#img4" class="nav-button prev">&#10094;</a>
-
     <a href="#img1" class="nav-button next">&#10095;</a>
-
     <a href="#" class="close">&times;</a>
-
     <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" />
-
   </div>
-
-
 
   <a class="back" href="index.html">← Back to Home</a>
 
-
-
   <script>
-
     document.querySelectorAll('.lightbox').forEach(lightbox => {
-
       let touchstartX = 0;
-
       let touchendX = 0;
 
-
-
       lightbox.addEventListener('touchstart', function(e) {
-
         touchstartX = e.changedTouches[0].screenX;
-
       }, false);
-
-
 
       lightbox.addEventListener('touchend', function(e) {
-
         touchendX = e.changedTouches[0].screenX;
-
         handleGesture();
-
       }, false);
 
-
-
       function handleGesture() {
-
-        const threshold = 50; // Minimum swipe distance in px
-
+        const threshold = 50;
         if (touchendX < touchstartX - threshold) {
-
           const next = lightbox.querySelector('.next');
-
           if (next) next.click();
-
         }
-
         if (touchendX > touchstartX + threshold) {
-
           const prev = lightbox.querySelector('.prev');
-
           if (prev) prev.click();
-
         }
-
       }
 
+      // Enlarge image on click
+      const img = lightbox.querySelector('img');
+      img.addEventListener('click', () => {
+        img.classList.toggle('enlarged');
+      });
     });
-
   </script>
 
-
-
 </body>
-
 </html>
-
