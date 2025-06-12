@@ -1,26 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <title>Campaign Ultra Pro Gallery with Swipe</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="https://unpkg.com/photoswipe@5/dist/photoswipe.css">
-
+  <title>Campaign</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      text-align: center;
       margin: 0;
       padding: 0;
       background: #f9f9f9;
     }
-
     h1 {
-      text-align: center;
       padding: 20px;
     }
-
     .gallery {
       display: flex;
       flex-wrap: wrap;
@@ -28,23 +21,51 @@
       gap: 15px;
       padding: 20px;
     }
-
     .gallery img {
       width: 200px;
-      height: auto;
       cursor: pointer;
       border: 2px solid #ccc;
       transition: 0.3s;
-      object-fit: cover;
     }
-
     .gallery img:hover {
       border-color: #333;
     }
-
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      touch-action: none;
+    }
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      transition: transform 0.3s;
+    }
+    .lightbox:target {
+      display: flex;
+    }
+    .close {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 60px;
+      text-decoration: none;
+      font-weight: bold;
+      z-index: 1001;
+    }
     .back {
       display: block;
-      margin: 20px auto;
+      margin: 30px auto;
       text-decoration: none;
       color: #333;
       font-size: 18px;
@@ -53,24 +74,18 @@
       border-radius: 6px;
       width: fit-content;
     }
-
-    .pswp__custom-close {
+    .nav-button {
       position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10000;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      border: none;
+      top: 50%;
+      transform: translateY(-50%);
       font-size: 40px;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      text-align: center;
-      line-height: 60px;
-      cursor: pointer;
+      color: white;
+      text-decoration: none;
+      padding: 0 10px;
+      user-select: none;
     }
+    .prev { left: 20px; }
+    .next { right: 20px; }
   </style>
 </head>
 
@@ -78,77 +93,109 @@
 
   <h1>Campaign</h1>
 
-  <div class="gallery" id="gallery">
-    <a href="images/CNY%202025%20Print%20Collaterals.jpg">
-      <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" loading="lazy" />
-    </a>
-    <a href="images/KH%20May%202024%20Meeting%202.jpg">
-      <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" loading="lazy" />
-    </a>
-    <a href="images/88%20%20Mar%2024%20All%20Artwork.jpg">
-      <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" loading="lazy" />
-    </a>
-    <a href="images/JapanFair.jpg">
-      <img src="images/JapanFair.jpg" alt="Japan Fair" loading="lazy" />
-    </a>
-    <a href="images/Xmas%202024%20Show%20Card_Collateral.jpg">
-      <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" loading="lazy" />
-    </a>
+  <div class="gallery">
+    <a href="#img1"><img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" /></a>
+    <a href="#img2"><img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" /></a>
+    <a href="#img3"><img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" /></a>
+    <a href="#img4"><img src="images/JapanFair.jpg" alt="Japan Fair" /></a>
+    <a href="#img5"><img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" /></a>
+  </div>
+
+  <!-- Lightbox sections -->
+  <div id="img1" class="lightbox">
+    <a href="#img5" class="nav-button prev">&#10094;</a>
+    <a href="#img2" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" />
+  </div>
+
+  <div id="img2" class="lightbox">
+    <a href="#img1" class="nav-button prev">&#10094;</a>
+    <a href="#img3" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" />
+  </div>
+
+  <div id="img3" class="lightbox">
+    <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#img4" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" />
+  </div>
+
+  <div id="img4" class="lightbox">
+    <a href="#img3" class="nav-button prev">&#10094;</a>
+    <a href="#img5" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/JapanFair.jpg" alt="Japan Fair" />
+  </div>
+
+  <div id="img5" class="lightbox">
+    <a href="#img4" class="nav-button prev">&#10094;</a>
+    <a href="#img1" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" />
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
 
-  <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div>
+  <!-- Swipe + Pinch Zoom -->
+  <script>
+    document.querySelectorAll('.lightbox').forEach(lightbox => {
+      let touchstartX = 0;
+      let touchendX = 0;
+      let scale = 1;
+      let initialDistance = null;
 
-  <script type="module">
-    import PhotoSwipeLightbox from 'https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.esm.js';
+      const img = lightbox.querySelector('img');
 
-    const gallery = document.querySelectorAll('#gallery a');
+      lightbox.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+          touchstartX = e.touches[0].screenX;
+        } else if (e.touches.length === 2) {
+          initialDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+        }
+      }, false);
 
-    // Build gallery items with true size detection
-    const buildItems = async () => {
-      const items = [];
-      for (let el of gallery) {
-        const src = el.getAttribute('href');
-        const size = await new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          img.onerror = reject;
-          img.src = src;
-        });
-        items.push({ src, width: size.width, height: size.height, element: el });
+      lightbox.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2 && initialDistance) {
+          const currentDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          scale = Math.min(Math.max(1, currentDistance / initialDistance), 5);
+          img.style.transform = `scale(${scale})`;
+        }
+      }, false);
+
+      lightbox.addEventListener('touchend', function(e) {
+        if (e.touches.length === 0) {
+          if (scale === 1 && initialDistance == null) {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+          }
+          if (e.touches.length < 2) {
+            initialDistance = null;
+          }
+        }
+      }, false);
+
+      function handleGesture() {
+        const threshold = 50;
+        if (touchendX < touchstartX - threshold) {
+          const next = lightbox.querySelector('.next');
+          if (next) next.click();
+        }
+        if (touchendX > touchstartX + threshold) {
+          const prev = lightbox.querySelector('.prev');
+          if (prev) prev.click();
+        }
       }
-      return items;
-    };
-
-    (async () => {
-      const items = await buildItems();
-
-      const lightbox = new PhotoSwipeLightbox({
-        gallery: '#gallery',
-        children: 'a',
-        pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js'),
-        dataSource: items,
-        paddingFn: () => ({ top: 30, bottom: 100, left: 10, right: 10 }),
-        zoom: true,
-        wheelToZoom: true,
-        bgOpacity: 0.9,
-      });
-
-      lightbox.on('uiRegister', () => {
-        lightbox.pswp.ui.registerElement({
-          name: 'custom-close',
-          order: 9,
-          isButton: true,
-          html: '&times;',
-          onClick: () => lightbox.pswp.close()
-        });
-      });
-
-      lightbox.init();
-    })();
+    });
   </script>
 
 </body>
-
 </html>
