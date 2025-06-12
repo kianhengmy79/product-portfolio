@@ -38,7 +38,6 @@
       border-color: #333;
     }
 
-    /* Back button */
     .back {
       display: block;
       margin: 20px auto;
@@ -51,7 +50,6 @@
       width: fit-content;
     }
 
-    /* Customize PhotoSwipe UI */
     .pswp__custom-close {
       position: absolute;
       bottom: 40px;
@@ -80,39 +78,58 @@
   <h1>Campaign</h1>
 
   <div class="gallery" id="gallery">
-    <a href="images/CNY%202025%20Print%20Collaterals.jpg" data-pswp-width="1600" data-pswp-height="1200">
+    <a href="images/CNY%202025%20Print%20Collaterals.jpg">
       <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" />
     </a>
-    <a href="images/KH%20May%202024%20Meeting%202.jpg" data-pswp-width="1600" data-pswp-height="1200">
+    <a href="images/KH%20May%202024%20Meeting%202.jpg">
       <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" />
     </a>
-    <a href="images/88%20%20Mar%2024%20All%20Artwork.jpg" data-pswp-width="1600" data-pswp-height="1200">
+    <a href="images/88%20%20Mar%2024%20All%20Artwork.jpg">
       <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" />
     </a>
-    <a href="images/JapanFair.jpg" data-pswp-width="1600" data-pswp-height="1200">
+    <a href="images/JapanFair.jpg">
       <img src="images/JapanFair.jpg" alt="Japan Fair" />
     </a>
-    <a href="images/Xmas%202024%20Show%20Card_Collateral.jpg" data-pswp-width="1600" data-pswp-height="1200">
+    <a href="images/Xmas%202024%20Show%20Card_Collateral.jpg">
       <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" />
     </a>
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
 
-  <!-- Root element of PhotoSwipe -->
   <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div>
 
-  <!-- PhotoSwipe JS -->
+  <!-- PhotoSwipe -->
   <script type="module">
     import PhotoSwipeLightbox from 'https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.esm.js';
 
+    // Auto-read image size
+    async function getImageSize(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    const galleryElements = document.querySelectorAll('#gallery a');
+    const items = [];
+
+    for (let el of galleryElements) {
+      const href = el.getAttribute('href');
+      const size = await getImageSize(href);
+      items.push({
+        src: href,
+        width: size.width,
+        height: size.height
+      });
+    }
+
     const lightbox = new PhotoSwipeLightbox({
-      gallery: '#gallery',
-      children: 'a',
+      dataSource: items,
       pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js'),
       paddingFn: () => ({ top: 30, bottom: 120, left: 10, right: 10 }),
-      zoom: true,
-      showHideAnimationType: 'zoom'
     });
 
     lightbox.on('uiRegister', function () {
