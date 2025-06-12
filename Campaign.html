@@ -47,9 +47,8 @@
       background-color: rgba(0, 0, 0, 0.8);
       justify-content: center;
       align-items: center;
+      touch-action: none; /* important for gestures */
       overflow: hidden;
-      touch-action: none;
-      flex-direction: column;
     }
 
     .lightbox img {
@@ -68,7 +67,7 @@
       top: 20px;
       right: 30px;
       color: white;
-      font-size: 60px;
+      font-size: 60px; /* enlarged */
       text-decoration: none;
       font-weight: bold;
       z-index: 1001;
@@ -110,6 +109,7 @@
 
 <body>
   <h1>Campaign</h1>
+
   <div class="gallery">
     <a href="#img1"><img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" /></a>
     <a href="#img2"><img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" /></a>
@@ -118,7 +118,6 @@
     <a href="#img5"><img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" /></a>
   </div>
 
-  <!-- Lightbox -->
   <div id="img1" class="lightbox">
     <a href="#img5" class="nav-button prev">&#10094;</a>
     <a href="#img2" class="nav-button next">&#10095;</a>
@@ -157,18 +156,21 @@
   <a class="back" href="index.html">← Back to Home</a>
 
   <script>
-    // Swipe navigation remains
     document.querySelectorAll('.lightbox').forEach(lightbox => {
       let touchstartX = 0;
       let touchendX = 0;
 
       lightbox.addEventListener('touchstart', function (e) {
-        touchstartX = e.changedTouches[0].screenX;
+        if (e.touches.length === 1) {
+          touchstartX = e.changedTouches[0].screenX;
+        }
       }, false);
 
       lightbox.addEventListener('touchend', function (e) {
-        touchendX = e.changedTouches[0].screenX;
-        handleGesture();
+        if (e.changedTouches.length === 1) {
+          touchendX = e.changedTouches[0].screenX;
+          handleGesture();
+        }
       }, false);
 
       function handleGesture() {
@@ -183,63 +185,51 @@
         }
       }
 
-      // Full gesture (pinch + pan)
+      // Zoom and Pan functionality
       const img = lightbox.querySelector('img');
-      let pointers = [];
-      let scale = 1, lastScale = 1;
-      let posX = 0, posY = 0, lastPosX = 0, lastPosY = 0;
+      let scale = 1, startScale = 1, startDistance = 0;
+      let posX = 0, posY = 0, startX = 0, startY = 0;
+      let mode = '';
 
-      function getDistance(a, b) {
-        return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-      }
-
-      img.addEventListener('pointerdown', e => {
-        pointers.push(e);
-        img.setPointerCapture(e.pointerId);
-      });
-
-      img.addEventListener('pointermove', e => {
-        for (let i = 0; i < pointers.length; i++) {
-          if (pointers[i].pointerId == e.pointerId) {
-            pointers[i] = e;
-            break;
-          }
+      lightbox.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 2) {
+          mode = 'zoom';
+          startDistance = getDistance(e.touches[0], e.touches[1]);
+          startScale = scale;
+        } else if (e.touches.length === 1) {
+          mode = 'pan';
+          startX = e.touches[0].clientX - posX;
+          startY = e.touches[0].clientY - posY;
         }
+      }, false);
 
-        if (pointers.length === 2) {
-          const dist = getDistance(pointers[0], pointers[1]);
-          const startDist = getDistance(pointers[0].startPoint, pointers[1].startPoint);
-          scale = lastScale * (dist / startDist);
-          scale = Math.min(Math.max(scale, 1), 5);
-        } else if (pointers.length === 1) {
-          posX = lastPosX + (pointers[0].clientX - pointers[0].startPoint.clientX);
-          posY = lastPosY + (pointers[0].clientY - pointers[0].startPoint.clientY);
+      lightbox.addEventListener('touchmove', function (e) {
+        e.preventDefault();
+        if (mode === 'zoom' && e.touches.length === 2) {
+          let newDistance = getDistance(e.touches[0], e.touches[1]);
+          scale = startScale * (newDistance / startDistance);
+          scale = Math.max(1, Math.min(scale, 5));
+        } else if (mode === 'pan' && e.touches.length === 1) {
+          posX = e.touches[0].clientX - startX;
+          posY = e.touches[0].clientY - startY;
         }
-
         img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-      });
+      }, { passive: false });
 
-      img.addEventListener('pointerup', e => {
-        if (pointers.length === 2) {
-          lastScale = scale;
-        } else if (pointers.length === 1) {
-          lastPosX = posX;
-          lastPosY = posY;
+      lightbox.addEventListener('touchend', function (e) {
+        if (e.touches.length === 0) {
+          mode = '';
         }
-        pointers = pointers.filter(p => p.pointerId !== e.pointerId);
-      });
+      }, false);
 
-      img.addEventListener('pointercancel', e => {
-        pointers = pointers.filter(p => p.pointerId !== e.pointerId);
-      });
-
-      img.addEventListener('pointerdown', e => {
-        e.startPoint = { clientX: e.clientX, clientY: e.clientY };
-        pointers.push(e);
-      });
-
+      function getDistance(p1, p2) {
+        let dx = p1.clientX - p2.clientX;
+        let dy = p1.clientY - p2.clientY;
+        return Math.hypot(dx, dy);
+      }
     });
   </script>
+
 </body>
 
 </html>
