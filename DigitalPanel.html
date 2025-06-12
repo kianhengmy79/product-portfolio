@@ -41,22 +41,27 @@
       background-color: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
+      touch-action: none;
     }
     .lightbox img {
       max-width: 90%;
       max-height: 90%;
+      object-fit: contain;
+      transition: transform 0.3s;
     }
     .lightbox:target {
       display: flex;
     }
     .close {
       position: absolute;
-      top: 20px;
-      right: 30px;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
       color: white;
-      font-size: 40px; /* increased size */
+      font-size: 60px;
       text-decoration: none;
       font-weight: bold;
+      z-index: 1001;
     }
     .back {
       display: block;
@@ -79,14 +84,11 @@
       padding: 0 10px;
       user-select: none;
     }
-    .prev {
-      left: 20px;
-    }
-    .next {
-      right: 20px;
-    }
+    .prev { left: 20px; }
+    .next { right: 20px; }
   </style>
 </head>
+
 <body>
   <h1>Digital Panel</h1>
 
@@ -126,5 +128,63 @@
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
+
+  <!-- Swipe + Pinch Zoom -->
+  <script>
+    document.querySelectorAll('.lightbox').forEach(lightbox => {
+      let touchstartX = 0;
+      let touchendX = 0;
+      let scale = 1;
+      let initialDistance = null;
+      const img = lightbox.querySelector('img');
+
+      lightbox.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+          touchstartX = e.touches[0].screenX;
+        } else if (e.touches.length === 2) {
+          initialDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+        }
+      }, false);
+
+      lightbox.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2 && initialDistance) {
+          const currentDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          scale = Math.min(Math.max(1, currentDistance / initialDistance), 5);
+          img.style.transform = `scale(${scale})`;
+        }
+      }, false);
+
+      lightbox.addEventListener('touchend', function(e) {
+        if (e.touches.length === 0) {
+          if (scale === 1 && initialDistance == null) {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+          }
+          if (e.touches.length < 2) {
+            initialDistance = null;
+          }
+        }
+      }, false);
+
+      function handleGesture() {
+        const threshold = 50;
+        if (touchendX < touchstartX - threshold) {
+          const next = lightbox.querySelector('.next');
+          if (next) next.click();
+        }
+        if (touchendX > touchstartX + threshold) {
+          const prev = lightbox.querySelector('.prev');
+          if (prev) prev.click();
+        }
+      }
+    });
+  </script>
+
 </body>
 </html>
