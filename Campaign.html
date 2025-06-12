@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Campaign PRO Gallery</title>
@@ -10,10 +11,12 @@
       padding: 0;
       background: #f9f9f9;
     }
+
     h1 {
       text-align: center;
       padding: 20px;
     }
+
     .gallery {
       display: flex;
       flex-wrap: wrap;
@@ -21,23 +24,50 @@
       gap: 15px;
       padding: 20px;
     }
+
     .gallery img {
       width: 200px;
+      height: auto;
       cursor: pointer;
       border: 2px solid #ccc;
       transition: 0.3s;
+      object-fit: cover;
     }
+
     .gallery img:hover {
       border-color: #333;
     }
 
-    /* Customize PhotoSwipe Close Button */
-    .pswp__button--close {
-      bottom: 40px !important;
-      top: auto !important;
-      right: 50%;
-      transform: translateX(50%);
-      font-size: 50px !important;
+    /* Back button */
+    .back {
+      display: block;
+      margin: 20px auto;
+      text-decoration: none;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    /* Customize PhotoSwipe UI */
+    .pswp__custom-close {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border: none;
+      font-size: 40px;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      text-align: center;
+      line-height: 60px;
+      cursor: pointer;
     }
   </style>
 
@@ -47,43 +77,57 @@
 
 <body>
 
-<h1>Campaign</h1>
+  <h1>Campaign</h1>
 
-<div class="gallery" id="gallery">
-  <a href="images/CNY%202025%20Print%20Collaterals.jpg" data-pswp-width="1600" data-pswp-height="1200" target="_blank">
-    <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" />
-  </a>
-  <a href="images/KH%20May%202024%20Meeting%202.jpg" data-pswp-width="1600" data-pswp-height="1200" target="_blank">
-    <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" />
-  </a>
-  <a href="images/88%20%20Mar%2024%20All%20Artwork.jpg" data-pswp-width="1600" data-pswp-height="1200" target="_blank">
-    <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" />
-  </a>
-  <a href="images/JapanFair.jpg" data-pswp-width="1600" data-pswp-height="1200" target="_blank">
-    <img src="images/JapanFair.jpg" alt="Japan Fair" />
-  </a>
-  <a href="images/Xmas%202024%20Show%20Card_Collateral.jpg" data-pswp-width="1600" data-pswp-height="1200" target="_blank">
-    <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" />
-  </a>
-</div>
+  <div class="gallery" id="gallery">
+    <a href="images/CNY%202025%20Print%20Collaterals.jpg" data-pswp-width="1600" data-pswp-height="1200">
+      <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" />
+    </a>
+    <a href="images/KH%20May%202024%20Meeting%202.jpg" data-pswp-width="1600" data-pswp-height="1200">
+      <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" />
+    </a>
+    <a href="images/88%20%20Mar%2024%20All%20Artwork.jpg" data-pswp-width="1600" data-pswp-height="1200">
+      <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" />
+    </a>
+    <a href="images/JapanFair.jpg" data-pswp-width="1600" data-pswp-height="1200">
+      <img src="images/JapanFair.jpg" alt="Japan Fair" />
+    </a>
+    <a href="images/Xmas%202024%20Show%20Card_Collateral.jpg" data-pswp-width="1600" data-pswp-height="1200">
+      <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" />
+    </a>
+  </div>
 
-<!-- Root element of PhotoSwipe -->
-<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div>
+  <a class="back" href="index.html">← Back to Home</a>
 
-<!-- PhotoSwipe JS -->
-<script type="module">
-  import PhotoSwipeLightbox from 'https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.esm.js';
+  <!-- Root element of PhotoSwipe -->
+  <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"></div>
 
-  const lightbox = new PhotoSwipeLightbox({
-    gallery: '#gallery',
-    children: 'a',
-    pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js'),
-    showHideAnimationType: 'zoom',
-    paddingFn: () => ({ top: 30, bottom: 100, left: 10, right: 10 })
-  });
+  <!-- PhotoSwipe JS -->
+  <script type="module">
+    import PhotoSwipeLightbox from 'https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.esm.js';
 
-  lightbox.init();
-</script>
+    const lightbox = new PhotoSwipeLightbox({
+      gallery: '#gallery',
+      children: 'a',
+      pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js'),
+      paddingFn: () => ({ top: 30, bottom: 120, left: 10, right: 10 }),
+      zoom: true,
+      showHideAnimationType: 'zoom'
+    });
+
+    lightbox.on('uiRegister', function () {
+      lightbox.pswp.ui.registerElement({
+        name: 'custom-close',
+        order: 9,
+        isButton: true,
+        html: '&times;',
+        onClick: () => lightbox.pswp.close()
+      });
+    });
+
+    lightbox.init();
+  </script>
 
 </body>
+
 </html>
