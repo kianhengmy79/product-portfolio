@@ -41,13 +41,11 @@
       background-color: rgba(0, 0, 0, 0.8); 
       justify-content: center; 
       align-items: center; 
-      touch-action: none;
     }
     .lightbox img { 
       max-width: 90%; 
       max-height: 90%; 
       transition: transform 0.3s;
-      cursor: zoom-in;
     }
     .lightbox:target { 
       display: flex; 
@@ -58,15 +56,9 @@
       left: 50%; 
       transform: translateX(-50%);
       color: white; 
-      font-size: 60px; 
+      font-size: 50px; 
       font-weight: bold; 
       text-decoration: none; 
-      background-color: rgba(0, 0, 0, 0.5);
-      border-radius: 50%;
-      padding: 10px 20px;
-      user-select: none;
-      cursor: pointer;
-      z-index: 1002;
     }
     .nav-button {
       position: absolute;
@@ -77,12 +69,9 @@
       text-decoration: none;
       padding: 0 10px;
       user-select: none;
-      z-index: 1001;
-      cursor: pointer;
     }
     .prev { left: 20px; }
     .next { right: 20px; }
-
     .back { 
       display: block; 
       margin: 30px auto; 
@@ -111,8 +100,8 @@
   <!-- Lightbox for Image 1 -->
   <div id="img1" class="lightbox">
     <a href="#img2" class="nav-button next">&#10095;</a>
-    <a href="#img2" class="nav-button prev">&#10094;</a> <!-- Corrected to prev: #img2? Actually prev should be last image -->
-    <a href="#" class="close" title="Close">&times;</a>
+    <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#" class="close">&times;</a>
     <img src="images/25%20Anniversary%20KV-03.jpg" alt="25 Anniversary KV-03" />
   </div>
 
@@ -120,7 +109,7 @@
   <div id="img2" class="lightbox">
     <a href="#img1" class="nav-button next">&#10095;</a>
     <a href="#img1" class="nav-button prev">&#10094;</a>
-    <a href="#" class="close" title="Close">&times;</a>
+    <a href="#" class="close">&times;</a>
     <img src="images/The%20Chisol%20Factory%20Logo.jpg" alt="The Chisol Factory Logo" />
   </div>
 
@@ -130,87 +119,39 @@
     document.querySelectorAll('.lightbox').forEach(lightbox => {
       let touchstartX = 0;
       let touchendX = 0;
-      let scale = 1;
-      let initialDistance = null;
-      let lastTap = 0;
-
-      const img = lightbox.querySelector('img');
 
       lightbox.addEventListener('touchstart', function(e) {
-        if (e.touches.length === 1) {
-          touchstartX = e.touches[0].screenX;
-        } else if (e.touches.length === 2) {
-          initialDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-        }
-      }, false);
-
-      lightbox.addEventListener('touchmove', function(e) {
-        if (e.touches.length === 2 && initialDistance) {
-          const currentDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          scale = Math.min(Math.max(1, currentDistance / initialDistance), 5);
-          img.style.transform = `scale(${scale})`;
-        }
+        touchstartX = e.changedTouches[0].screenX;
       }, false);
 
       lightbox.addEventListener('touchend', function(e) {
-        if (e.touches.length === 0) {
-          if (scale === 1 && initialDistance == null) {
-            touchendX = e.changedTouches[0].screenX;
-            handleGesture();
-          }
-          if (e.touches.length < 2) {
-            initialDistance = null;
-          }
-        }
+        touchendX = e.changedTouches[0].screenX;
+        handleGesture();
       }, false);
 
       function handleGesture() {
         const threshold = 50;
         if (touchendX < touchstartX - threshold) {
           const next = lightbox.querySelector('.next');
-          if (next) {
-            img.style.transform = `scale(1)`; // reset zoom when slide
-            next.click();
-          }
+          if (next) next.click();
         }
         if (touchendX > touchstartX + threshold) {
           const prev = lightbox.querySelector('.prev');
-          if (prev) {
-            img.style.transform = `scale(1)`; // reset zoom when slide
-            prev.click();
-          }
+          if (prev) prev.click();
         }
       }
 
-      // Double tap zoom toggle for touch devices
-      lightbox.addEventListener('click', function(e) {
-        // Prevent zoom toggle on nav or close button clicks
-        if (e.target.classList.contains('nav-button') || e.target.classList.contains('close')) return;
+      // Enlarge on click
+      const img = lightbox.querySelector('img');
+      let zoomed = false;
 
-        const currentTime = new Date().getTime();
-        if (currentTime - lastTap < 300) {
-          if (scale > 1) {
-            scale = 1;
-            img.style.transform = `scale(1)`;
-          } else {
-            scale = 2;
-            img.style.transform = `scale(2)`;
-          }
+      img.addEventListener('click', () => {
+        zoomed = !zoomed;
+        if (zoomed) {
+          img.style.transform = "scale(1.8)";
+        } else {
+          img.style.transform = "scale(1)";
         }
-        lastTap = currentTime;
-      });
-
-      // Reset zoom when lightbox closes
-      const closeBtn = lightbox.querySelector('.close');
-      closeBtn.addEventListener('click', () => {
-        scale = 1;
-        img.style.transform = `scale(1)`;
       });
     });
   </script>
