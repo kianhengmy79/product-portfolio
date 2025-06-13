@@ -157,5 +157,34 @@
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
+
+  <script>
+    document.querySelectorAll('.lightbox').forEach(lightbox => {
+      let touchstartX = 0;
+      let touchendX = 0;
+
+      lightbox.addEventListener('touchstart', function(e) {
+        touchstartX = e.changedTouches[0].screenX;
+      }, false);
+
+      lightbox.addEventListener('touchend', function(e) {
+        touchendX = e.changedTouches[0].screenX;
+        handleGesture();
+      }, false);
+
+      function handleGesture() {
+        const threshold = 50;
+        if (touchendX < touchstartX - threshold) {
+          const next = lightbox.querySelector('.next');
+          if (next) next.click();
+        }
+        if (touchendX > touchstartX + threshold) {
+          const prev = lightbox.querySelector('.prev');
+          if (prev) prev.click();
+        }
+      }
+    });
+  </script>
+
 </body>
 </html>
