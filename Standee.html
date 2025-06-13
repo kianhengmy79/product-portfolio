@@ -43,18 +43,23 @@
     .lightbox img {
       max-width: 90%;
       max-height: 90%;
+      transition: transform 0.3s;
     }
     .lightbox:target {
       display: flex;
     }
     .close {
       position: absolute;
-      top: 20px;
-      right: 30px;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
       color: white;
-      font-size: 40px;
+      font-size: 50px;
       text-decoration: none;
       font-weight: bold;
+      background-color: rgba(0,0,0,0.5);
+      border-radius: 50%;
+      padding: 10px 20px;
     }
     .nav-button {
       position: absolute;
@@ -183,6 +188,19 @@
           if (prev) prev.click();
         }
       }
+
+      // Enlarge on double click or double tap
+      const img = lightbox.querySelector('img');
+      let zoomed = false;
+
+      img.addEventListener('click', () => {
+        zoomed = !zoomed;
+        if (zoomed) {
+          img.style.transform = "scale(1.8)";
+        } else {
+          img.style.transform = "scale(1)";
+        }
+      });
     });
   </script>
 
