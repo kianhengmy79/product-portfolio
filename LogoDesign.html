@@ -47,6 +47,7 @@
       max-width: 90%; 
       max-height: 90%; 
       transition: transform 0.3s;
+      cursor: zoom-in;
     }
     .lightbox:target { 
       display: flex; 
@@ -55,11 +56,17 @@
       position: absolute; 
       bottom: 30px; 
       left: 50%; 
-      transform: translateX(-50%); 
+      transform: translateX(-50%);
       color: white; 
       font-size: 60px; 
       font-weight: bold; 
       text-decoration: none; 
+      background-color: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      padding: 10px 20px;
+      user-select: none;
+      cursor: pointer;
+      z-index: 1002;
     }
     .nav-button {
       position: absolute;
@@ -71,6 +78,7 @@
       padding: 0 10px;
       user-select: none;
       z-index: 1001;
+      cursor: pointer;
     }
     .prev { left: 20px; }
     .next { right: 20px; }
@@ -104,7 +112,7 @@
   <div id="img1" class="lightbox">
     <a href="#img2" class="nav-button next">&#10095;</a>
     <a href="#img2" class="nav-button prev">&#10094;</a>
-    <a href="#" class="close">&times;</a>
+    <a href="#" class="close" title="Close">&times;</a>
     <img src="images/25%20Anniversary%20KV-03.jpg" alt="25 Anniversary KV-03" />
   </div>
 
@@ -112,7 +120,7 @@
   <div id="img2" class="lightbox">
     <a href="#img1" class="nav-button next">&#10095;</a>
     <a href="#img1" class="nav-button prev">&#10094;</a>
-    <a href="#" class="close">&times;</a>
+    <a href="#" class="close" title="Close">&times;</a>
     <img src="images/The%20Chisol%20Factory%20Logo.jpg" alt="The Chisol Factory Logo" />
   </div>
 
@@ -180,6 +188,7 @@
         }
       }
 
+      // Double tap zoom toggle for touch devices
       lightbox.addEventListener('click', function(e) {
         const currentTime = new Date().getTime();
         if (currentTime - lastTap < 300) {
@@ -192,6 +201,13 @@
           }
         }
         lastTap = currentTime;
+      });
+
+      // Reset zoom when lightbox closes
+      const closeBtn = lightbox.querySelector('.close');
+      closeBtn.addEventListener('click', () => {
+        scale = 1;
+        img.style.transform = `scale(1)`;
       });
     });
   </script>
