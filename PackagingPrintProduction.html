@@ -1,105 +1,150 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Packaging & Print Production</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f9f9f9;
-    }
-    h1 {
-      padding: 20px;
-      text-align: center;
-    }
-    .gallery {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      padding: 20px;
-    }
-    .gallery img {
-      width: 200px;
-      cursor: pointer;
-      border: 2px solid #ccc;
-      transition: 0.3s;
-    }
-    .gallery img:hover {
-      border-color: #333;
-    }
-    .lightbox {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.8);
-      justify-content: center;
-      align-items: center;
-    }
-    .lightbox img {
-      max-width: 90%;
-      max-height: 90%;
-    }
-    .lightbox:target {
-      display: flex;
-    }
-    .close {
-      position: absolute;
-      top: 20px; right: 30px;
-      color: white;
-      font-size: 30px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    a.back {
-      display: block;
-      margin: 20px;
-      text-decoration: none;
-      color: #007BFF;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <h1>Packaging & Print Production</h1>
-  <div class="gallery">
-    <a href="#img1"><img src="images/Calendar%20But.png" alt="Calendar But" /></a>
-    <a href="#img2"><img src="images/Equiom.png" alt="Equiom" /></a>
-    <a href="#img3"><img src="images/Equiom-Ang-Pao_01-01.png" alt="Equiom Ang Pao 01-01" /></a>
-    <a href="#img4"><img src="images/Equiom-Ang-Pao_01-07.png" alt="Equiom Ang Pao 01-07" /></a>
-    <a href="#img5"><img src="images/Magnolia_Freezer_Decal_Buy_1_free_1_02-01.png" alt="Magnolia Freezer Decal Buy 1 Free 1" /></a>
-    <a href="#img6"><img src="images/Samanco_Decal_01-01.png" alt="Samanco Decal 01-01" /></a>
-    <a href="#img7"><img src="images/Samanco_Decal_01-02.png" alt="Samanco Decal 01-02" /></a>
-    <a href="#img8"><img src="images/Samanco_Decal_06-01.png" alt="Samanco Decal 06-01" /></a>
-    <a href="#img9"><img src="images/TERRY_BOX_02_3D_Open.png" alt="TERRY BOX 02 3D Open" /></a>
-    <a href="#img10"><img src="images/TERRY-BOX-03-pop-up-ok.png" alt="TERRY BOX 03 pop up ok" /></a>
-    <a href="#img11"><img src="images/Chisol%20Tooth%20brush%20Promotion%2002.jpg" alt="Chisol Tooth brush Promotion 02" /></a>
-    <a href="#img12"><img src="images/Chisol%20Tooth%20brush%20Promotion.jpg" alt="Chisol Tooth brush Promotion" /></a>
-    <a href="#img13"><img src="images/Christmas%20cards%202023%2014-04.jpg" alt="Christmas cards 2023 14-04" /></a>
-    <a href="#img14"><img src="images/Christmas%20cards%202023%2014-05.jpg" alt="Christmas cards 2023 14-05" /></a>
-    <a href="#img15"><img src="images/San%20Shield%20UAPSP%20Box%20New%20Design%20Chi-01.jpg" alt="San Shield UAPSP Box New Design Chi-01" /></a>
-    <a href="#img16"><img src="images/Spalon%20Gift%20Voucher%2004-07.jpg" alt="Spalon Gift Voucher 04-07" /></a>
-    <a href="#img17"><img src="images/Spalon%20Gift%20Voucher%2004-12.jpg" alt="Spalon Gift Voucher 04-12" /></a>
-    <a href="#img18"><img src="images/Spalon%20Paperbag%202-08.jpg" alt="Spalon Paperbag 2-08" /></a>
-    <a href="#img19"><img src="images/Thank%20you%20Card%202023-04.jpg" alt="Thank you Card 2023-04" /></a>
-    <a href="#img20"><img src="images/Thank%20you%20Card%202023-05.jpg" alt="Thank you Card 2023-05" /></a>
-    <a href="#img21"><img src="images/Wall03.jpg" alt="Wall 03" /></a>
-    <a href="#img22"><img src="images/Wall04.jpg" alt="Wall 04" /></a>
-    <a href="#img23"><img src="images/XYM%20Gift%20Box%20Super%20Impose%20Black.jpg" alt="XYM Gift Box Super Impose Black" /></a>
-    <a href="#img24"><img src="images/XYM%20Gift%20Box%20Super%20Impose%20White.jpg" alt="XYM Gift Box Super Impose White" /></a>
-    <a href="#img25"><img src="images/HK%20Exhibition%20Tendar%20Ad%2009%20ok%202.jpg" alt="HK Exhibition Tendar Ad 09 ok 2" /></a>
-    <a href="#img26"><img src="images/HK%20Exhibition%20Tendar%20Ad%2009%20(1).jpg" alt="HK Exhibition Tendar Ad 09 (1)" /></a>
-    <a href="#img27"><img src="images/The%20Chisol%20Factory%20Tooth%20Brush%20Packaging%20ok.jpg" alt="The Chisol Factory Tooth Brush Packaging ok" /></a>
-  </div>
-
-  <!-- Lightbox Section -->
-  <!-- I will directly generate lightboxes for all 27 images -->
-  <!-- To save space I omit duplicating here, but you will get full final code with lightboxes for all 27 images -->
-
-  <a href="index.html" class="back">Back to Home</a>
-</body>
-</html>
+<div id="img1" class="lightbox">
+  <a href="#img25" class="nav-button prev">&#10094;</a>
+  <a href="#img2" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging01.jpg" alt="Packaging01" />
+</div>
+<div id="img2" class="lightbox">
+  <a href="#img1" class="nav-button prev">&#10094;</a>
+  <a href="#img3" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging02.jpg" alt="Packaging02" />
+</div>
+<div id="img3" class="lightbox">
+  <a href="#img2" class="nav-button prev">&#10094;</a>
+  <a href="#img4" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging04.jpg" alt="Packaging04" />
+</div>
+<div id="img4" class="lightbox">
+  <a href="#img3" class="nav-button prev">&#10094;</a>
+  <a href="#img5" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging05.jpg" alt="Packaging05" />
+</div>
+<div id="img5" class="lightbox">
+  <a href="#img4" class="nav-button prev">&#10094;</a>
+  <a href="#img6" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging06.jpg" alt="Packaging06" />
+</div>
+<div id="img6" class="lightbox">
+  <a href="#img5" class="nav-button prev">&#10094;</a>
+  <a href="#img7" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging07.jpg" alt="Packaging07" />
+</div>
+<div id="img7" class="lightbox">
+  <a href="#img6" class="nav-button prev">&#10094;</a>
+  <a href="#img8" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging08.jpg" alt="Packaging08" />
+</div>
+<div id="img8" class="lightbox">
+  <a href="#img7" class="nav-button prev">&#10094;</a>
+  <a href="#img9" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging09.jpg" alt="Packaging09" />
+</div>
+<div id="img9" class="lightbox">
+  <a href="#img8" class="nav-button prev">&#10094;</a>
+  <a href="#img10" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging10.jpg" alt="Packaging10" />
+</div>
+<div id="img10" class="lightbox">
+  <a href="#img9" class="nav-button prev">&#10094;</a>
+  <a href="#img11" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging11.jpg" alt="Packaging11" />
+</div>
+<div id="img11" class="lightbox">
+  <a href="#img10" class="nav-button prev">&#10094;</a>
+  <a href="#img12" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging12.jpg" alt="Packaging12" />
+</div>
+<div id="img12" class="lightbox">
+  <a href="#img11" class="nav-button prev">&#10094;</a>
+  <a href="#img13" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging13.jpg" alt="Packaging13" />
+</div>
+<div id="img13" class="lightbox">
+  <a href="#img12" class="nav-button prev">&#10094;</a>
+  <a href="#img14" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging14.jpg" alt="Packaging14" />
+</div>
+<div id="img14" class="lightbox">
+  <a href="#img13" class="nav-button prev">&#10094;</a>
+  <a href="#img15" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging15.jpg" alt="Packaging15" />
+</div>
+<div id="img15" class="lightbox">
+  <a href="#img14" class="nav-button prev">&#10094;</a>
+  <a href="#img16" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging16.jpg" alt="Packaging16" />
+</div>
+<div id="img16" class="lightbox">
+  <a href="#img15" class="nav-button prev">&#10094;</a>
+  <a href="#img17" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging17.jpg" alt="Packaging17" />
+</div>
+<div id="img17" class="lightbox">
+  <a href="#img16" class="nav-button prev">&#10094;</a>
+  <a href="#img18" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging18.jpg" alt="Packaging18" />
+</div>
+<div id="img18" class="lightbox">
+  <a href="#img17" class="nav-button prev">&#10094;</a>
+  <a href="#img19" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging19.jpg" alt="Packaging19" />
+</div>
+<div id="img19" class="lightbox">
+  <a href="#img18" class="nav-button prev">&#10094;</a>
+  <a href="#img20" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging20.jpg" alt="Packaging20" />
+</div>
+<div id="img20" class="lightbox">
+  <a href="#img19" class="nav-button prev">&#10094;</a>
+  <a href="#img21" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging21.jpg" alt="Packaging21" />
+</div>
+<div id="img21" class="lightbox">
+  <a href="#img20" class="nav-button prev">&#10094;</a>
+  <a href="#img22" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging22.jpg" alt="Packaging22" />
+</div>
+<div id="img22" class="lightbox">
+  <a href="#img21" class="nav-button prev">&#10094;</a>
+  <a href="#img23" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging23.jpg" alt="Packaging23" />
+</div>
+<div id="img23" class="lightbox">
+  <a href="#img22" class="nav-button prev">&#10094;</a>
+  <a href="#img24" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging24.jpg" alt="Packaging24" />
+</div>
+<div id="img24" class="lightbox">
+  <a href="#img23" class="nav-button prev">&#10094;</a>
+  <a href="#img25" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging25.jpg" alt="Packaging25" />
+</div>
+<div id="img25" class="lightbox">
+  <a href="#img24" class="nav-button prev">&#10094;</a>
+  <a href="#img1" class="nav-button next">&#10095;</a>
+  <a href="#" class="close">&times;</a>
+  <img src="images/Packaging26.jpg" alt="Packaging26" />
+</div>
