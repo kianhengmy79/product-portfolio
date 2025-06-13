@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Digital Panel</title>
   <style>
     body {
@@ -34,19 +34,15 @@
       display: none;
       position: fixed;
       z-index: 1000;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background-color: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
-      touch-action: none;
     }
     .lightbox img {
       max-width: 90%;
       max-height: 90%;
-      object-fit: contain;
       transition: transform 0.3s;
     }
     .lightbox:target {
@@ -58,21 +54,9 @@
       left: 50%;
       transform: translateX(-50%);
       color: white;
-      font-size: 60px;
+      font-size: 50px;
       text-decoration: none;
       font-weight: bold;
-      z-index: 1001;
-    }
-    .back {
-      display: block;
-      margin: 30px auto;
-      text-decoration: none;
-      color: #333;
-      font-size: 18px;
-      padding: 8px 18px;
-      background-color: #e0e0e0;
-      border-radius: 6px;
-      width: fit-content;
     }
     .nav-button {
       position: absolute;
@@ -84,11 +68,25 @@
       padding: 0 10px;
       user-select: none;
     }
-    .prev { left: 20px; }
-    .next { right: 20px; }
+    .prev {
+      left: 20px;
+    }
+    .next {
+      right: 20px;
+    }
+    a.back {
+      display: block;
+      margin: 30px auto;
+      text-decoration: none;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
+    }
   </style>
 </head>
-
 <body>
   <h1>Digital Panel</h1>
 
@@ -99,77 +97,46 @@
     <a href="#img4"><img src="images/Naxos%2025%20Ann%20Sales%20TV%20Slide%20LR.jpg" alt="Naxos 25 Ann Slide" /></a>
   </div>
 
+  <!-- Lightboxes -->
   <div id="img1" class="lightbox">
     <a href="#img4" class="nav-button prev">&#10094;</a>
     <a href="#img2" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
-    <img src="images/CSM%20Complimentary%20Digital%20DTE%20online%2010080x1920.jpg" alt="CSM DTE">
+    <img src="images/CSM%20Complimentary%20Digital%20DTE%20online%2010080x1920.jpg" alt="CSM DTE" />
   </div>
-
   <div id="img2" class="lightbox">
     <a href="#img1" class="nav-button prev">&#10094;</a>
     <a href="#img3" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
-    <img src="images/CSM%20Digital%20Poster-01-01.jpg" alt="CSM Digital Poster">
+    <img src="images/CSM%20Digital%20Poster-01-01.jpg" alt="CSM Digital Poster" />
   </div>
-
   <div id="img3" class="lightbox">
     <a href="#img2" class="nav-button prev">&#10094;</a>
     <a href="#img4" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
-    <img src="images/JFun%20App%20TV%20Slide%20LR.jpg" alt="JFun App TV Slide">
+    <img src="images/JFun%20App%20TV%20Slide%20LR.jpg" alt="JFun App TV Slide" />
   </div>
-
   <div id="img4" class="lightbox">
     <a href="#img3" class="nav-button prev">&#10094;</a>
     <a href="#img1" class="nav-button next">&#10095;</a>
     <a href="#" class="close">&times;</a>
-    <img src="images/Naxos%2025%20Ann%20Sales%20TV%20Slide%20LR.jpg" alt="Naxos 25 Ann Slide">
+    <img src="images/Naxos%2025%20Ann%20Sales%20TV%20Slide%20LR.jpg" alt="Naxos 25 Ann Slide" />
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
 
-  <!-- Swipe + Pinch Zoom -->
   <script>
     document.querySelectorAll('.lightbox').forEach(lightbox => {
       let touchstartX = 0;
       let touchendX = 0;
-      let scale = 1;
-      let initialDistance = null;
-      const img = lightbox.querySelector('img');
 
       lightbox.addEventListener('touchstart', function(e) {
-        if (e.touches.length === 1) {
-          touchstartX = e.touches[0].screenX;
-        } else if (e.touches.length === 2) {
-          initialDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-        }
-      }, false);
-
-      lightbox.addEventListener('touchmove', function(e) {
-        if (e.touches.length === 2 && initialDistance) {
-          const currentDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          scale = Math.min(Math.max(1, currentDistance / initialDistance), 5);
-          img.style.transform = `scale(${scale})`;
-        }
+        touchstartX = e.changedTouches[0].screenX;
       }, false);
 
       lightbox.addEventListener('touchend', function(e) {
-        if (e.touches.length === 0) {
-          if (scale === 1 && initialDistance == null) {
-            touchendX = e.changedTouches[0].screenX;
-            handleGesture();
-          }
-          if (e.touches.length < 2) {
-            initialDistance = null;
-          }
-        }
+        touchendX = e.changedTouches[0].screenX;
+        handleGesture();
       }, false);
 
       function handleGesture() {
@@ -183,6 +150,19 @@
           if (prev) prev.click();
         }
       }
+
+      // Enlarge on double click or double tap
+      const img = lightbox.querySelector('img');
+      let zoomed = false;
+
+      img.addEventListener('click', () => {
+        zoomed = !zoomed;
+        if (zoomed) {
+          img.style.transform = "scale(1.8)";
+        } else {
+          img.style.transform = "scale(1)";
+        }
+      });
     });
   </script>
 
