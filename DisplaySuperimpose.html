@@ -39,12 +39,10 @@
       background-color: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
-      touch-action: none;
     }
     .lightbox img {
       max-width: 90%;
       max-height: 90%;
-      object-fit: contain;
       transition: transform 0.3s;
     }
     .lightbox:target {
@@ -56,21 +54,9 @@
       left: 50%;
       transform: translateX(-50%);
       color: white;
-      font-size: 60px;
+      font-size: 50px;
       text-decoration: none;
       font-weight: bold;
-      z-index: 1001;
-    }
-    .back {
-      display: block;
-      margin: 30px auto;
-      text-decoration: none;
-      color: #333;
-      font-size: 18px;
-      padding: 8px 18px;
-      background-color: #e0e0e0;
-      border-radius: 6px;
-      width: fit-content;
     }
     .nav-button {
       position: absolute;
@@ -84,6 +70,17 @@
     }
     .prev { left: 20px; }
     .next { right: 20px; }
+    a.back {
+      display: block;
+      margin: 30px auto;
+      text-decoration: none;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
+    }
   </style>
 </head>
 <body>
@@ -170,42 +167,14 @@
     document.querySelectorAll('.lightbox').forEach(lightbox => {
       let touchstartX = 0;
       let touchendX = 0;
-      let scale = 1;
-      let initialDistance = null;
-      const img = lightbox.querySelector('img');
 
       lightbox.addEventListener('touchstart', function(e) {
-        if (e.touches.length === 1) {
-          touchstartX = e.touches[0].screenX;
-        } else if (e.touches.length === 2) {
-          initialDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-        }
-      }, false);
-
-      lightbox.addEventListener('touchmove', function(e) {
-        if (e.touches.length === 2 && initialDistance) {
-          const currentDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          scale = Math.min(Math.max(1, currentDistance / initialDistance), 5);
-          img.style.transform = `scale(${scale})`;
-        }
+        touchstartX = e.changedTouches[0].screenX;
       }, false);
 
       lightbox.addEventListener('touchend', function(e) {
-        if (e.touches.length === 0) {
-          if (scale === 1 && initialDistance == null) {
-            touchendX = e.changedTouches[0].screenX;
-            handleGesture();
-          }
-          if (e.touches.length < 2) {
-            initialDistance = null;
-          }
-        }
+        touchendX = e.changedTouches[0].screenX;
+        handleGesture();
       }, false);
 
       function handleGesture() {
@@ -219,6 +188,19 @@
           if (prev) prev.click();
         }
       }
+
+      // Enlarge on double click or double tap
+      const img = lightbox.querySelector('img');
+      let zoomed = false;
+
+      img.addEventListener('click', () => {
+        zoomed = !zoomed;
+        if (zoomed) {
+          img.style.transform = "scale(1.8)";
+        } else {
+          img.style.transform = "scale(1)";
+        }
+      });
     });
   </script>
 
