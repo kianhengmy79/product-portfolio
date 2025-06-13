@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Standee Lightbox Gallery</title>
+  <title>Campaign</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,186 +10,273 @@
       margin: 0;
       padding: 0;
       background: #f9f9f9;
-      overflow-x: hidden;
     }
     h1 {
       padding: 20px;
     }
     .gallery {
       display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      scroll-behavior: smooth;
-      padding: 10px;
-      background: #fff;
-      box-shadow: 0 0 10px #ccc;
-      margin: 10px;
-      border-radius: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      padding: 20px;
     }
     .gallery img {
       width: 200px;
-      height: 150px;
-      object-fit: cover;
-      margin-right: 10px;
       cursor: pointer;
-      border-radius: 4px;
-      transition: transform 0.3s ease;
+      border: 2px solid #ccc;
+      transition: 0.3s;
     }
     .gallery img:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 8px #666;
+      border-color: #333;
     }
     .lightbox {
+      display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.8);
-      display: flex;
+      z-index: 1000;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
-      visibility: hidden;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 9999;
     }
-    .lightbox.active {
-      visibility: visible;
-      opacity: 1;
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+      transition: transform 0.3s;
     }
-    .lightbox-content {
-      position: relative;
-      max-width: 90vw;
-      max-height: 90vh;
+    .lightbox:target {
+      display: flex;
     }
-    .lightbox-content img {
-      max-width: 100%;
-      max-height: 100%;
-      border-radius: 6px;
-      user-select: none;
-      -webkit-user-drag: none;
+    .close {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 50px;
+      text-decoration: none;
+      font-weight: bold;
     }
-    .close-btn, .prev-btn, .next-btn {
+    .nav-button {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
+      font-size: 40px;
       color: white;
-      font-size: 2.5rem;
-      background: transparent;
-      border: none;
-      cursor: pointer;
+      text-decoration: none;
+      padding: 0 10px;
       user-select: none;
-      padding: 0 12px;
-      font-weight: bold;
-      text-shadow: 0 0 8px black;
     }
-    .close-btn {
-      top: 20px;
+    .prev {
+      left: 20px;
+    }
+    .next {
       right: 20px;
-      font-size: 3rem;
-      transform: none;
     }
-    .prev-btn {
-      left: 10px;
-      border-radius: 0 5px 5px 0;
-    }
-    .next-btn {
-      right: 10px;
-      border-radius: 5px 0 0 5px;
-    }
-    /* Responsive */
-    @media (max-width: 600px) {
-      .gallery img {
-        width: 120px;
-        height: 90px;
-      }
-      .close-btn, .prev-btn, .next-btn {
-        font-size: 2rem;
-        padding: 0 8px;
-      }
+    a.back {
+      display: block;
+      margin: 30px auto;
+      text-decoration: none;
+      color: #333;
+      font-size: 18px;
+      padding: 8px 18px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      width: fit-content;
     }
   </style>
 </head>
 <body>
-  <h1>Standee Lightbox Gallery</h1>
-  <div class="gallery" id="gallery">
-    <img src="images/image2.jpg" alt="Image 2" data-index="0" />
-    <img src="images/image3.jpg" alt="Image 3" data-index="1" />
-    <img src="images/image4.jpg" alt="Image 4" data-index="2" />
-    <img src="images/image1.jpg" alt="Image 1" data-index="3" />
+  <h1>Campaign</h1>
+
+  <div class="gallery">
+    <a href="#img1"><img src="images/Bedok%20Spalon%20Body%20Relaxation%20Massage%20A1%20Poster.jpg" alt="Bedok Spalon Body Relaxation Massage A1 Poster" /></a>
+    <a href="#img2"><img src="images/Mosquitno%20Online%20Ad%2002.jpg" alt="Mosquitno Online Ad 02" /></a>
+    <a href="#img3"><img src="images/Kings%20Potong%20A5%20Tentcard%2005-01.jpg" alt="Kings Potong A5 Tentcard 05-01" /></a>
+    <a href="#img4"><img src="images/Magnolia%20A4%20Poster%2001-01.jpg" alt="Magnolia A4 Poster 01-01" /></a>
+    <a href="#img5"><img src="images/Magnolia%20A4%20Poster%2001-02.jpg" alt="Magnolia A4 Poster 01-02" /></a>
+    <a href="#img6"><img src="images/Spalon%20Jun%20Promo%20A4%204.jpg" alt="Spalon Jun Promo A4 4" /></a>
+    <a href="#img7"><img src="images/Spalon%20May%20Promo-01.jpg" alt="Spalon May Promo-01" /></a>
+    <a href="#img8"><img src="images/spalon.jpg" alt="Spalon" /></a>
+    <a href="#img9"><img src="images/Spalon%20A4%20poster%2003.jpg" alt="Spalon A4 poster 03" /></a>
+    <a href="#img10"><img src="images/6.jpg" alt="6" /></a>
+    <a href="#img11"><img src="images/12.jpg" alt="12" /></a>
+    <a href="#img12"><img src="images/A5%20JFun%20Points%20Reminder.jpg" alt="A5 JFun Points Reminder" /></a>
+    <a href="#img13"><img src="images/CNY%202025%20Epic%20Feast.jpg" alt="CNY 2025 Epic Feast" /></a>
+    <a href="#img14"><img src="images/Cleaning%20Aids%20and%20Accessories.jpg" alt="Cleaning Aids and Accessories" /></a>
+    <a href="#img15"><img src="images/BWM%20July%203%20for%20$19.jpg" alt="BWM July 3 for $19" /></a>
+    <a href="#img16"><img src="images/Canister%20KV-02.jpg" alt="Canister KV-02" /></a>
+    <a href="#img17"><img src="images/Colleterial%20Template_A4.jpg" alt="Colleterial Template A4" /></a>
+    <a href="#img18"><img src="images/GSS%20$5%20Coupon.jpg" alt="GSS $5 Coupon" /></a>
+    <a href="#img19"><img src="images/Japan%20Home%20Atrium%20Fair-01.jpg" alt="Japan Home Atrium Fair-01" /></a>
+    <a href="#img20"><img src="images/TORI%20Cookware%20New%20Launch.jpg" alt="TORI Cookware New Launch" /></a>
   </div>
 
-  <div class="lightbox" id="lightbox">
-    <button class="close-btn" id="closeBtn" aria-label="Close lightbox">&times;</button>
-    <button class="prev-btn" id="prevBtn" aria-label="Previous image">&#10094;</button>
-    <div class="lightbox-content">
-      <img src="" alt="Expanded view" id="lightboxImage" />
-    </div>
-    <button class="next-btn" id="nextBtn" aria-label="Next image">&#10095;</button>
+  <!-- Lightboxes -->
+  <div id="img1" class="lightbox">
+    <a href="#img20" class="nav-button prev">&#10094;</a>
+    <a href="#img2" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Bedok%20Spalon%20Body%20Relaxation%20Massage%20A1%20Poster.jpg" alt="Bedok Spalon Body Relaxation Massage A1 Poster" />
   </div>
+  <div id="img2" class="lightbox">
+    <a href="#img1" class="nav-button prev">&#10094;</a>
+    <a href="#img3" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Mosquitno%20Online%20Ad%2002.jpg" alt="Mosquitno Online Ad 02" />
+  </div>
+  <div id="img3" class="lightbox">
+    <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#img4" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Kings%20Potong%20A5%20Tentcard%2005-01.jpg" alt="Kings Potong A5 Tentcard 05-01" />
+  </div>
+  <div id="img4" class="lightbox">
+    <a href="#img3" class="nav-button prev">&#10094;</a>
+    <a href="#img5" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Magnolia%20A4%20Poster%2001-01.jpg" alt="Magnolia A4 Poster 01-01" />
+  </div>
+  <div id="img5" class="lightbox">
+    <a href="#img4" class="nav-button prev">&#10094;</a>
+    <a href="#img6" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Magnolia%20A4%20Poster%2001-02.jpg" alt="Magnolia A4 Poster 01-02" />
+  </div>
+  <div id="img6" class="lightbox">
+    <a href="#img5" class="nav-button prev">&#10094;</a>
+    <a href="#img7" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Spalon%20Jun%20Promo%20A4%204.jpg" alt="Spalon Jun Promo A4 4" />
+  </div>
+  <div id="img7" class="lightbox">
+    <a href="#img6" class="nav-button prev">&#10094;</a>
+    <a href="#img8" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Spalon%20May%20Promo-01.jpg" alt="Spalon May Promo-01" />
+  </div>
+  <div id="img8" class="lightbox">
+    <a href="#img7" class="nav-button prev">&#10094;</a>
+    <a href="#img9" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/spalon.jpg" alt="Spalon" />
+  </div>
+  <div id="img9" class="lightbox">
+    <a href="#img8" class="nav-button prev">&#10094;</a>
+    <a href="#img10" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Spalon%20A4%20poster%2003.jpg" alt="Spalon A4 poster 03" />
+  </div>
+  <div id="img10" class="lightbox">
+    <a href="#img9" class="nav-button prev">&#10094;</a>
+    <a href="#img11" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/6.jpg" alt="6" />
+  </div>
+  <div id="img11" class="lightbox">
+    <a href="#img10" class="nav-button prev">&#10094;</a>
+    <a href="#img12" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/12.jpg" alt="12" />
+  </div>
+  <div id="img12" class="lightbox">
+    <a href="#img11" class="nav-button prev">&#10094;</a>
+    <a href="#img13" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/A5%20JFun%20Points%20Reminder.jpg" alt="A5 JFun Points Reminder" />
+  </div>
+  <div id="img13" class="lightbox">
+    <a href="#img12" class="nav-button prev">&#10094;</a>
+    <a href="#img14" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/CNY%202025%20Epic%20Feast.jpg" alt="CNY 2025 Epic Feast" />
+  </div>
+  <div id="img14" class="lightbox">
+    <a href="#img13" class="nav-button prev">&#10094;</a>
+    <a href="#img15" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Cleaning%20Aids%20and%20Accessories.jpg" alt="Cleaning Aids and Accessories" />
+  </div>
+  <div id="img15" class="lightbox">
+    <a href="#img14" class="nav-button prev">&#10094;</a>
+    <a href="#img16" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/BWM%20July%203%20for%20$19.jpg" alt="BWM July 3 for $19" />
+  </div>
+  <div id="img16" class="lightbox">
+    <a href="#img15" class="nav-button prev">&#10094;</a>
+    <a href="#img17" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Canister%20KV-02.jpg" alt="Canister KV-02" />
+  </div>
+  <div id="img17" class="lightbox">
+    <a href="#img16" class="nav-button prev">&#10094;</a>
+    <a href="#img18" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Colleterial%20Template_A4.jpg" alt="Colleterial Template A4" />
+  </div>
+  <div id="img18" class="lightbox">
+    <a href="#img17" class="nav-button prev">&#10094;</a>
+    <a href="#img19" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/GSS%20$5%20Coupon.jpg" alt="GSS $5 Coupon" />
+  </div>
+  <div id="img19" class="lightbox">
+    <a href="#img18" class="nav-button prev">&#10094;</a>
+    <a href="#img20" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/Japan%20Home%20Atrium%20Fair-01.jpg" alt="Japan Home Atrium Fair-01" />
+  </div>
+  <div id="img20" class="lightbox">
+    <a href="#img19" class="nav-button prev">&#10094;</a>
+    <a href="#img1" class="nav-button next">&#10095;</a>
+    <a href="#" class="close">&times;</a>
+    <img src="images/TORI%20Cookware%20New%20Launch.jpg" alt="TORI Cookware New Launch" />
+  </div>
+
+  <a class="back" href="index.html">← Back to Home</a>
 
   <script>
-    const gallery = document.getElementById('gallery');
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImage = document.getElementById('lightboxImage');
-    const closeBtn = document.getElementById('closeBtn');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
+    document.querySelectorAll('.lightbox').forEach(lightbox => {
+      let touchstartX = 0;
+      let touchendX = 0;
 
-    // Collect images from gallery
-    const images = Array.from(gallery.querySelectorAll('img')).map(img => img.src);
+      lightbox.addEventListener('touchstart', function(e) {
+        touchstartX = e.changedTouches[0].screenX;
+      }, false);
 
-    let currentIndex = 0;
+      lightbox.addEventListener('touchend', function(e) {
+        touchendX = e.changedTouches[0].screenX;
+        handleGesture();
+      }, false);
 
-    function openLightbox(index) {
-      currentIndex = index;
-      lightboxImage.src = images[currentIndex];
-      lightbox.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeLightbox() {
-      lightbox.classList.remove('active');
-      document.body.style.overflow = '';
-      lightboxImage.src = '';
-    }
-
-    function showPrev() {
-      currentIndex = (currentIndex - 1 + images.length) % images.length;
-      lightboxImage.src = images[currentIndex];
-    }
-
-    function showNext() {
-      currentIndex = (currentIndex + 1) % images.length;
-      lightboxImage.src = images[currentIndex];
-    }
-
-    gallery.addEventListener('click', e => {
-      if(e.target.tagName === 'IMG') {
-        const index = parseInt(e.target.dataset.index, 10);
-        openLightbox(index);
+      function handleGesture() {
+        const threshold = 50;
+        if (touchendX < touchstartX - threshold) {
+          const next = lightbox.querySelector('.next');
+          if (next) next.click();
+        }
+        if (touchendX > touchstartX + threshold) {
+          const prev = lightbox.querySelector('.prev');
+          if (prev) prev.click();
+        }
       }
-    });
 
-    closeBtn.addEventListener('click', closeLightbox);
-    prevBtn.addEventListener('click', showPrev);
-    nextBtn.addEventListener('click', showNext);
+      // Enlarge on double click or double tap
+      const img = lightbox.querySelector('img');
+      let zoomed = false;
 
-    // Close lightbox on outside click
-    lightbox.addEventListener('click', e => {
-      if(e.target === lightbox) {
-        closeLightbox();
-      }
-    });
-
-    // Keyboard navigation
-    document.addEventListener('keydown', e => {
-      if (!lightbox.classList.contains('active')) return;
-      if (e.key === 'ArrowLeft') showPrev();
-      if (e.key === 'ArrowRight') showNext();
-      if (e.key === 'Escape') closeLightbox();
+      img.addEventListener('click', () => {
+        zoomed = !zoomed;
+        if (zoomed) {
+          img.style.transform = "scale(1.8)";
+        } else {
+          img.style.transform = "scale(1)";
+        }
+      });
     });
   </script>
+
 </body>
 </html>
