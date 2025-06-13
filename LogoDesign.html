@@ -60,7 +60,6 @@
       font-size: 60px; 
       font-weight: bold; 
       text-decoration: none; 
-      z-index: 1001;
     }
     .nav-button {
       position: absolute;
@@ -75,6 +74,7 @@
     }
     .prev { left: 20px; }
     .next { right: 20px; }
+
     .back { 
       display: block; 
       margin: 30px auto; 
@@ -118,37 +118,83 @@
 
   <a href="index.html" class="back">← Back to Home</a>
 
-  <!-- Swipe Gesture Script -->
   <script>
     document.querySelectorAll('.lightbox').forEach(lightbox => {
       let touchstartX = 0;
       let touchendX = 0;
-      const threshold = 50;
+      let scale = 1;
+      let initialDistance = null;
+      let lastTap = 0;
+
+      const img = lightbox.querySelector('img');
 
       lightbox.addEventListener('touchstart', function(e) {
         if (e.touches.length === 1) {
           touchstartX = e.touches[0].screenX;
+        } else if (e.touches.length === 2) {
+          initialDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+        }
+      }, false);
+
+      lightbox.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2 && initialDistance) {
+          const currentDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          scale = Math.min(Math.max(1, currentDistance / initialDistance), 5);
+          img.style.transform = `scale(${scale})`;
         }
       }, false);
 
       lightbox.addEventListener('touchend', function(e) {
-        if (e.changedTouches.length === 1) {
-          touchendX = e.changedTouches[0].screenX;
-          handleGesture();
+        if (e.touches.length === 0) {
+          if (scale === 1 && initialDistance == null) {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+          }
+          if (e.touches.length < 2) {
+            initialDistance = null;
+          }
         }
       }, false);
 
       function handleGesture() {
+        const threshold = 50;
         if (touchendX < touchstartX - threshold) {
           const next = lightbox.querySelector('.next');
-          if (next) next.click();
+          if (next) {
+            img.style.transform = `scale(1)`; // reset zoom when slide
+            next.click();
+          }
         }
         if (touchendX > touchstartX + threshold) {
           const prev = lightbox.querySelector('.prev');
-          if (prev) prev.click();
+          if (prev) {
+            img.style.transform = `scale(1)`; // reset zoom when slide
+            prev.click();
+          }
         }
       }
+
+      lightbox.addEventListener('click', function(e) {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastTap < 300) {
+          if (scale > 1) {
+            scale = 1;
+            img.style.transform = `scale(1)`;
+          } else {
+            scale = 2;
+            img.style.transform = `scale(2)`;
+          }
+        }
+        lastTap = currentTime;
+      });
     });
   </script>
+
 </body>
 </html>
