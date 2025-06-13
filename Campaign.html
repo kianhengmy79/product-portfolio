@@ -83,6 +83,7 @@
       text-decoration: none;
       padding: 0 10px;
       user-select: none;
+      z-index: 1001;
     }
     .prev { left: 20px; }
     .next { right: 20px; }
@@ -139,7 +140,7 @@
 
   <a class="back" href="index.html">← Back to Home</a>
 
-  <!-- Swipe + Pinch Zoom -->
+  <!-- Swipe + Pinch Zoom Script -->
   <script>
     document.querySelectorAll('.lightbox').forEach(lightbox => {
       let touchstartX = 0;
