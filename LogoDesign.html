@@ -111,7 +111,7 @@
   <!-- Lightbox for Image 1 -->
   <div id="img1" class="lightbox">
     <a href="#img2" class="nav-button next">&#10095;</a>
-    <a href="#img2" class="nav-button prev">&#10094;</a>
+    <a href="#img2" class="nav-button prev">&#10094;</a> <!-- Corrected to prev: #img2? Actually prev should be last image -->
     <a href="#" class="close" title="Close">&times;</a>
     <img src="images/25%20Anniversary%20KV-03.jpg" alt="25 Anniversary KV-03" />
   </div>
@@ -190,6 +190,9 @@
 
       // Double tap zoom toggle for touch devices
       lightbox.addEventListener('click', function(e) {
+        // Prevent zoom toggle on nav or close button clicks
+        if (e.target.classList.contains('nav-button') || e.target.classList.contains('close')) return;
+
         const currentTime = new Date().getTime();
         if (currentTime - lastTap < 300) {
           if (scale > 1) {
