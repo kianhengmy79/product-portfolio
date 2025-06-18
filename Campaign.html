@@ -64,6 +64,7 @@
       font-size: 50px;
       text-decoration: none;
       font-weight: bold;
+      z-index: 1001;
     }
     .nav-button {
       position: absolute;
@@ -74,6 +75,7 @@
       text-decoration: none;
       padding: 0 10px;
       user-select: none;
+      z-index: 1001;
     }
     .prev { left: 20px; }
     .next { right: 20px; }
@@ -87,6 +89,14 @@
       background-color: #e0e0e0;
       border-radius: 6px;
       width: fit-content;
+    }
+    .lightbox-content {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
@@ -104,38 +114,48 @@
 
   <!-- Lightboxes -->
   <div id="img1" class="lightbox">
-    <a href="#img5" class="nav-button prev">&#10094;</a>
-    <a href="#img2" class="nav-button next">&#10095;</a>
-    <a href="#" class="close">&times;</a>
-    <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" />
+    <div class="lightbox-content">
+      <a href="#img5" class="nav-button prev">&#10094;</a>
+      <a href="#img2" class="nav-button next">&#10095;</a>
+      <a href="#" class="close">&times;</a>
+      <img src="images/CNY%202025%20Print%20Collaterals.jpg" alt="CNY 2025 Print Collaterals" />
+    </div>
   </div>
 
   <div id="img2" class="lightbox">
-    <a href="#img1" class="nav-button prev">&#10094;</a>
-    <a href="#img3" class="nav-button next">&#10095;</a>
-    <a href="#" class="close">&times;</a>
-    <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" />
+    <div class="lightbox-content">
+      <a href="#img1" class="nav-button prev">&#10094;</a>
+      <a href="#img3" class="nav-button next">&#10095;</a>
+      <a href="#" class="close">&times;</a>
+      <img src="images/KH%20May%202024%20Meeting%202.jpg" alt="KH May 2024 Meeting 2" />
+    </div>
   </div>
 
   <div id="img3" class="lightbox">
-    <a href="#img2" class="nav-button prev">&#10094;</a>
-    <a href="#img4" class="nav-button next">&#10095;</a>
-    <a href="#" class="close">&times;</a>
-    <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" />
+    <div class="lightbox-content">
+      <a href="#img2" class="nav-button prev">&#10094;</a>
+      <a href="#img4" class="nav-button next">&#10095;</a>
+      <a href="#" class="close">&times;</a>
+      <img src="images/88%20%20Mar%2024%20All%20Artwork.jpg" alt="88 Mar 24 All Artwork" />
+    </div>
   </div>
 
   <div id="img4" class="lightbox">
-    <a href="#img3" class="nav-button prev">&#10094;</a>
-    <a href="#img5" class="nav-button next">&#10095;</a>
-    <a href="#" class="close">&times;</a>
-    <img src="images/JapanFair.jpg" alt="Japan Fair" />
+    <div class="lightbox-content">
+      <a href="#img3" class="nav-button prev">&#10094;</a>
+      <a href="#img5" class="nav-button next">&#10095;</a>
+      <a href="#" class="close">&times;</a>
+      <img src="images/JapanFair.jpg" alt="Japan Fair" />
+    </div>
   </div>
 
   <div id="img5" class="lightbox">
-    <a href="#img4" class="nav-button prev">&#10094;</a>
-    <a href="#img1" class="nav-button next">&#10095;</a>
-    <a href="#" class="close">&times;</a>
-    <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" />
+    <div class="lightbox-content">
+      <a href="#img4" class="nav-button prev">&#10094;</a>
+      <a href="#img1" class="nav-button next">&#10095;</a>
+      <a href="#" class="close">&times;</a>
+      <img src="images/Xmas%202024%20Show%20Card_Collateral.jpg" alt="Xmas 2024 Show Card Collateral" />
+    </div>
   </div>
 
   <a class="back" href="index.html">← Back to Home</a>
@@ -145,35 +165,30 @@
       let touchstartX = 0;
       let touchendX = 0;
       let zoomed = false;
+      const content = lightbox.querySelector('.lightbox-content');
       const img = lightbox.querySelector('img');
 
       // Touch handling for swipe navigation
-      lightbox.addEventListener('touchstart', function(e) {
+      content.addEventListener('touchstart', function(e) {
         if (!zoomed) {
           touchstartX = e.changedTouches[0].screenX;
-        } else {
-          e.preventDefault(); // Prevent swipe while zoomed
         }
-      }, { passive: false });
+      }, { passive: true });
 
-      lightbox.addEventListener('touchmove', function(e) {
+      content.addEventListener('touchmove', function(e) {
         if (zoomed) {
-          e.preventDefault(); // Prevent swipe while zoomed
+          e.preventDefault();
         }
       }, { passive: false });
 
-      lightbox.addEventListener('touchend', function(e) {
+      content.addEventListener('touchend', function(e) {
         if (!zoomed) {
           touchendX = e.changedTouches[0].screenX;
           handleGesture();
-        } else {
-          e.preventDefault(); // Prevent swipe while zoomed
         }
-      }, { passive: false });
+      }, { passive: true });
 
       function handleGesture() {
-        if (zoomed) return;
-        
         const threshold = 50;
         if (touchendX < touchstartX - threshold) {
           const next = lightbox.querySelector('.next');
@@ -185,39 +200,28 @@
         }
       }
 
-      // Click handling for zoom
-      img.addEventListener('click', (e) => {
-        // Only zoom if clicking directly on the image (not on nav buttons)
+      // Click handling for zoom (only on image)
+      img.addEventListener('click', function(e) {
+        // Check if click is directly on image (not bubbled from child elements)
         if (e.target === img) {
           zoomed = !zoomed;
           if (zoomed) {
             img.style.transform = "scale(1.8)";
             lightbox.classList.add('zoomed');
-            // Disable pointer events on nav buttons when zoomed
-            lightbox.querySelectorAll('.nav-button, .close').forEach(btn => {
-              btn.style.pointerEvents = 'none';
-            });
           } else {
             img.style.transform = "scale(1)";
             lightbox.classList.remove('zoomed');
-            // Re-enable pointer events when not zoomed
-            lightbox.querySelectorAll('.nav-button, .close').forEach(btn => {
-              btn.style.pointerEvents = 'auto';
-            });
           }
         }
       });
 
-      // Reset zoom when changing images
-      lightbox.querySelectorAll('.nav-button').forEach(btn => {
-        btn.addEventListener('click', () => {
+      // Reset zoom when navigating
+      lightbox.querySelectorAll('.nav-button, .close').forEach(btn => {
+        btn.addEventListener('click', function() {
           if (zoomed) {
             zoomed = false;
             img.style.transform = "scale(1)";
             lightbox.classList.remove('zoomed');
-            lightbox.querySelectorAll('.nav-button, .close').forEach(btn => {
-              btn.style.pointerEvents = 'auto';
-            });
           }
         });
       });
