@@ -41,11 +41,16 @@
       background-color: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
+      touch-action: pan-y;
+    }
+    .lightbox.zoomed {
+      touch-action: none;
     }
     .lightbox img {
       max-width: 90%;
       max-height: 90%;
       transition: transform 0.3s;
+      touch-action: manipulation;
     }
     .lightbox:target {
       display: flex;
@@ -146,17 +151,29 @@
       lightbox.addEventListener('touchstart', function(e) {
         if (!zoomed) {
           touchstartX = e.changedTouches[0].screenX;
+        } else {
+          e.preventDefault(); // Prevent swipe while zoomed
         }
-      }, false);
+      }, { passive: false });
+
+      lightbox.addEventListener('touchmove', function(e) {
+        if (zoomed) {
+          e.preventDefault(); // Prevent swipe while zoomed
+        }
+      }, { passive: false });
 
       lightbox.addEventListener('touchend', function(e) {
         if (!zoomed) {
           touchendX = e.changedTouches[0].screenX;
           handleGesture();
+        } else {
+          e.preventDefault(); // Prevent swipe while zoomed
         }
-      }, false);
+      }, { passive: false });
 
       function handleGesture() {
+        if (zoomed) return;
+        
         const threshold = 50;
         if (touchendX < touchstartX - threshold) {
           const next = lightbox.querySelector('.next');
@@ -175,12 +192,14 @@
           zoomed = !zoomed;
           if (zoomed) {
             img.style.transform = "scale(1.8)";
+            lightbox.classList.add('zoomed');
             // Disable pointer events on nav buttons when zoomed
             lightbox.querySelectorAll('.nav-button, .close').forEach(btn => {
               btn.style.pointerEvents = 'none';
             });
           } else {
             img.style.transform = "scale(1)";
+            lightbox.classList.remove('zoomed');
             // Re-enable pointer events when not zoomed
             lightbox.querySelectorAll('.nav-button, .close').forEach(btn => {
               btn.style.pointerEvents = 'auto';
@@ -195,6 +214,10 @@
           if (zoomed) {
             zoomed = false;
             img.style.transform = "scale(1)";
+            lightbox.classList.remove('zoomed');
+            lightbox.querySelectorAll('.nav-button, .close').forEach(btn => {
+              btn.style.pointerEvents = 'auto';
+            });
           }
         });
       });
