@@ -1,0 +1,65 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Circle } from "lucide-react";
+
+const pollOptions = [
+  { id: "a", label: "A Shop: 20pcs" },
+  { id: "b", label: "B Shop: 20pcs" },
+  { id: "c", label: "C Shop: 20pcs" },
+];
+
+export default function Poll() {
+  const [selected, setSelected] = useState(null);
+  const [votes, setVotes] = useState({ a: 0, b: 1, c: 0 }); // sample initial state
+
+  const handleVote = (id) => {
+    if (selected) return; // disallow multiple votes
+    setSelected(id);
+    setVotes((prev) => ({ ...prev, [id]: prev[id] + 1 }));
+  };
+
+  return (
+    <div className="max-w-md mx-auto mt-10">
+      <Card className="p-4">
+        <h2 className="text-xl font-semibold mb-4">Big L Plate</h2>
+        <p className="text-sm text-muted mb-2">Select one</p>
+        <CardContent className="space-y-3">
+          {pollOptions.map((option) => {
+            const isSelected = selected === option.id;
+            const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+            const percentage = totalVotes ? (votes[option.id] / totalVotes) * 100 : 0;
+            return (
+              <div
+                key={option.id}
+                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer border ${
+                  isSelected ? "border-green-500 bg-green-50" : "border-gray-200"
+                }`}
+                onClick={() => handleVote(option.id)}
+              >
+                <div className="shrink-0">
+                  {isSelected ? (
+                    <CheckCircle className="text-green-500" />
+                  ) : (
+                    <Circle className="text-gray-400" />
+                  )}
+                </div>
+                <div className="flex-grow">
+                  <div className="font-medium">{option.label}</div>
+                  <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
+                    <div
+                      className="h-2 bg-green-500 rounded-full"
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-500 w-6 text-right">{votes[option.id]}</div>
+              </div>
+            );
+          })}
+          <p className="text-right text-xs text-gray-400 mt-2">{new Date().toLocaleTimeString()}</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
