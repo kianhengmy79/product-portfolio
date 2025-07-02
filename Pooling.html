@@ -1,65 +1,13 @@
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, Circle } from "lucide-react";
-
-const pollOptions = [
-  { id: "a", label: "A Shop: 20pcs" },
-  { id: "b", label: "B Shop: 20pcs" },
-  { id: "c", label: "C Shop: 20pcs" },
-];
-
-export default function Poll() {
-  const [selected, setSelected] = useState(null);
-  const [votes, setVotes] = useState({ a: 0, b: 1, c: 0 }); // sample initial state
-
-  const handleVote = (id) => {
-    if (selected) return; // disallow multiple votes
-    setSelected(id);
-    setVotes((prev) => ({ ...prev, [id]: prev[id] + 1 }));
-  };
-
-  return (
-    <div className="max-w-md mx-auto mt-10">
-      <Card className="p-4">
-        <h2 className="text-xl font-semibold mb-4">Big L Plate</h2>
-        <p className="text-sm text-muted mb-2">Select one</p>
-        <CardContent className="space-y-3">
-          {pollOptions.map((option) => {
-            const isSelected = selected === option.id;
-            const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
-            const percentage = totalVotes ? (votes[option.id] / totalVotes) * 100 : 0;
-            return (
-              <div
-                key={option.id}
-                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer border ${
-                  isSelected ? "border-green-500 bg-green-50" : "border-gray-200"
-                }`}
-                onClick={() => handleVote(option.id)}
-              >
-                <div className="shrink-0">
-                  {isSelected ? (
-                    <CheckCircle className="text-green-500" />
-                  ) : (
-                    <Circle className="text-gray-400" />
-                  )}
-                </div>
-                <div className="flex-grow">
-                  <div className="font-medium">{option.label}</div>
-                  <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
-                    <div
-                      className="h-2 bg-green-500 rounded-full"
-                      style={{ width: `${percentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500 w-6 text-right">{votes[option.id]}</div>
-              </div>
-            );
-          })}
-          <p className="text-right text-xs text-gray-400 mt-2">{new Date().toLocaleTimeString()}</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+<script type="application/json"  data-content-len="3763" data-sjs>{"require":[["CometQPLPayloadStore","storePayloadMap",null,[{"7522425427506429981":{"js\/dmfthv12a800cssw.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4\/yy\/r\/A3dSfZYwOal.js","refs":["htmlStart","tierOne","tierTwo","tierThree"]},"css\/6fp9tkjo5rc4cs0g.pkg,css\/il1be6r6keg4ksoc.pkg,css\/d62uj3hdak0scgc0.pkg,css\/4zz5wu3ytzk8g04g.pkg,css\/77bvrgeabmo0ccc4.pkg.__composite__.css":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v5\/y2\/l\/0,cross\/CpjlOiHxbFH9FQYrfPr1Ken-KgHRtxjt_1P7u03JrPEEGk9VD0E5QQx.css","refs":["htmlStart","tierOne","tierTwo","tierThree"]},"js\/d1trb4pwleok4g0c.pkg,js\/zrruzjb8668wgo44.pkg,js\/ap3xs49f5ewow0oo.pkg.__composite__.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4\/yp\/r\/eEbBuz_hNoPp55HfXW__mMQT9nF9QnW4Z.js","refs":["htmlStart","tierOne","tierTwo","tierThree"]},"js\/dele3nomtao8ks8g.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4\/yg\/r\/xCY_S9yqn0S.js","refs":["htmlStart","tierOne","tierThree"]},"js\/20dagt2hzc3ok84o.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4\/yh\/r\/rZIKCpdCza1.js","refs":["htmlStart","tierOne","tierTwo","tierThree"]},"js\/dgaz4hap2rs448wg.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4\/yR\/r\/6-EiYrGmTy0.js","refs":["htmlStart","tierTwo","tierThree"]},"js\/3c1tc2at7ikgowo0.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4\/yb\/r\/oUJWmh-hL-E.js","refs":["htmlStart","tierTwo","tierThree"]},"js\/27dw329eimzoo4c4.pkg,js\/cdjbd7gom7wcs8c8.pkg,js\/kznlfbe3xfk0kw4o.pkg,js\/2f3qdwt9j5eskcwc.pkg,js\/38ncmv9qazokgo4o.pkg,js\/4lex21pcvy80g8ow.pkg,js\/egskaolexrks8owc.pkg,js\/bagkgnesy3cckk0w.pkg,js\/sojm30y1sms8cowg.pkg,js\/17fhyaw95og004ck.pkg,js\/4zguo775o9gcggog.pkg,js\/csa9qir353c4goc0.pkg.__composite__.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4ibds4\/ya\/l\/rt\/WyAUnmzg8alkxmRfbSZJOQqmv-l2mYKMQlrfDdrZUUWDReP-sxI4FjYfwA_k4oHAeOAm6P0NQwURz4rdisM9sbVJVWqKI4HhVjCSafdvBbmbXYckcJhg6bVuSvsWqehdEtWw.js","refs":["htmlStart","tierTwo","tierThree"]},"js\/m1r3bva7po0o8w04.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4iJJ14\/yH\/l\/rt\/kUvAbTl_JEl.js","refs":["htmlStart","tierTwo","tierThree"]},"js\/bhuvfvwyjdw04o8g.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4iTtf4\/yw\/l\/rt\/ZEM3SOsqG84.js","refs":["htmlStart","tierTwo","tierThree"]},"js\/8gndctknzpoo8w44.pkg,js\/4cpbv546dbk04gsw.pkg,js\/dt5kj0sja4o4kwos.pkg,js\/elsncundbw8wkss8.pkg,js\/g6gbtyelt1c0k044.pkg,js\/wd146jhx3o0c4gs4.pkg,js\/6qjeitd6h9sswsok.pkg,js\/c2h9t4u5p2gowooc.pkg,js\/7ufwfsyp9g084sos.pkg,js\/7wkr5izorwo44kc8.pkg.__composite__.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4iveD4\/yI\/l\/rt\/ux_Mn6YHiBte25flAtkfFecmcgfZ2BrznpG7YwVf7M452dDsB8mjg2bQ42Ep5p_kNNwdSLLt122fa1-w6ra_JoBUtQWzMnwH96e36VR3jchOyg.js","refs":["tierThree"]},"js\/cniiuu2kpm0o08gk.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4iCZh4\/yz\/l\/rt\/gWsj3lBE0yb.js","refs":["tierThree"]},"css\/1bryo3plf2u8gk0g.pkg.css":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v5\/yz\/l\/0,cross\/bVLskNS7G9U.css","refs":["tierThree"]},"js\/6y0js48ix9c084w8.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4icgP4\/yQ\/l\/rt\/itdtzZ6pw-E.js","refs":["tierThree"]},"js\/d1o5h5z9muos48g0.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4iYs04\/yt\/l\/rt\/SrIV94B-mfy.js","refs":["tierThree"]},"js\/7whpxpkfepkw0s0c.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4icqE4\/yf\/l\/rt\/q88fHqYTmn_.js","refs":["tierThree"]},"js\/cw04oja649kcg484.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4iEPu4\/yR\/l\/rt\/touDQ_7KRYd.js","refs":["tierThree"]},"js\/lbzhql58ddco0kss.pkg.js":{"url":"https:\/\/static.whatsapp.net\/rsrc.php\/v4i-Ip4\/yi\/l\/rt\/OxE_Fb7Gvan.js","refs":["tierThree"]}}}]]]}</script>
+<script src="data:text/javascript;base64,cmVxdWlyZUxhenkoWyJTZXJ2ZXJKU1BheWxvYWRMaXN0ZW5lciJdLGZ1bmN0aW9uKG0pe20ucHJvY2VzcygpO30sbnVsbCwweDEwMCk=" nonce="R98osnUa" data-btmanifest="1024378093_main"></script>
+<script type="application/json"  data-content-len="69" data-sjs>{"require":[["qplTagServerJS",null,null,[["lastServerTagFlushed"]]]]}</script>
+<script src="data:text/javascript;base64,cmVxdWlyZUxhenkoWyJTZXJ2ZXJKU1BheWxvYWRMaXN0ZW5lciJdLGZ1bmN0aW9uKG0pe20ucHJvY2VzcygpO30sbnVsbCwweDEwMCk=" nonce="R98osnUa" data-btmanifest="1024378093_main"></script>
+<script type="application/json"  data-content-len="2242" data-sjs>{"require":[["qplTimingsServerJS",null,null,["7522425427506429981-server","earlyFlushStart",9]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genEFRsrcStart",13]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genEFRsrcEnd",18]],["qplTimingsServerJS",null,null,["7522425427506429981-server","htmlStart",20]],["qplTimingsServerJS",null,null,["7522425427506429981-server","earlyFlushEnd",20]],["qplTimingsServerJS",null,null,["7522425427506429981-server","cometPageRender",22]],["qplTimingsServerJS",null,null,["7522425427506429981-server","allPreloadersStart",22]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genTierOneStart",22]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genRenderSplashScreenStart",22]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genRenderSplashScreenEnd",23]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genTierOneEnd",28]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierOne",29]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierOnePreloadersStart",29]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierOnePreloadersEnd",29]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genTierTwoStart",29]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genTierTwoEnd",64]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierTwo",67]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierTwoPreloadersStart",67]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierTwoPreloadersEnd",67]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genTierThreeStart",67]],["qplTimingsServerJS",null,null,["7522425427506429981-server","genTierThreeEnd",88]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierThree",90]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierThreePreloadersStart",90]],["qplTimingsServerJS",null,null,["7522425427506429981-server","tierThreePreloadersEnd",90]],["qplTimingsServerJS",null,null,["7522425427506429981-server","responseEnd",90]],["qplTimingsServerJS",null,null,["7522425427506429981-server","responseStart",1]]]}</script>
+<script src="data:text/javascript;base64,cmVxdWlyZUxhenkoWyJTZXJ2ZXJKU1BheWxvYWRMaXN0ZW5lciJdLGZ1bmN0aW9uKG0pe20ucHJvY2VzcygpO30sbnVsbCwweDEwMCk=" nonce="R98osnUa" data-btmanifest="1024378093_main"></script>
+<script type="application/json"  data-content-len="2" data-sjs>{}</script>
+<script src="data:text/javascript;base64,cmVxdWlyZUxhenkoWyJTZXJ2ZXJKU1BheWxvYWRMaXN0ZW5lciJdLGZ1bmN0aW9uKG0pe20ucHJvY2VzcygpO30sbnVsbCwweDEwMCk=" nonce="R98osnUa" data-btmanifest="1024378093_main"></script>
+<script type="application/json"  data-content-len="2" data-sjs>{}</script>
+<script src="data:text/javascript;base64,cmVxdWlyZUxhenkoWyJTZXJ2ZXJKU1BheWxvYWRMaXN0ZW5lciJdLGZ1bmN0aW9uKG0pe20ucHJvY2VzcygpO30sbnVsbCwweDEwMCk=" nonce="R98osnUa" data-btmanifest="1024378093_main"></script>
+<script type="application/json"  data-content-len="169" data-sjs>{"require":[["CometQPLPayloadStore","storePayloadBytesSent",null,[{"htmlStart":[15302,4955],"tierOne":[15428,4971],"tierTwo":[105485,23538],"tierThree":[70664,9592]}]]]}</script>
+<script src="data:text/javascript;base64,cmVxdWlyZUxhenkoWyJTZXJ2ZXJKU1BheWxvYWRMaXN0ZW5lciJdLGZ1bmN0aW9uKG0pe20ucHJvY2VzcygpO30sbnVsbCwweDEwMCk=" nonce="R98osnUa" data-btmanifest="1024378093_main"></script>
+<div id='has-finished-comet-page' hidden style='display: none;'></div></body></html>
