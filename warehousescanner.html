@@ -1,931 +1,532 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Scanner - Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            position: relative;
-        }
-        
-        header {
-            background: #1a2a6c;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        
-        /* Login Page Styles */
-        #login-page {
-            padding: 40px;
-            text-align: center;
-        }
-        
-        .login-form {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .login-form h2 {
-            margin-bottom: 20px;
-            color: #1a2a6c;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: #1a2a6c;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .login-btn:hover {
-            background: #2a3a9c;
-        }
-        
-        .demo-login {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
-        
-        .demo-btn {
-            flex: 1;
-            padding: 10px;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .demo-btn:hover {
-            background: #e5e5e5;
-        }
-        
-        /* Main App Styles (initially hidden) */
-        #main-app {
-            display: none;
-        }
-        
-        .app-container {
-            display: flex;
-            padding: 20px;
-            gap: 20px;
-        }
-        
-        .left-panel {
-            flex: 1;
-        }
-        
-        .right-panel {
-            flex: 2;
-        }
-        
-        .scanner-section {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .camera-feed {
-            width: 100%;
-            height: 250px;
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            margin: 0 auto 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .camera-placeholder {
-            font-size: 80px;
-            color: #ccc;
-        }
-        
-        .error-message {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            text-align: left;
-            border-left: 4px solid #c62828;
-        }
-        
-        .error-message h3 {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .error-icon {
-            margin-right: 10px;
-            font-size: 20px;
-        }
-        
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .primary-btn {
-            background: #1a2a6c;
-            color: white;
-        }
-        
-        .primary-btn:hover {
-            background: #2a3a9c;
-            transform: translateY(-2px);
-        }
-        
-        .secondary-btn {
-            background: #f5f5f5;
-            color: #333;
-            border: 1px solid #ddd;
-        }
-        
-        .secondary-btn:hover {
-            background: #e5e5e5;
-        }
-        
-        .danger-btn {
-            background: #d32f2f;
-            color: white;
-        }
-        
-        .danger-btn:hover {
-            background: #c62828;
-        }
-        
-        .troubleshooting {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            text-align: left;
-            border-left: 4px solid #2196f3;
-        }
-        
-        .troubleshooting h3 {
-            color: #1565c0;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .help-icon {
-            margin-right: 10px;
-            font-size: 20px;
-        }
-        
-        .troubleshooting ol {
-            padding-left: 20px;
-            margin-bottom: 10px;
-        }
-        
-        .troubleshooting li {
-            margin-bottom: 8px;
-            line-height: 1.5;
-            font-size: 14px;
-        }
-        
-        .scan-animation {
-            position: absolute;
-            height: 3px;
-            width: 100%;
-            background: linear-gradient(90deg, transparent, #4caf50, transparent);
-            top: 50%;
-            animation: scan 2s linear infinite;
-            display: none;
-        }
-        
-        @keyframes scan {
-            0% { top: 20%; }
-            100% { top: 80%; }
-        }
-        
-        .mode-display {
-            background: #e8f5e9;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            text-align: center;
-            border: 1px solid #c8e6c9;
-        }
-        
-        .mode-indicator {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        .mode-in {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-        
-        .mode-out {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
-        }
-        
-        .inventory-section {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .inventory-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        
-        .inventory-table th, .inventory-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .inventory-table th {
-            background-color: #f5f5f5;
-            font-weight: 600;
-        }
-        
-        .inventory-table tr:hover {
-            background-color: #f9f9f9;
-        }
-        
-        .export-section {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        
-        .export-options {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .data-preview {
-            background: #f9f9f9;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            background: #4caf50;
-            color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: none;
-            z-index: 1000;
-        }
-        
-        .user-info {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logout-btn {
-            padding: 8px 12px;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .logout-btn:hover {
-            background: #e5e5e5;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <title>Warehouse Scanner — Login + Google Sheets Sync</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    #video { transform: scaleX(-1); }
+    .hidden { display:none !important; }
+    .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
+  </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Warehouse Scanner Pro</h1>
-            <p>Advanced inventory management with standardized data export</p>
-        </header>
-        
-        <!-- Login Page (initially visible) -->
-        <div id="login-page">
-            <div class="login-form">
-                <h2><i class="fas fa-lock"></i> Login to Warehouse Scanner</h2>
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="Enter your username">
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter your password">
-                </div>
-                <button class="login-btn" id="login-btn">Login</button>
-                
-                <div class="demo-login">
-                    <button class="demo-btn" data-username="admin" data-password="admin123">
-                        Login as Admin
-                    </button>
-                    <button class="demo-btn" data-username="manager" data-password="manager123">
-                        Login as Manager
-                    </button>
-                    <button class="demo-btn" data-username="staff" data-password="staff123">
-                        Login as Staff
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Main App (initially hidden) -->
-        <div id="main-app">
-            <div class="user-info">
-                <span id="user-display">Logged in as: Admin</span>
-                <button class="logout-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            </div>
-            
-            <div class="app-container">
-                <div class="left-panel">
-                    <div class="scanner-section">
-                        <h2 class="text-xl font-bold mb-4"><i class="fas fa-barcode"></i> Barcode Scanner</h2>
-                        
-                        <div class="camera-feed">
-                            <div class="camera-placeholder">
-                                <i class="fas fa-camera"></i>
-                            </div>
-                            <div class="scan-animation"></div>
-                            <div id="camera-error" class="error-message hidden">
-                                <h3><i class="fas fa-exclamation-circle error-icon"></i> Camera Error</h3>
-                                <p>Requested device not found. Please check your camera connection and permissions.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="controls">
-                            <button id="start-camera" class="primary-btn">
-                                <i class="fas fa-play"></i> Start Camera
-                            </button>
-                            <button id="stop-camera" class="secondary-btn">
-                                <i class="fas fa-stop"></i> Stop Camera
-                            </button>
-                            <button id="toggle-mode" class="primary-btn">
-                                <i class="fas fa-exchange-alt"></i> Toggle Mode
-                            </button>
-                        </div>
-                        
-                        <div class="mode-display">
-                            <h3 class="font-bold">Current Mode: <span id="mode-text">IN</span> <span class="mode-indicator mode-in">INBOUND</span></h3>
-                            <p class="text-sm mt-1">Scanning barcodes will <span id="mode-action">increase</span> item quantities</p>
-                        </div>
-                        
-                        <div class="controls">
-                            <button id="manual-add" class="secondary-btn">
-                                <i class="fas fa-plus-circle"></i> Add Item Manually
-                            </button>
-                            <button id="clear-data" class="danger-btn">
-                                <i class="fas fa-trash"></i> Clear All Data
-                            </button>
-                        </div>
-                        
-                        <div class="troubleshooting">
-                            <h3><i class="fas fa-tools help-icon"></i> Camera Troubleshooting</h3>
-                            <ol>
-                                <li>Check if your camera is connected properly</li>
-                                <li>Ensure you've granted camera permissions for this site</li>
-                                <li>Try refreshing the page and trying again</li>
-                                <li>If using a mobile device, ensure no other app is using the camera</li>
-                            </ol>
-                            <button id="retry-camera" class="secondary-btn mt-2">
-                                <i class="fas fa-sync-alt"></i> Retry Camera Connection
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="export-section">
-                        <h2 class="text-xl font-bold mb-4"><i class="fas fa-file-export"></i> Data Export</h2>
-                        <p class="text-sm text-gray-600 mb-3">Export your inventory data in standardized CSV format</p>
-                        
-                        <div class="export-options">
-                            <button id="export-csv" class="primary-btn">
-                                <i class="fas fa-file-csv"></i> Export CSV
-                            </button>
-                            <button id="preview-data" class="secondary-btn">
-                                <i class="fas fa-eye"></i> Preview Data
-                            </button>
-                        </div>
-                        
-                        <div class="data-preview hidden">
-                            <h4 class="font-bold mb-2">Data Preview (Standardized Format):</h4>
-                            <div id="preview-content"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="right-panel">
-                    <div class="inventory-section">
-                        <h2 class="text-xl font-bold mb-4"><i class="fas fa-boxes"></i> Current Inventory</h2>
-                        
-                        <div class="flex justify-between items-center mb-4">
-                            <div class="flex items-center">
-                                <span class="text-sm text-gray-600 mr-2">Search:</span>
-                                <input type="text" id="search-inventory" placeholder="Barcode or name..." class="px-3 py-1 border rounded">
-                            </div>
-                            <span class="text-sm text-gray-600">Total Items: <span id="item-count">0</span></span>
-                        </div>
-                        
-                        <table class="inventory-table">
-                            <thead>
-                                <tr>
-                                    <th>Barcode</th>
-                                    <th>Product Name</th>
-                                    <th>Quantity</th>
-                                    <th>Last Updated</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inventory-body">
-                                <tr>
-                                    <td>10009901</td>
-                                    <td>Wireless Headphones</td>
-                                    <td>24</td>
-                                    <td>10/15/2023 14:22</td>
-                                    <td>
-                                        <button class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="text-red-600 hover:text-red-800 ml-2">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>1000990340703</td>
-                                    <td>Keyboard</td>
-                                    <td>548</td>
-                                    <td>10/16/2023 09:45</td>
-                                    <td>
-                                        <button class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="text-red-600 hover:text-red-800 ml-2">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>1000990720703</td>
-                                    <td>USB-C Cable</td>
-                                    <td>32</td>
-                                    <td>10/14/2023 16:30</td>
-                                    <td>
-                                        <button class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="text-red-600 hover:text-red-800 ml-2">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+<body class="bg-slate-50 text-slate-800">
+  <div class="max-w-4xl mx-auto p-6">
+    <div id="loginCard" class="bg-white rounded-2xl shadow p-6 max-w-md mx-auto">
+      <h1 class="text-2xl font-bold mb-2">Warehouse Scanner — Login</h1>
+      <p class="text-sm text-slate-500 mb-4">Sign in to track who scans inventory. You can store users in Google Sheet (recommended) or use local fallback users.</p>
+      <label class="block mb-2"><span class="text-sm">Apps Script Sync URL (optional)</span>
+        <input id="appsScriptUrl" class="mt-1 block w-full rounded-lg border p-2" placeholder="https://script.google.com/macros/s/XXXX/exec (optional)" />
+      </label>
+      <label class="block mb-2"><span class="text-sm">Sheet ID (optional)</span>
+        <input id="sheetId" class="mt-1 block w-full rounded-lg border p-2" placeholder="13T36w322JzTMFLNK3PEVAJAPa_pAMpWvDWWr7B9EC-A" />
+      </label>
+      <label class="block mb-2"><span class="text-sm">Username</span>
+        <input id="loginUser" class="mt-1 block w-full rounded-lg border p-2" placeholder="username" />
+      </label>
+      <label class="block mb-4"><span class="text-sm">Password</span>
+        <input id="loginPass" type="password" class="mt-1 block w-full rounded-lg border p-2" placeholder="password" />
+      </label>
+      <div class="flex gap-2">
+        <button id="loginBtn" class="px-4 py-2 rounded-xl bg-sky-600 text-white">Sign in</button>
+        <button id="demoBtn" class="px-4 py-2 rounded-xl bg-slate-200">Use Demo (no sheet)</button>
+        <button id="howBtn" class="ml-auto px-3 py-2 rounded-xl bg-amber-100">Instructions</button>
+      </div>
+      <p class="text-xs text-slate-400 mt-3">Tip: If you want cloud sync, deploy a tiny Google Apps Script web app (instructions available) and paste its URL above. The app will proxy reads/writes to your Sheet securely.</p>
     </div>
 
-    <div class="notification" id="notification">
-        <i class="fas fa-check-circle"></i> <span id="notification-text"></span>
-    </div>
+    <!-- Main App -->
+    <div id="app" class="hidden mt-6">
+      <header class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-sky-100 grid place-items-center"><span class="text-sky-600 font-bold">WS</span></div>
+        <div>
+          <h1 id="title" class="text-2xl md:text-3xl font-bold">Warehouse Scanner</h1>
+          <p id="subtitle" class="text-sm text-slate-500 -mt-1">Scan • Auto-update • Cloud sync</p>
+        </div>
+        <div class="ml-auto flex items-center gap-3">
+          <span id="userBadge" class="badge bg-indigo-100 text-indigo-700">—</span>
+          <button id="logoutBtn" class="px-3 py-1 rounded-lg bg-rose-100 text-rose-700">Logout</button>
+        </div>
+      </header>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Login elements
-            const loginPage = document.getElementById('login-page');
-            const mainApp = document.getElementById('main-app');
-            const loginBtn = document.getElementById('login-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const demoBtns = document.querySelectorAll('.demo-btn');
-            const userDisplay = document.getElementById('user-display');
-            
-            // Main app elements
-            const startCameraBtn = document.getElementById('start-camera');
-            const stopCameraBtn = document.getElementById('stop-camera');
-            const toggleModeBtn = document.getElementById('toggle-mode');
-            const retryCameraBtn = document.getElementById('retry-camera');
-            const cameraError = document.getElementById('camera-error');
-            const scanAnimation = document.querySelector('.scan-animation');
-            const modeText = document.getElementById('mode-text');
-            const modeAction = document.getElementById('mode-action');
-            const modeIndicator = document.querySelector('.mode-indicator');
-            const exportCsvBtn = document.getElementById('export-csv');
-            const previewDataBtn = document.getElementById('preview-data');
-            const previewContent = document.getElementById('preview-content');
-            const dataPreview = document.querySelector('.data-preview');
-            const notification = document.getElementById('notification');
-            const notificationText = document.getElementById('notification-text');
-            const manualAddBtn = document.getElementById('manual-add');
-            const clearDataBtn = document.getElementById('clear-data');
-            const searchInventory = document.getElementById('search-inventory');
-            const itemCount = document.getElementById('item-count');
-            const inventoryBody = document.getElementById('inventory-body');
-            
-            let isScanning = false;
-            let isInMode = true;
-            let lastScannedTime = 0;
-            const scanCooldown = 2000; // 2 seconds cooldown between scans
-            
-            // Sample inventory data
-            let inventoryData = [
-                { barcode: "10009901", name: "Wireless Headphones", qty: 24, lastScan: "10/15/2023 14:22" },
-                { barcode: "1000990340703", name: "Keyboard", qty: 548, lastScan: "10/16/2023 09:45" },
-                { barcode: "1000990720703", name: "USB-C Cable", qty: 32, lastScan: "10/14/2023 16:30" },
-                { barcode: "10774035", name: "Mouse Pad", qty: 15, lastScan: "10/13/2023 11:20" },
-                { barcode: "4409940341703", name: "Webcam", qty: 8, lastScan: "10/12/2023 15:45" }
-            ];
-            
-            // Login functionality
-            function login(username, password) {
-                // Simple authentication (in a real app, this would be server-side)
-                const users = {
-                    'admin': 'admin123',
-                    'manager': 'manager123',
-                    'staff': 'staff123'
-                };
-                
-                if (users[username] && users[username] === password) {
-                    // Successful login
-                    loginPage.style.display = 'none';
-                    mainApp.style.display = 'block';
-                    userDisplay.textContent = `Logged in as: ${username.charAt(0).toUpperCase() + username.slice(1)}`;
-                    showNotification('Login successful!');
-                    
-                    // Initialize the main app
-                    renderInventory();
-                } else {
-                    // Failed login
-                    showNotification('Invalid username or password', false);
-                }
-            }
-            
-            // Logout functionality
-            function logout() {
-                loginPage.style.display = 'block';
-                mainApp.style.display = 'none';
-                usernameInput.value = '';
-                passwordInput.value = '';
-                stopCamera();
-            }
-            
-            // Show notification function
-            function showNotification(message, isSuccess = true) {
-                notification.style.backgroundColor = isSuccess ? '#4caf50' : '#d32f2f';
-                notificationText.textContent = message;
-                notification.style.display = 'block';
-                
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 3000);
-            }
-            
-            // Update item count
-            function updateItemCount() {
-                itemCount.textContent = inventoryData.length;
-            }
-            
-            // Render inventory table
-            function renderInventory() {
-                const searchTerm = searchInventory.value.toLowerCase();
-                
-                const filteredData = searchTerm ? 
-                    inventoryData.filter(item => 
-                        item.barcode.toLowerCase().includes(searchTerm) || 
-                        item.name.toLowerCase().includes(searchTerm)
-                    ) : inventoryData;
-                
-                inventoryBody.innerHTML = '';
-                
-                filteredData.forEach(item => {
-                    const row = document.createElement('tr');
-                    
-                    row.innerHTML = `
-                        <td>${item.barcode}</td>
-                        <td>${item.name}</td>
-                        <td>${item.qty}</td>
-                        <td>${item.lastScan}</td>
-                        <td>
-                            <button class="text-blue-600 hover:text-blue-800 edit-btn" data-barcode="${item.barcode}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="text-red-600 hover:text-red-800 ml-2 delete-btn" data-barcode="${item.barcode}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    
-                    inventoryBody.appendChild(row);
-                });
-                
-                // Add event listeners to edit and delete buttons
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', () => editItem(btn.dataset.barcode));
-                });
-                
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', () => deleteItem(btn.dataset.barcode));
-                });
-                
-                updateItemCount();
-            }
-            
-            // Edit item
-            function editItem(barcode) {
-                const item = inventoryData.find(i => i.barcode === barcode);
-                if (item) {
-                    const newName = prompt('Edit product name:', item.name);
-                    if (newName !== null) {
-                        item.name = newName;
-                        renderInventory();
-                        showNotification('Product updated successfully');
-                    }
-                }
-            }
-            
-            // Delete item
-            function deleteItem(barcode) {
-                if (confirm('Are you sure you want to delete this item?')) {
-                    inventoryData = inventoryData.filter(item => item.barcode !== barcode);
-                    renderInventory();
-                    showNotification('Item deleted successfully');
-                }
-            }
-            
-            // Simulate camera error for demonstration
-            function showCameraError() {
-                cameraError.classList.remove('hidden');
-                scanAnimation.style.display = 'none';
-                isScanning = false;
-            }
-            
-            // Start camera function
-            function startCamera() {
-                // This would normally access the device camera
-                // For this example, we'll simulate an error 30% of the time
-                if (Math.random() < 0.3) {
-                    showCameraError();
-                } else {
-                    cameraError.classList.add('hidden');
-                    scanAnimation.style.display = 'block';
-                    isScanning = true;
-                    showNotification('Camera started successfully');
-                }
-            }
-            
-            // Stop camera function
-            function stopCamera() {
-                isScanning = false;
-                scanAnimation.style.display = 'none';
-                showNotification('Camera stopped');
-            }
-            
-            // Toggle between IN and OUT modes
-            function toggleMode() {
-                isInMode = !isInMode;
-                modeText.textContent = isInMode ? 'IN' : 'OUT';
-                modeAction.textContent = isInMode ? 'increase' : 'decrease';
-                
-                // Update mode indicator
-                modeIndicator.className = 'mode-indicator ' + (isInMode ? 'mode-in' : 'mode-out');
-                modeIndicator.textContent = isInMode ? 'INBOUND' : 'OUTBOUND';
-                
-                showNotification(`Mode changed to ${isInMode ? 'INBOUND' : 'OUTBOUND'}`);
-            }
-            
-            // Generate standardized CSV data
-            function generateStandardizedCSV() {
-                let csv = 'barcode,name,qty,lastScan\n';
-                
-                inventoryData.forEach(item => {
-                    csv += `"${item.barcode}","${item.name}",${item.qty},${item.lastScan}\n`;
-                });
-                
-                return csv;
-            }
-            
-            // Export CSV function
-            function exportCSV() {
-                const csv = generateStandardizedCSV();
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'inventory_export.csv';
-                a.click();
-                
-                URL.revokeObjectURL(url);
-                showNotification('CSV exported successfully');
-            }
-            
-            // Preview data function
-            function previewData() {
-                const csv = generateStandardizedCSV();
-                previewContent.textContent = csv;
-                dataPreview.classList.remove('hidden');
-            }
-            
-            // Add item manually
-            function addItemManually() {
-                const barcode = prompt('Enter barcode:');
-                if (!barcode) return;
-                
-                const name = prompt('Enter product name:') || 'Unnamed Product';
-                const qty = parseInt(prompt('Enter quantity:') || '0');
-                
-                // Check if barcode already exists
-                const existingIndex = inventoryData.findIndex(item => item.barcode === barcode);
-                
-                if (existingIndex !== -1) {
-                    // Update existing item
-                    inventoryData[existingIndex].name = name;
-                    inventoryData[existingIndex].qty += isInMode ? qty : -qty;
-                    if (inventoryData[existingIndex].qty < 0) inventoryData[existingIndex].qty = 0;
-                    inventoryData[existingIndex].lastScan = new Date().toLocaleString();
-                    showNotification('Item updated successfully');
-                } else {
-                    // Add new item
-                    inventoryData.push({
-                        barcode,
-                        name,
-                        qty: Math.max(0, qty),
-                        lastScan: new Date().toLocaleString()
-                    });
-                    showNotification('Item added successfully');
-                }
-                
-                renderInventory();
-            }
-            
-            // Clear all data
-            function clearAllData() {
-                if (confirm('Are you sure you want to clear all inventory data? This cannot be undone.')) {
-                    inventoryData = [];
-                    renderInventory();
-                    showNotification('All data cleared');
-                }
-            }
-            
-            // Event listeners for login
-            loginBtn.addEventListener('click', function() {
-                login(usernameInput.value, passwordInput.value);
-            });
-            
-            logoutBtn.addEventListener('click', logout);
-            
-            // Demo login buttons
-            demoBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    usernameInput.value = this.dataset.username;
-                    passwordInput.value = this.dataset.password;
-                    login(this.dataset.username, this.dataset.password);
-                });
-            });
-            
-            // Event listeners for main app
-            startCameraBtn.addEventListener('click', startCamera);
-            stopCameraBtn.addEventListener('click', stopCamera);
-            toggleModeBtn.addEventListener('click', toggleMode);
-            retryCameraBtn.addEventListener('click', startCamera);
-            exportCsvBtn.addEventListener('click', exportCSV);
-            previewDataBtn.addEventListener('click', previewData);
-            manualAddBtn.addEventListener('click', addItemManually);
-            clearDataBtn.addEventListener('click', clearAllData);
-            searchInventory.addEventListener('input', renderInventory);
-            
-            // Simulate periodic barcode scanning when camera is active
-            setInterval(() => {
-                if (isScanning && Math.random() > 0.7) {
-                    const now = Date.now();
-                    // Prevent multiple scans of the same barcode within the cooldown period
-                    if (now - lastScannedTime < scanCooldown) return;
-                    
-                    lastScannedTime = now;
-                    
-                    // Simulate scanning a random item from inventory
-                    const randomItem = inventoryData[Math.floor(Math.random() * inventoryData.length)];
-                    if (randomItem) {
-                        // Update quantity based on mode
-                        randomItem.qty += isInMode ? 1 : -1;
-                        if (randomItem.qty < 0) randomItem.qty = 0;
-                        randomItem.lastScan = new Date().toLocaleString();
-                        
-                        renderInventory();
-                        showNotification(`Scanned: ${randomItem.name} (${isInMode ? '+' : '-'}1)`);
-                    }
-                }
-            }, 1000);
-        });
-    </script>
+      <section class="grid lg:grid-cols-[520px_1fr] gap-6">
+        <!-- Scanner pane -->
+        <div class="space-y-4">
+          <div class="bg-white rounded-2xl shadow p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <button id="startBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white">Start Scan</button>
+              <button id="stopBtn" class="px-3 py-2 rounded-xl bg-slate-200">Stop</button>
+              <button id="toggleModeBtn" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Toggle IN/OUT</button>
+              <label class="ml-auto text-sm text-slate-600 flex items-center gap-2">Qty
+                <input id="qtyStep" type="number" value="1" min="1" class="w-16 px-2 py-1 rounded-lg border" />
+              </label>
+            </div>
+            <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
+              <video id="video" class="w-full h-full object-cover"></video>
+              <canvas id="overlay" class="absolute inset-0"></canvas>
+            </div>
+            <div class="flex items-center gap-2 mt-3">
+              <select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
+              <button id="torchBtn" class="px-3 py-2 rounded-xl bg-slate-200">Toggle Torch</button>
+            </div>
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input id="manualInput" placeholder="Manual barcode entry…" class="px-3 py-2 rounded-xl border" />
+              <button id="manualSubmit" class="px-3 py-2 rounded-xl bg-slate-800 text-white">Submit Manual</button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+            <h2 class="font-semibold">Import / Export</h2>
+            <div class="grid md:grid-cols-2 gap-2">
+              <div class="flex items-center gap-2">
+                <input id="csvFile" type="file" accept=".csv" class="block w-full text-sm" />
+                <button id="importBtn" class="px-3 py-2 rounded-xl bg-slate-200">Import CSV</button>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="exportInvBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white w-full">Export Inventory CSV</button>
+                <button id="exportLogBtn" class="px-3 py-2 rounded-xl bg-slate-800 text-white w-full">Export Log CSV</button>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500">CSV: <code>barcode, name, qty</code>. You can also sync to Sheet.</p>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow p-4 flex items-center gap-2">
+            <button id="undoBtn" class="px-3 py-2 rounded-xl bg-amber-500 text-white">Undo Last</button>
+            <button id="clearBtn" class="px-3 py-2 rounded-xl bg-rose-600 text-white">Clear Inventory</button>
+            <button id="resetBtn" class="ml-auto px-3 py-2 rounded-xl bg-slate-200">Reset App</button>
+          </div>
+        </div>
+
+        <!-- Inventory pane -->
+        <div class="bg-white rounded-2xl shadow p-4">
+          <div class="flex flex-col md:flex-row md:items-center gap-2 mb-3">
+            <div class="relative flex-1">
+              <input id="search" placeholder="Search name or barcode…" class="w-full px-3 py-2 rounded-xl border" />
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="addItemBtn" class="px-3 py-2 rounded-xl bg-slate-200">Add Item</button>
+              <span class="text-sm text-slate-500">Total SKUs: <span id="skuCount">0</span></span>
+            </div>
+          </div>
+          <div class="overflow-auto rounded-xl border">
+            <table class="min-w-full text-sm">
+              <thead class="bg-slate-50 text-slate-600">
+                <tr>
+                  <th class="text-left p-3">Barcode</th>
+                  <th class="text-left p-3">Name</th>
+                  <th class="text-right p-3">Qty</th>
+                  <th class="text-left p-3">Last Scan</th>
+                  <th class="text-left p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <footer class="text-center text-xs text-slate-400 mt-6">Data stored locally (IndexedDB). Cloud sync uses Apps Script endpoint if provided.</footer>
+    </div>
+  </div>
+
+  <script id="zxingScript"></script>
+
+  <script>
+/*
+UPGRADE NOTES:
+- This file supports optional Google Sheets sync via a Google Apps Script Web App proxy.
+- Why use Apps Script? Browser cannot securely use Service Account JSON. Apps Script lets the server-side (your Google account) handle authentication and perform read/write on the sheet.
+- Steps to enable cloud sync using Apps Script:
+  1. Create a new Google Sheet. Note the Sheet ID (from URL).
+  2. In Google Drive, create a new Apps Script (Extensions → Apps Script) and paste a small server-side script (example provided below).
+  3. Deploy the Apps Script as a Web App (Execute as: Me; Who has access: Anyone with link).
+  4. Copy the Web App URL and paste into the "Apps Script Sync URL" field on the login screen.
+  5. Create sheet tabs named 'inventory' and 'users' with simple rows:
+     - inventory rows: barcode | name | qty
+     - users rows: username | password
+- Apps Script example (save as Code.gs in your Apps Script project):
+  function doGet(e) {
+    var action = e.parameter.action;
+    var sheetId = e.parameter.sheetId;
+    var ss = SpreadsheetApp.openById(sheetId);
+    var inv = ss.getSheetByName('inventory') || ss.insertSheet('inventory');
+    var users = ss.getSheetByName('users') || ss.insertSheet('users');
+    if (action == 'getInventory') {
+      var rows = inv.getDataRange().getValues();
+      return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (action == 'setRow') {
+      var barcode = e.parameter.barcode;
+      var name = e.parameter.name || '';
+      var qty = Number(e.parameter.qty || 0);
+      var data = inv.getDataRange().getValues();
+      var found = false;
+      for (var i=0;i<data.length;i++){
+        if (data[i][0] == barcode){ inv.getRange(i+1,1,1,3).setValues([[barcode,name,qty]]); found=true; break; }
+      }
+      if (!found) inv.appendRow([barcode,name,qty]);
+      return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (action == 'getUsers') {
+      var rows = users.getDataRange().getValues();
+      return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService.createTextOutput(JSON.stringify({error:'unknown action'})).setMimeType(ContentService.MimeType.JSON);
+  }
+- This Apps Script is a minimal example. You can extend it to log changes, secure calls via tokens, etc.
+
+USERS:
+- If Apps Script URL is provided, the app will try to fetch the 'users' sheet and match username/password (plain-text) — this is simple and convenient but not fully secure. For production, consider hashing or using a proper auth.
+- If no Apps Script is provided, fallback users are:
+   admin / admin123
+   staff / staff123
+*/
+
+const $ = sel => document.querySelector(sel);
+const DB_NAME = 'ws-upgraded-db', DB_VER = 1;
+let db;
+let MODE_IN = true;
+let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
+let appsScriptUrl = '';
+let sheetId = '';
+let currentUser = null;
+
+async function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = ()=>{
+      const d = req.result;
+      if(!d.objectStoreNames.contains('inventory')) {
+        const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
+        s.createIndex('name','name',{unique:false});
+      }
+      if(!d.objectStoreNames.contains('log')) d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
+    };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+async function tx(store, mode, fn){
+  return new Promise((resolve,reject)=>{
+    const t = db.transaction(store, mode);
+    const s = t.objectStore(store);
+    const r = fn(s);
+    t.oncomplete = ()=> resolve(r);
+    t.onerror = ()=> reject(t.error);
+  });
+}
+async function getAll(store){
+  return new Promise((resolve,reject)=>{
+    const req = db.transaction(store).objectStore(store).getAll();
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+function setStatus(msg){ $('#subtitle').textContent = msg || ''; }
+function setUserBadge(){ $('#userBadge').textContent = currentUser ? currentUser.username : '—'; }
+
+function fallbackUsers(){
+  return [{username:'admin',password:'admin123'},{username:'staff',password:'staff123'}];
+}
+
+async function fetchUsersFromSheet(){
+  if(!appsScriptUrl || !sheetId) return null;
+  try {
+    const url = new URL(appsScriptUrl);
+    url.searchParams.set('action','getUsers');
+    url.searchParams.set('sheetId', sheetId);
+    const res = await fetch(url.toString());
+    if(!res.ok) throw new Error('Apps Script error');
+    const rows = await res.json();
+    const out = rows.map(r => ({ username: String(r[0]||''), password: String(r[1]||'') })).filter(u=>u.username);
+    return out;
+  } catch(e){ console.warn('fetchUsersFromSheet', e); return null; }
+}
+
+async function tryLogin(username,password){
+  appsScriptUrl = $('#appsScriptUrl').value.trim();
+  sheetId = $('#sheetId').value.trim();
+  const sheetUsers = await fetchUsersFromSheet();
+  if(sheetUsers){
+    const found = sheetUsers.find(u => u.username === username && u.password === password);
+    if(found) return { username: found.username, via: 'sheet' };
+  }
+  const local = fallbackUsers().find(u=>u.username===username && u.password===password);
+  if(local) return { username: local.username, via: 'local' };
+  return null;
+}
+
+async function loginFlow(){
+  const u = $('#loginUser').value.trim();
+  const p = $('#loginPass').value;
+  if(!u || !p) return alert('Enter username and password');
+  setStatus('Authenticating…');
+  const res = await tryLogin(u,p);
+  if(!res){ setStatus('Login failed'); return alert('Invalid credentials'); }
+  currentUser = { username: res.username, via: res.via };
+  $('#loginCard').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  setUserBadge();
+  await initApp();
+}
+
+$('#loginBtn').onclick = loginFlow;
+$('#demoBtn').onclick = ()=>{
+  $('#loginUser').value = 'admin'; $('#loginPass').value='admin123';
+  $('#loginBtn').click();
+};
+$('#howBtn').onclick = ()=> alert('Instructions:\\n1) (Optional) Deploy Apps Script web app and paste URL + sheet ID.\\n2) Create a \"users\" sheet with username,password rows, and an \"inventory\" sheet with barcode,name,qty rows.\\n3) Login and start scanning. See file comments for Apps Script code.');
+
+$('#logoutBtn').onclick = async ()=>{
+  currentUser=null;
+  $('#app').classList.add('hidden');
+  $('#loginCard').classList.remove('hidden');
+  setStatus('');
+};
+
+// Inventory functions
+async function upsertItem({barcode,name='',qty=0}){
+  await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null }));
+}
+async function adjustQty(barcode, delta){
+  await tx('inventory','readwrite', s=>{
+    const req = s.get(barcode);
+    req.onsuccess = async ()=>{
+      const item = req.result || { barcode, name:'', qty:0, lastScan:null };
+      item.qty = Math.max(0, (item.qty||0) + delta);
+      item.lastScan = new Date().toISOString();
+      s.put(item);
+      lastAction = { barcode, delta };
+      renderTable();
+      await tx('log','readwrite', ss => ss.add({ ts: new Date().toISOString(), user: currentUser.username, barcode, delta }));
+      await syncRowToCloud(item);
+    };
+  });
+}
+
+async function syncRowToCloud(item){
+  if(!appsScriptUrl || !sheetId) return;
+  try {
+    const url = new URL(appsScriptUrl);
+    url.searchParams.set('action','setRow');
+    url.searchParams.set('sheetId', sheetId);
+    url.searchParams.set('barcode', item.barcode);
+    url.searchParams.set('name', item.name||'');
+    url.searchParams.set('qty', String(item.qty||0));
+    url.searchParams.set('user', currentUser.username);
+    await fetch(url.toString());
+  } catch(e){ console.warn('syncRowToCloud', e); }
+}
+
+async function fetchInventoryFromCloud(){
+  if(!appsScriptUrl || !sheetId) return null;
+  try {
+    const url = new URL(appsScriptUrl);
+    url.searchParams.set('action','getInventory');
+    url.searchParams.set('sheetId', sheetId);
+    const res = await fetch(url.toString());
+    if(!res.ok) throw new Error('Apps Script fetch failed');
+    const rows = await res.json();
+    return rows.map(r => ({ barcode: String(r[0]||''), name: String(r[1]||''), qty: Number(r[2]||0) })).filter(x=>x.barcode);
+  } catch(e){ console.warn('fetchInventoryFromCloud', e); return null; }
+}
+
+async function importCSVText(text){
+  const rows = text.split(/\\r?\\n/).map(r=>r.trim()).filter(Boolean);
+  for(const r of rows){
+    const [barcode,name,qty] = r.split(',');
+    if(!barcode) continue;
+    await upsertItem({ barcode: barcode.trim(), name: (name||'').trim(), qty: Number(qty||0) });
+  }
+  renderTable();
+}
+
+function downloadCSV(rows, filename){
+  const csv = rows.map(r => r.map(v=>'\"'+String(v).replaceAll('\"','\"\"')+'\"').join(',')).join('\\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+
+async function exportInventoryCSV(){
+  const items = await getAll('inventory');
+  const rows = [['barcode','name','qty','lastScan'], ...items.map(i=>[i.barcode,i.name||'',i.qty||0,i.lastScan||''])];
+  downloadCSV(rows, `inventory-${new Date().toISOString().slice(0,10)}.csv`);
+}
+async function exportLogCSV(){
+  const items = await getAll('log');
+  const rows = [['id','ts','user','barcode','delta'], ...items.map((i,idx)=>[idx+1,i.ts,i.user||'',i.barcode,i.delta])];
+  downloadCSV(rows, `scanlog-${new Date().toISOString().slice(0,10)}.csv`);
+}
+
+async function renderTable(){
+  const q = $('#search').value.toLowerCase();
+  const items = await getAll('inventory');
+  items.sort((a,b)=> (b.lastScan||'').localeCompare(a.lastScan||''));
+  const filtered = items.filter(i => (i.barcode+' '+(i.name||'')).toLowerCase().includes(q));
+  $('#skuCount').textContent = String(items.length);
+  const tbody = $('#tbody'); tbody.innerHTML = '';
+  for(const it of filtered){
+    const tr = document.createElement('tr'); tr.className='border-t border-slate-100 hover:bg-slate-50';
+    tr.innerHTML = `
+      <td class="p-3 font-mono text-xs">${it.barcode}</td>
+      <td class="p-3"><input data-bc="${it.barcode}" class="nameInput w-full bg-transparent outline-none" value="${(it.name||'').replaceAll('"','&quot;')}" /></td>
+      <td class="p-3 text-right font-semibold tabular-nums">${it.qty||0}</td>
+      <td class="p-3 text-xs text-slate-500">${it.lastScan ? new Date(it.lastScan).toLocaleString() : '-'}</td>
+      <td class="p-3 flex items-center gap-2">
+        <button data-bc="${it.barcode}" class="inc px-2 py-1 rounded-lg bg-slate-200">+1</button>
+        <button data-bc="${it.barcode}" class="dec px-2 py-1 rounded-lg bg-slate-200">-1</button>
+        <button data-bc="${it.barcode}" class="del px-2 py-1 rounded-lg bg-rose-600 text-white">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+  tbody.querySelectorAll('.inc').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, +1));
+  tbody.querySelectorAll('.dec').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, -1));
+  tbody.querySelectorAll('.del').forEach(b=>b.onclick=async ()=>{ if(confirm('Delete this SKU?')) await removeItem(b.dataset.bc); });
+  tbody.querySelectorAll('.nameInput').forEach(inp=>{
+    inp.onchange = async ()=> {
+      await tx('inventory','readwrite', s=>{
+        const req = s.get(inp.dataset.bc);
+        req.onsuccess = ()=>{ const it=req.result; it.name=inp.value; s.put(it); syncRowToCloud(it); };
+      });
+    };
+  });
+}
+
+async function removeItem(barcode){
+  await tx('inventory','readwrite', s=> s.delete(barcode));
+  renderTable();
+}
+
+async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAction; await adjustQty(barcode, -delta); lastAction=null; }
+
+async function startScan(){
+  try {
+    await stopScan();
+    const deviceId = $('#cameraSelect').value || undefined;
+    const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined, facingMode: 'environment' }, audio:false };
+    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = $('#video'); video.srcObject = currentStream; await video.play();
+    currentTrack = currentStream.getVideoTracks()[0];
+    scanning = true; setStatus('Scanning…');
+    if('BarcodeDetector' in window){
+      const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
+      const bd = new window.BarcodeDetector({ formats });
+      loopBarcodeDetector(bd);
+    } else {
+      await loadZXing();
+      const reader = new ZXing.BrowserMultiFormatReader();
+      loopZXing(reader);
+    }
+  } catch(e){ console.error(e); alert('Camera error: '+e.message); setStatus('Camera error'); }
+}
+
+let rafId=null;
+async function loopBarcodeDetector(detector){
+  const video = $('#video'); const canvas = $('#overlay'); const ctx = canvas.getContext('2d');
+  const step = async ()=>{
+    if(!scanning) return;
+    if(video.readyState>=2){
+      canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+      try {
+        const codes = await detector.detect(video);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(codes && codes.length){ const val = codes[0].rawValue; drawBox(ctx, codes[0].boundingBox); await onBarcode(val); await new Promise(r=>setTimeout(r,400)); }
+      } catch(e){}
+    }
+    rafId = requestAnimationFrame(step);
+  }; step();
+}
+
+function drawBox(ctx, box){ if(!box) return; ctx.lineWidth=3; ctx.strokeStyle='lime'; ctx.strokeRect(box.x, box.y, box.width, box.height); }
+
+async function loadZXing(){
+  return new Promise((resolve,reject)=>{
+    const s = document.getElementById('zxingScript');
+    if(s.getAttribute('src')) return resolve();
+    s.onload = ()=>resolve();
+    s.onerror = ()=>reject(new Error('Failed to load ZXing'));
+    s.src = 'https://unpkg.com/@zxing/library@0.21.2/esm/index.min.js';
+  });
+}
+
+async function loopZXing(reader){
+  const video = $('#video'); const canvas = $('#overlay'); const ctx = canvas.getContext('2d');
+  const step = async ()=>{
+    if(!scanning) return;
+    if(video.readyState>=2){
+      canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+      try {
+        const result = await reader.decodeOnceFromVideoElement(video);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(result && result.text){ await onBarcode(result.text); await new Promise(r=>setTimeout(r,400)); }
+      } catch(e){}
+    }
+    rafId = requestAnimationFrame(step);
+  }; step();
+}
+
+async function onBarcode(code){
+  const qty = Math.max(1, Number($('#qtyStep').value||1));
+  const delta = MODE_IN ? qty : -qty;
+  setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
+  beep();
+  await adjustQty(code, delta);
+}
+
+function beep(){ try{ const ctx = new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='square'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); setTimeout(()=>{ o.stop(); ctx.close(); },170);}catch(e){} }
+
+async function stopScan(){ scanning=false; if(rafId) cancelAnimationFrame(rafId); if(currentTrack) try{ currentTrack.stop(); }catch(_){} if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); currentTrack=null; currentStream=null; setStatus(''); }
+
+async function listCameras(){
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d=>d.kind==='videoinput');
+    $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
+  }catch(e){}
+}
+
+async function initApp(){
+  db = await openDB();
+  setUserBadge();
+  await listCameras();
+  appsScriptUrl = $('#appsScriptUrl').value.trim();
+  sheetId = $('#sheetId').value.trim();
+  if(appsScriptUrl && sheetId){
+    setStatus('Syncing from cloud…');
+    const rows = await fetchInventoryFromCloud();
+    if(rows){
+      await tx('inventory','readwrite', s=> s.clear());
+      for(const r of rows){ await upsertItem(r); }
+    }
+    setStatus('');
+  }
+  renderTable();
+}
+
+$('#startBtn').onclick = startScan; $('#stopBtn').onclick = stopScan;
+$('#toggleModeBtn').onclick = ()=>{ MODE_IN = !MODE_IN; $('#toggleModeBtn').classList.toggle('bg-emerald-600'); };
+$('#torchBtn').onclick = async ()=>{ if(!currentTrack) return alert('Start camera first'); const caps = currentTrack.getCapabilities?.(); if(!caps||!caps.torch) return alert('Torch unsupported'); const settings = currentTrack.getSettings(); const torchOn = !settings.torch; await currentTrack.applyConstraints({ advanced:[{ torch: torchOn }] }); };
+$('#manualSubmit').onclick = async ()=>{ const v = $('#manualInput').value.trim(); if(!v) return; await onBarcode(v); $('#manualInput').value=''; };
+$('#manualInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#manualSubmit').click(); });
+
+$('#importBtn').onclick = async ()=>{
+  const f = $('#csvFile').files?.[0]; if(!f) return alert('Choose CSV'); const text = await f.text(); await importCSVText(text);
+};
+$('#exportInvBtn').onclick = exportInventoryCSV; $('#exportLogBtn').onclick = exportLogCSV;
+$('#undoBtn').onclick = undoLast;
+$('#clearBtn').onclick = async ()=>{ if(!confirm('Clear ALL inventory?')) return; await tx('inventory','readwrite', s=>s.clear()); await tx('log','readwrite', s=>s.clear()); renderTable(); };
+$('#resetBtn').onclick = async ()=>{ if(!confirm('Reset app (delete DB)?')) return; await stopScan(); const req = indexedDB.deleteDatabase(DB_NAME); req.onsuccess = ()=> location.reload(); };
+$('#search').oninput = renderTable;
+$('#addItemBtn').onclick = async ()=>{ const barcode = prompt('Barcode?'); if(!barcode) return; const name = prompt('Name (optional)')||''; const qty = Number(prompt('Qty (default 0)')||0)||0; await upsertItem({ barcode, name, qty }); renderTable(); };
+
+document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+
+(async function preinit(){ db = await openDB(); setStatus('Ready'); })();
+
+  </script>
 </body>
 </html>
