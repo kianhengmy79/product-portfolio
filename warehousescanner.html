@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Warehouse Scanner — Login + Google Sheets Sync</title>
+  <title>Warehouse Scanner — Fixed Version</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -10,6 +10,14 @@
     #video { transform: scaleX(-1); }
     .hidden { display:none !important; }
     .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
+    .camera-error { background: #fee; border: 1px solid #fcc; color: #c33; padding: 10px; border-radius: 8px; margin: 10px 0; }
+    .scanning-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
+    .scanning-line { width: 80%; height: 4px; background: #4caf50; position: absolute; animation: scan 2s infinite; }
+    @keyframes scan {
+      0% { top: 20%; }
+      50% { top: 80%; }
+      100% { top: 20%; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -66,6 +74,13 @@
             <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
               <video id="video" class="w-full h-full object-cover"></video>
               <canvas id="overlay" class="absolute inset-0"></canvas>
+              <div class="scanning-overlay" id="scanningOverlay">
+                <div class="scanning-line"></div>
+              </div>
+              <div id="cameraError" class="camera-error hidden">
+                <h3 class="font-bold mb-1">Camera Error</h3>
+                <p class="text-sm">Requested device not found. Please check your camera connection and permissions.</p>
+              </div>
             </div>
             <div class="flex items-center gap-2 mt-3">
               <select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
@@ -134,56 +149,6 @@
   <script id="zxingScript"></script>
 
   <script>
-/*
-UPGRADE NOTES:
-- This file supports optional Google Sheets sync via a Google Apps Script Web App proxy.
-- Why use Apps Script? Browser cannot securely use Service Account JSON. Apps Script lets the server-side (your Google account) handle authentication and perform read/write on the sheet.
-- Steps to enable cloud sync using Apps Script:
-  1. Create a new Google Sheet. Note the Sheet ID (from URL).
-  2. In Google Drive, create a new Apps Script (Extensions → Apps Script) and paste a small server-side script (example provided below).
-  3. Deploy the Apps Script as a Web App (Execute as: Me; Who has access: Anyone with link).
-  4. Copy the Web App URL and paste into the "Apps Script Sync URL" field on the login screen.
-  5. Create sheet tabs named 'inventory' and 'users' with simple rows:
-     - inventory rows: barcode | name | qty
-     - users rows: username | password
-- Apps Script example (save as Code.gs in your Apps Script project):
-  function doGet(e) {
-    var action = e.parameter.action;
-    var sheetId = e.parameter.sheetId;
-    var ss = SpreadsheetApp.openById(sheetId);
-    var inv = ss.getSheetByName('inventory') || ss.insertSheet('inventory');
-    var users = ss.getSheetByName('users') || ss.insertSheet('users');
-    if (action == 'getInventory') {
-      var rows = inv.getDataRange().getValues();
-      return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
-    }
-    if (action == 'setRow') {
-      var barcode = e.parameter.barcode;
-      var name = e.parameter.name || '';
-      var qty = Number(e.parameter.qty || 0);
-      var data = inv.getDataRange().getValues();
-      var found = false;
-      for (var i=0;i<data.length;i++){
-        if (data[i][0] == barcode){ inv.getRange(i+1,1,1,3).setValues([[barcode,name,qty]]); found=true; break; }
-      }
-      if (!found) inv.appendRow([barcode,name,qty]);
-      return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
-    }
-    if (action == 'getUsers') {
-      var rows = users.getDataRange().getValues();
-      return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
-    }
-    return ContentService.createTextOutput(JSON.stringify({error:'unknown action'})).setMimeType(ContentService.MimeType.JSON);
-  }
-- This Apps Script is a minimal example. You can extend it to log changes, secure calls via tokens, etc.
-
-USERS:
-- If Apps Script URL is provided, the app will try to fetch the 'users' sheet and match username/password (plain-text) — this is simple and convenient but not fully secure. For production, consider hashing or using a proper auth.
-- If no Apps Script is provided, fallback users are:
-   admin / admin123
-   staff / staff123
-*/
-
 const $ = sel => document.querySelector(sel);
 const DB_NAME = 'ws-upgraded-db', DB_VER = 1;
 let db;
@@ -192,8 +157,10 @@ let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
 let appsScriptUrl = '';
 let sheetId = '';
 let currentUser = null;
+let lastScannedBarcode = null;
+let scanCooldown = false;
 
-// === NEW CODE: Save and Load Settings ===
+// Save and Load Settings
 function saveSettings() {
   const settings = {
     appsScriptUrl: $('#appsScriptUrl').value.trim(),
@@ -210,7 +177,6 @@ function loadSettings() {
     $('#sheetId').value = settings.sheetId || '';
   }
 }
-// === END NEW CODE ===
 
 async function openDB(){
   return new Promise((resolve,reject)=>{
@@ -237,6 +203,7 @@ async function tx(store, mode, fn){
     t.onerror = ()=> reject(t.error);
   });
 }
+
 async function getAll(store){
   return new Promise((resolve,reject)=>{
     const req = db.transaction(store).objectStore(store).getAll();
@@ -287,7 +254,7 @@ async function loginFlow(){
   
   appsScriptUrl = $('#appsScriptUrl').value.trim();
   sheetId = $('#sheetId').value.trim();
-  saveSettings(); // <-- ADDED: Save the URL and ID on login
+  saveSettings();
 
   const res = await tryLogin(u,p);
   if(!res){ setStatus('Login failed'); return alert('Invalid credentials'); }
@@ -303,7 +270,7 @@ $('#demoBtn').onclick = ()=>{
   $('#loginUser').value = 'admin'; $('#loginPass').value='admin123';
   $('#loginBtn').click();
 };
-$('#howBtn').onclick = ()=> alert('Instructions:\\n1) (Optional) Deploy Apps Script web app and paste URL + sheet ID.\\n2) Create a \"users\" sheet with username,password rows, and an \"inventory\" sheet with barcode,name,qty rows.\\n3) Login and start scanning. See file comments for Apps Script code.');
+$('#howBtn').onclick = ()=> alert('Instructions:\n1) (Optional) Deploy Apps Script web app and paste URL + sheet ID.\n2) Create a "users" sheet with username,password rows, and an "inventory" sheet with barcode,name,qty rows.\n3) Login and start scanning. See file comments for Apps Script code.');
 
 $('#logoutBtn').onclick = async ()=>{
   currentUser=null;
@@ -316,6 +283,7 @@ $('#logoutBtn').onclick = async ()=>{
 async function upsertItem({barcode,name='',qty=0}){
   await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null }));
 }
+
 async function adjustQty(barcode, delta){
   await tx('inventory','readwrite', s=>{
     const req = s.get(barcode);
@@ -360,7 +328,7 @@ async function fetchInventoryFromCloud(){
 }
 
 async function importCSVText(text){
-  const rows = text.split(/\\r?\\n/).map(r=>r.trim()).filter(Boolean);
+  const rows = text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
   for(const r of rows){
     const [barcode,name,qty] = r.split(',');
     if(!barcode) continue;
@@ -370,19 +338,29 @@ async function importCSVText(text){
 }
 
 function downloadCSV(rows, filename){
-  const csv = rows.map(r => r.map(v=>'\"'+String(v).replaceAll('\"','\"\"')+'\"').join(',')).join('\\n');
+  // Standardized CSV format with proper headers and data structure
+  const csv = rows.map(r => r.map(v=>'"'+String(v).replace(/"/g, '""')+'"').join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
 }
 
 async function exportInventoryCSV(){
   const items = await getAll('inventory');
-  const rows = [['barcode','name','qty','lastScan'], ...items.map(i=>[i.barcode,i.name||'',i.qty||0,i.lastScan||''])];
+  // Standardized format with proper headers
+  const rows = [['barcode', 'name', 'qty', 'lastScan'], ...items.map(i=>[
+    i.barcode, 
+    i.name||'', 
+    i.qty||0, 
+    i.lastScan||''
+  ])];
   downloadCSV(rows, `inventory-${new Date().toISOString().slice(0,10)}.csv`);
 }
+
 async function exportLogCSV(){
   const items = await getAll('log');
-  const rows = [['id','ts','user','barcode','delta'], ...items.map((i,idx)=>[idx+1,i.ts,i.user||'',i.barcode,i.delta])];
+  const rows = [['id', 'ts', 'user', 'barcode', 'delta'], ...items.map((i,idx)=>[
+    idx+1, i.ts, i.user||'', i.barcode, i.delta
+  ])];
   downloadCSV(rows, `scanlog-${new Date().toISOString().slice(0,10)}.csv`);
 }
 
@@ -397,7 +375,7 @@ async function renderTable(){
     const tr = document.createElement('tr'); tr.className='border-t border-slate-100 hover:bg-slate-50';
     tr.innerHTML = `
       <td class="p-3 font-mono text-xs">${it.barcode}</td>
-      <td class="p-3"><input data-bc="${it.barcode}" class="nameInput w-full bg-transparent outline-none" value="${(it.name||'').replaceAll('"','&quot;')}" /></td>
+      <td class="p-3"><input data-bc="${it.barcode}" class="nameInput w-full bg-transparent outline-none" value="${(it.name||'').replace(/"/g, '&quot;')}" /></td>
       <td class="p-3 text-right font-semibold tabular-nums">${it.qty||0}</td>
       <td class="p-3 text-xs text-slate-500">${it.lastScan ? new Date(it.lastScan).toLocaleString() : '-'}</td>
       <td class="p-3 flex items-center gap-2">
@@ -430,12 +408,28 @@ async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAct
 async function startScan(){
   try {
     await stopScan();
+    $('#cameraError').classList.add('hidden');
+    $('#scanningOverlay').style.display = 'flex';
+    
     const deviceId = $('#cameraSelect').value || undefined;
-    const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined, facingMode: 'environment' }, audio:false };
+    const constraints = { 
+      video: { 
+        deviceId: deviceId ? { exact: deviceId } : undefined, 
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }, 
+      audio: false 
+    };
+    
     currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-    const video = $('#video'); video.srcObject = currentStream; await video.play();
+    const video = $('#video'); 
+    video.srcObject = currentStream; 
+    await video.play();
     currentTrack = currentStream.getVideoTracks()[0];
-    scanning = true; setStatus('Scanning…');
+    scanning = true; 
+    setStatus('Scanning…');
+    
     if('BarcodeDetector' in window){
       const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
       const bd = new window.BarcodeDetector({ formats });
@@ -445,27 +439,47 @@ async function startScan(){
       const reader = new ZXing.BrowserMultiFormatReader();
       loopZXing(reader);
     }
-  } catch(e){ console.error(e); alert('Camera error: '+e.message); setStatus('Camera error'); }
+  } catch(e){ 
+    console.error(e); 
+    $('#cameraError').classList.remove('hidden');
+    $('#scanningOverlay').style.display = 'none';
+    setStatus('Camera error: ' + e.message); 
+  }
 }
 
 let rafId=null;
 async function loopBarcodeDetector(detector){
-  const video = $('#video'); const canvas = $('#overlay'); const ctx = canvas.getContext('2d');
+  const video = $('#video'); 
+  const canvas = $('#overlay'); 
+  const ctx = canvas.getContext('2d');
   const step = async ()=>{
     if(!scanning) return;
     if(video.readyState>=2){
-      canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+      canvas.width=video.videoWidth; 
+      canvas.height=video.videoHeight;
       try {
         const codes = await detector.detect(video);
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        if(codes && codes.length){ const val = codes[0].rawValue; drawBox(ctx, codes[0].boundingBox); await onBarcode(val); await new Promise(r=>setTimeout(r,400)); }
+        if(codes && codes.length){ 
+          const val = codes[0].rawValue; 
+          drawBox(ctx, codes[0].boundingBox); 
+          await onBarcode(val); 
+          // Add cooldown to prevent multiple scans
+          await new Promise(r=>setTimeout(r,1000)); 
+        }
       } catch(e){}
     }
     rafId = requestAnimationFrame(step);
-  }; step();
+  }; 
+  step();
 }
 
-function drawBox(ctx, box){ if(!box) return; ctx.lineWidth=3; ctx.strokeStyle='lime'; ctx.strokeRect(box.x, box.y, box.width, box.height); }
+function drawBox(ctx, box){ 
+  if(!box) return; 
+  ctx.lineWidth=3; 
+  ctx.strokeStyle='lime'; 
+  ctx.strokeRect(box.x, box.y, box.width, box.height); 
+}
 
 async function loadZXing(){
   return new Promise((resolve,reject)=>{
@@ -478,32 +492,74 @@ async function loadZXing(){
 }
 
 async function loopZXing(reader){
-  const video = $('#video'); const canvas = $('#overlay'); const ctx = canvas.getContext('2d');
+  const video = $('#video'); 
+  const canvas = $('#overlay'); 
+  const ctx = canvas.getContext('2d');
   const step = async ()=>{
     if(!scanning) return;
     if(video.readyState>=2){
-      canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+      canvas.width=video.videoWidth; 
+      canvas.height=video.videoHeight;
       try {
         const result = await reader.decodeOnceFromVideoElement(video);
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        if(result && result.text){ await onBarcode(result.text); await new Promise(r=>setTimeout(r,400)); }
+        if(result && result.text){ 
+          await onBarcode(result.text); 
+          // Add cooldown to prevent multiple scans
+          await new Promise(r=>setTimeout(r,1000)); 
+        }
       } catch(e){}
     }
     rafId = requestAnimationFrame(step);
-  }; step();
+  }; 
+  step();
 }
 
 async function onBarcode(code){
+  // Prevent scanning the same barcode multiple times in quick succession
+  if (scanCooldown && lastScannedBarcode === code) return;
+  
   const qty = Math.max(1, Number($('#qtyStep').value||1));
   const delta = MODE_IN ? qty : -qty;
   setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
   beep();
+  
+  // Set cooldown to prevent duplicate scans
+  scanCooldown = true;
+  lastScannedBarcode = code;
+  setTimeout(() => {
+    scanCooldown = false;
+    lastScannedBarcode = null;
+  }, 2000);
+  
   await adjustQty(code, delta);
 }
 
-function beep(){ try{ const ctx = new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='square'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); setTimeout(()=>{ o.stop(); ctx.close(); },170);}catch(e){} }
+function beep(){ 
+  try{ 
+    const ctx = new (window.AudioContext||window.webkitAudioContext)(); 
+    const o=ctx.createOscillator(); 
+    const g=ctx.createGain(); 
+    o.type='square'; 
+    o.frequency.value=880; 
+    o.connect(g); 
+    g.connect(ctx.destination); 
+    o.start(); 
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); 
+    setTimeout(()=>{ o.stop(); ctx.close(); },170);
+  }catch(e){}
+}
 
-async function stopScan(){ scanning=false; if(rafId) cancelAnimationFrame(rafId); if(currentTrack) try{ currentTrack.stop(); }catch(_){} if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); currentTrack=null; currentStream=null; setStatus(''); }
+async function stopScan(){ 
+  scanning=false; 
+  if(rafId) cancelAnimationFrame(rafId); 
+  if(currentTrack) try{ currentTrack.stop(); }catch(_){} 
+  if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); 
+  currentTrack=null; 
+  currentStream=null; 
+  $('#scanningOverlay').style.display = 'none';
+  setStatus(''); 
+}
 
 async function listCameras(){
   try{
@@ -531,30 +587,71 @@ async function initApp(){
   renderTable();
 }
 
-$('#startBtn').onclick = startScan; $('#stopBtn').onclick = stopScan;
-$('#toggleModeBtn').onclick = ()=>{ MODE_IN = !MODE_IN; $('#toggleModeBtn').classList.toggle('bg-emerald-600'); };
-$('#torchBtn').onclick = async ()=>{ if(!currentTrack) return alert('Start camera first'); const caps = currentTrack.getCapabilities?.(); if(!caps||!caps.torch) return alert('Torch unsupported'); const settings = currentTrack.getSettings(); const torchOn = !settings.torch; await currentTrack.applyConstraints({ advanced:[{ torch: torchOn }] }); };
-$('#manualSubmit').onclick = async ()=>{ const v = $('#manualInput').value.trim(); if(!v) return; await onBarcode(v); $('#manualInput').value=''; };
-$('#manualInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#manualSubmit').click(); });
+// Event listeners
+$('#startBtn').onclick = startScan; 
+$('#stopBtn').onclick = stopScan;
+$('#toggleModeBtn').onclick = ()=>{ 
+  MODE_IN = !MODE_IN; 
+  $('#toggleModeBtn').classList.toggle('bg-emerald-600'); 
+};
+$('#torchBtn').onclick = async ()=>{ 
+  if(!currentTrack) return alert('Start camera first'); 
+  const caps = currentTrack.getCapabilities?.(); 
+  if(!caps||!caps.torch) return alert('Torch unsupported'); 
+  const settings = currentTrack.getSettings(); 
+  const torchOn = !settings.torch; 
+  await currentTrack.applyConstraints({ advanced:[{ torch: torchOn }] }); 
+};
+$('#manualSubmit').onclick = async ()=>{ 
+  const v = $('#manualInput').value.trim(); 
+  if(!v) return; 
+  await onBarcode(v); 
+  $('#manualInput').value=''; 
+};
+$('#manualInput').addEventListener('keydown', e=>{ 
+  if(e.key==='Enter') $('#manualSubmit').click(); 
+});
 
 $('#importBtn').onclick = async ()=>{
-  const f = $('#csvFile').files?.[0]; if(!f) return alert('Choose CSV'); const text = await f.text(); await importCSVText(text);
+  const f = $('#csvFile').files?.[0]; 
+  if(!f) return alert('Choose CSV'); 
+  const text = await f.text(); 
+  await importCSVText(text);
 };
-$('#exportInvBtn').onclick = exportInventoryCSV; $('#exportLogBtn').onclick = exportLogCSV;
+$('#exportInvBtn').onclick = exportInventoryCSV; 
+$('#exportLogBtn').onclick = exportLogCSV;
 $('#undoBtn').onclick = undoLast;
-$('#clearBtn').onclick = async ()=>{ if(!confirm('Clear ALL inventory?')) return; await tx('inventory','readwrite', s=>s.clear()); await tx('log','readwrite', s=>s.clear()); renderTable(); };
-$('#resetBtn').onclick = async ()=>{ if(!confirm('Reset app (delete DB)?')) return; await stopScan(); const req = indexedDB.deleteDatabase(DB_NAME); req.onsuccess = ()=> location.reload(); };
+$('#clearBtn').onclick = async ()=>{ 
+  if(!confirm('Clear ALL inventory?')) return; 
+  await tx('inventory','readwrite', s=>s.clear()); 
+  await tx('log','readwrite', s=>s.clear()); 
+  renderTable(); 
+};
+$('#resetBtn').onclick = async ()=>{ 
+  if(!confirm('Reset app (delete DB)?')) return; 
+  await stopScan(); 
+  const req = indexedDB.deleteDatabase(DB_NAME); 
+  req.onsuccess = ()=> location.reload(); 
+};
 $('#search').oninput = renderTable;
-$('#addItemBtn').onclick = async ()=>{ const barcode = prompt('Barcode?'); if(!barcode) return; const name = prompt('Name (optional)')||''; const qty = Number(prompt('Qty (default 0)')||0)||0; await upsertItem({ barcode, name, qty }); renderTable(); };
+$('#addItemBtn').onclick = async ()=>{ 
+  const barcode = prompt('Barcode?'); 
+  if(!barcode) return; 
+  const name = prompt('Name (optional)')||''; 
+  const qty = Number(prompt('Qty (default 0)')||0)||0; 
+  await upsertItem({ barcode, name, qty }); 
+  renderTable(); 
+};
 
-document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+document.getElementById('loginPass').addEventListener('keydown', (e)=>{ 
+  if(e.key==='Enter') $('#loginBtn').click(); 
+});
 
 (async function preinit(){ 
   db = await openDB(); 
-  loadSettings(); // <-- ADDED: Load saved URL and ID on page load
+  loadSettings();
   setStatus('Ready'); 
 })();
-
   </script>
 </body>
 </html>
