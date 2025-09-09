@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Scanner - Enhanced</title>
+    <title>Warehouse Scanner - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -30,6 +30,7 @@
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             overflow: hidden;
+            position: relative;
         }
         
         header {
@@ -42,6 +43,90 @@
         header h1 {
             font-size: 28px;
             margin-bottom: 5px;
+        }
+        
+        /* Login Page Styles */
+        #login-page {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-form h2 {
+            margin-bottom: 20px;
+            color: #1a2a6c;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #1a2a6c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: #2a3a9c;
+        }
+        
+        .demo-login {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .demo-btn {
+            flex: 1;
+            padding: 10px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .demo-btn:hover {
+            background: #e5e5e5;
+        }
+        
+        /* Main App Styles (initially hidden) */
+        #main-app {
+            display: none;
         }
         
         .app-container {
@@ -293,6 +378,28 @@
             display: none;
             z-index: 1000;
         }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logout-btn {
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #e5e5e5;
+        }
     </style>
 </head>
 <body>
@@ -302,149 +409,185 @@
             <p>Advanced inventory management with standardized data export</p>
         </header>
         
-        <div class="app-container">
-            <div class="left-panel">
-                <div class="scanner-section">
-                    <h2 class="text-xl font-bold mb-4"><i class="fas fa-barcode"></i> Barcode Scanner</h2>
-                    
-                    <div class="camera-feed">
-                        <div class="camera-placeholder">
-                            <i class="fas fa-camera"></i>
+        <!-- Login Page (initially visible) -->
+        <div id="login-page">
+            <div class="login-form">
+                <h2><i class="fas fa-lock"></i> Login to Warehouse Scanner</h2>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password">
+                </div>
+                <button class="login-btn" id="login-btn">Login</button>
+                
+                <div class="demo-login">
+                    <button class="demo-btn" data-username="admin" data-password="admin123">
+                        Login as Admin
+                    </button>
+                    <button class="demo-btn" data-username="manager" data-password="manager123">
+                        Login as Manager
+                    </button>
+                    <button class="demo-btn" data-username="staff" data-password="staff123">
+                        Login as Staff
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main App (initially hidden) -->
+        <div id="main-app">
+            <div class="user-info">
+                <span id="user-display">Logged in as: Admin</span>
+                <button class="logout-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+            
+            <div class="app-container">
+                <div class="left-panel">
+                    <div class="scanner-section">
+                        <h2 class="text-xl font-bold mb-4"><i class="fas fa-barcode"></i> Barcode Scanner</h2>
+                        
+                        <div class="camera-feed">
+                            <div class="camera-placeholder">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <div class="scan-animation"></div>
+                            <div id="camera-error" class="error-message hidden">
+                                <h3><i class="fas fa-exclamation-circle error-icon"></i> Camera Error</h3>
+                                <p>Requested device not found. Please check your camera connection and permissions.</p>
+                            </div>
                         </div>
-                        <div class="scan-animation"></div>
-                        <div id="camera-error" class="error-message hidden">
-                            <h3><i class="fas fa-exclamation-circle error-icon"></i> Camera Error</h3>
-                            <p>Requested device not found. Please check your camera connection and permissions.</p>
+                        
+                        <div class="controls">
+                            <button id="start-camera" class="primary-btn">
+                                <i class="fas fa-play"></i> Start Camera
+                            </button>
+                            <button id="stop-camera" class="secondary-btn">
+                                <i class="fas fa-stop"></i> Stop Camera
+                            </button>
+                            <button id="toggle-mode" class="primary-btn">
+                                <i class="fas fa-exchange-alt"></i> Toggle Mode
+                            </button>
+                        </div>
+                        
+                        <div class="mode-display">
+                            <h3 class="font-bold">Current Mode: <span id="mode-text">IN</span> <span class="mode-indicator mode-in">INBOUND</span></h3>
+                            <p class="text-sm mt-1">Scanning barcodes will <span id="mode-action">increase</span> item quantities</p>
+                        </div>
+                        
+                        <div class="controls">
+                            <button id="manual-add" class="secondary-btn">
+                                <i class="fas fa-plus-circle"></i> Add Item Manually
+                            </button>
+                            <button id="clear-data" class="danger-btn">
+                                <i class="fas fa-trash"></i> Clear All Data
+                            </button>
+                        </div>
+                        
+                        <div class="troubleshooting">
+                            <h3><i class="fas fa-tools help-icon"></i> Camera Troubleshooting</h3>
+                            <ol>
+                                <li>Check if your camera is connected properly</li>
+                                <li>Ensure you've granted camera permissions for this site</li>
+                                <li>Try refreshing the page and trying again</li>
+                                <li>If using a mobile device, ensure no other app is using the camera</li>
+                            </ol>
+                            <button id="retry-camera" class="secondary-btn mt-2">
+                                <i class="fas fa-sync-alt"></i> Retry Camera Connection
+                            </button>
                         </div>
                     </div>
                     
-                    <div class="controls">
-                        <button id="start-camera" class="primary-btn">
-                            <i class="fas fa-play"></i> Start Camera
-                        </button>
-                        <button id="stop-camera" class="secondary-btn">
-                            <i class="fas fa-stop"></i> Stop Camera
-                        </button>
-                        <button id="toggle-mode" class="primary-btn">
-                            <i class="fas fa-exchange-alt"></i> Toggle Mode
-                        </button>
-                    </div>
-                    
-                    <div class="mode-display">
-                        <h3 class="font-bold">Current Mode: <span id="mode-text">IN</span> <span class="mode-indicator mode-in">INBOUND</span></h3>
-                        <p class="text-sm mt-1">Scanning barcodes will <span id="mode-action">increase</span> item quantities</p>
-                    </div>
-                    
-                    <div class="controls">
-                        <button id="manual-add" class="secondary-btn">
-                            <i class="fas fa-plus-circle"></i> Add Item Manually
-                        </button>
-                        <button id="clear-data" class="danger-btn">
-                            <i class="fas fa-trash"></i> Clear All Data
-                        </button>
-                    </div>
-                    
-                    <div class="troubleshooting">
-                        <h3><i class="fas fa-tools help-icon"></i> Camera Troubleshooting</h3>
-                        <ol>
-                            <li>Check if your camera is connected properly</li>
-                            <li>Ensure you've granted camera permissions for this site</li>
-                            <li>Try refreshing the page and trying again</li>
-                            <li>If using a mobile device, ensure no other app is using the camera</li>
-                        </ol>
-                        <button id="retry-camera" class="secondary-btn mt-2">
-                            <i class="fas fa-sync-alt"></i> Retry Camera Connection
-                        </button>
+                    <div class="export-section">
+                        <h2 class="text-xl font-bold mb-4"><i class="fas fa-file-export"></i> Data Export</h2>
+                        <p class="text-sm text-gray-600 mb-3">Export your inventory data in standardized CSV format</p>
+                        
+                        <div class="export-options">
+                            <button id="export-csv" class="primary-btn">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button id="preview-data" class="secondary-btn">
+                                <i class="fas fa-eye"></i> Preview Data
+                            </button>
+                        </div>
+                        
+                        <div class="data-preview hidden">
+                            <h4 class="font-bold mb-2">Data Preview (Standardized Format):</h4>
+                            <div id="preview-content"></div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="export-section">
-                    <h2 class="text-xl font-bold mb-4"><i class="fas fa-file-export"></i> Data Export</h2>
-                    <p class="text-sm text-gray-600 mb-3">Export your inventory data in standardized CSV format</p>
-                    
-                    <div class="export-options">
-                        <button id="export-csv" class="primary-btn">
-                            <i class="fas fa-file-csv"></i> Export CSV
-                        </button>
-                        <button id="preview-data" class="secondary-btn">
-                            <i class="fas fa-eye"></i> Preview Data
-                        </button>
-                    </div>
-                    
-                    <div class="data-preview hidden">
-                        <h4 class="font-bold mb-2">Data Preview (Standardized Format):</h4>
-                        <div id="preview-content"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="right-panel">
-                <div class="inventory-section">
-                    <h2 class="text-xl font-bold mb-4"><i class="fas fa-boxes"></i> Current Inventory</h2>
-                    
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center">
-                            <span class="text-sm text-gray-600 mr-2">Search:</span>
-                            <input type="text" id="search-inventory" placeholder="Barcode or name..." class="px-3 py-1 border rounded">
+                <div class="right-panel">
+                    <div class="inventory-section">
+                        <h2 class="text-xl font-bold mb-4"><i class="fas fa-boxes"></i> Current Inventory</h2>
+                        
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2">Search:</span>
+                                <input type="text" id="search-inventory" placeholder="Barcode or name..." class="px-3 py-1 border rounded">
+                            </div>
+                            <span class="text-sm text-gray-600">Total Items: <span id="item-count">0</span></span>
                         </div>
-                        <span class="text-sm text-gray-600">Total Items: <span id="item-count">0</span></span>
+                        
+                        <table class="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>Barcode</th>
+                                    <th>Product Name</th>
+                                    <th>Quantity</th>
+                                    <th>Last Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-body">
+                                <tr>
+                                    <td>10009901</td>
+                                    <td>Wireless Headphones</td>
+                                    <td>24</td>
+                                    <td>10/15/2023 14:22</td>
+                                    <td>
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-600 hover:text-red-800 ml-2">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1000990340703</td>
+                                    <td>Keyboard</td>
+                                    <td>548</td>
+                                    <td>10/16/2023 09:45</td>
+                                    <td>
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-600 hover:text-red-800 ml-2">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1000990720703</td>
+                                    <td>USB-C Cable</td>
+                                    <td>32</td>
+                                    <td>10/14/2023 16:30</td>
+                                    <td>
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-600 hover:text-red-800 ml-2">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    
-                    <table class="inventory-table">
-                        <thead>
-                            <tr>
-                                <th>Barcode</th>
-                                <th>Product Name</th>
-                                <th>Quantity</th>
-                                <th>Last Updated</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-body">
-                            <tr>
-                                <td>10009901</td>
-                                <td>Wireless Headphones</td>
-                                <td>24</td>
-                                <td>10/15/2023 14:22</td>
-                                <td>
-                                    <button class="text-blue-600 hover:text-blue-800">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-800 ml-2">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>1000990340703</td>
-                                <td>Keyboard</td>
-                                <td>548</td>
-                                <td>10/16/2023 09:45</td>
-                                <td>
-                                    <button class="text-blue-600 hover:text-blue-800">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-800 ml-2">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>1000990720703</td>
-                                <td>USB-C Cable</td>
-                                <td>32</td>
-                                <td>10/14/2023 16:30</td>
-                                <td>
-                                    <button class="text-blue-600 hover:text-blue-800">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-800 ml-2">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
@@ -456,6 +599,17 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Login elements
+            const loginPage = document.getElementById('login-page');
+            const mainApp = document.getElementById('main-app');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const demoBtns = document.querySelectorAll('.demo-btn');
+            const userDisplay = document.getElementById('user-display');
+            
+            // Main app elements
             const startCameraBtn = document.getElementById('start-camera');
             const stopCameraBtn = document.getElementById('stop-camera');
             const toggleModeBtn = document.getElementById('toggle-mode');
@@ -490,6 +644,39 @@
                 { barcode: "10774035", name: "Mouse Pad", qty: 15, lastScan: "10/13/2023 11:20" },
                 { barcode: "4409940341703", name: "Webcam", qty: 8, lastScan: "10/12/2023 15:45" }
             ];
+            
+            // Login functionality
+            function login(username, password) {
+                // Simple authentication (in a real app, this would be server-side)
+                const users = {
+                    'admin': 'admin123',
+                    'manager': 'manager123',
+                    'staff': 'staff123'
+                };
+                
+                if (users[username] && users[username] === password) {
+                    // Successful login
+                    loginPage.style.display = 'none';
+                    mainApp.style.display = 'block';
+                    userDisplay.textContent = `Logged in as: ${username.charAt(0).toUpperCase() + username.slice(1)}`;
+                    showNotification('Login successful!');
+                    
+                    // Initialize the main app
+                    renderInventory();
+                } else {
+                    // Failed login
+                    showNotification('Invalid username or password', false);
+                }
+            }
+            
+            // Logout functionality
+            function logout() {
+                loginPage.style.display = 'block';
+                mainApp.style.display = 'none';
+                usernameInput.value = '';
+                passwordInput.value = '';
+                stopCamera();
+            }
             
             // Show notification function
             function showNotification(message, isSuccess = true) {
@@ -689,7 +876,23 @@
                 }
             }
             
-            // Event listeners
+            // Event listeners for login
+            loginBtn.addEventListener('click', function() {
+                login(usernameInput.value, passwordInput.value);
+            });
+            
+            logoutBtn.addEventListener('click', logout);
+            
+            // Demo login buttons
+            demoBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    usernameInput.value = this.dataset.username;
+                    passwordInput.value = this.dataset.password;
+                    login(this.dataset.username, this.dataset.password);
+                });
+            });
+            
+            // Event listeners for main app
             startCameraBtn.addEventListener('click', startCamera);
             stopCameraBtn.addEventListener('click', stopCamera);
             toggleModeBtn.addEventListener('click', toggleMode);
@@ -722,12 +925,6 @@
                     }
                 }
             }, 1000);
-            
-            // Initial render
-            renderInventory();
-            
-            // Show camera error on load for demonstration
-            setTimeout(showCameraError, 1000);
         });
     </script>
 </body>
