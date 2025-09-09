@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -10,6 +10,8 @@
     #video { transform: scaleX(-1); }
     .hidden { display:none !important; }
     .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
+    .camera-error { background: linear-gradient(45deg, #ff5252, #ff7675); }
+    .troubleshooting-card { background: #fff3e0; border-left: 4px solid #ff9800; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -66,6 +68,15 @@
             <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
               <video id="video" class="w-full h-full object-cover"></video>
               <canvas id="overlay" class="absolute inset-0"></canvas>
+              <div id="cameraError" class="camera-error text-white p-4 rounded-lg text-center hidden absolute">
+                <div class="text-4xl mb-2">📷</div>
+                <h3 class="font-bold">Camera Error</h3>
+                <p class="text-sm">Requested device not found</p>
+              </div>
+              <div id="cameraPlaceholder" class="text-slate-400 text-center p-4">
+                <div class="text-5xl mb-2">📷</div>
+                <p class="text-sm">Camera feed will appear here</p>
+              </div>
             </div>
             <div class="flex items-center gap-2 mt-3">
               <select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
@@ -75,6 +86,21 @@
               <input id="manualInput" placeholder="Manual barcode entry…" class="px-3 py-2 rounded-xl border" />
               <button id="manualSubmit" class="px-3 py-2 rounded-xl bg-slate-800 text-white">Submit Manual</button>
             </div>
+          </div>
+
+          <!-- Troubleshooting Card -->
+          <div id="troubleshootingCard" class="troubleshooting-card rounded-2xl shadow p-4 hidden">
+            <h3 class="font-bold text-amber-800 flex items-center gap-2">
+              <span class="text-xl">🔧</span> Camera Troubleshooting
+            </h3>
+            <ol class="list-decimal pl-5 mt-2 space-y-2 text-sm text-amber-700">
+              <li>Check if your camera is connected properly</li>
+              <li>Ensure you've granted camera permissions for this site</li>
+              <li>Try selecting a different camera from the dropdown</li>
+              <li>Refresh the page and try again</li>
+              <li>If using a mobile device, ensure no other app is using the camera</li>
+            </ol>
+            <button id="refreshCameraBtn" class="mt-3 px-3 py-2 rounded-xl bg-amber-600 text-white w-full">Retry Camera</button>
           </div>
 
           <div class="bg-white rounded-2xl shadow p-4 space-y-3">
@@ -427,6 +453,29 @@ async function removeItem(barcode){
 
 async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAction; await adjustQty(barcode, -delta); lastAction=null; }
 
+// NEW: Show camera error
+function showCameraError() {
+  $('#cameraError').classList.remove('hidden');
+  $('#cameraPlaceholder').classList.add('hidden');
+  $('#troubleshootingCard').classList.remove('hidden');
+  setStatus('Camera Error: Requested device not found');
+}
+
+// NEW: Hide camera error
+function hideCameraError() {
+  $('#cameraError').classList.add('hidden');
+  $('#troubleshootingCard').classList.add('hidden');
+  $('#cameraPlaceholder').classList.remove('hidden');
+}
+
+// NEW: Refresh camera function
+async function refreshCamera() {
+  await stopScan();
+  hideCameraError();
+  await listCameras();
+  await startScan();
+}
+
 async function startScan(){
   try {
     await stopScan();
@@ -436,6 +485,9 @@ async function startScan(){
     const video = $('#video'); video.srcObject = currentStream; await video.play();
     currentTrack = currentStream.getVideoTracks()[0];
     scanning = true; setStatus('Scanning…');
+    hideCameraError();
+    $('#cameraPlaceholder').classList.add('hidden');
+    
     if('BarcodeDetector' in window){
       const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
       const bd = new window.BarcodeDetector({ formats });
@@ -445,7 +497,10 @@ async function startScan(){
       const reader = new ZXing.BrowserMultiFormatReader();
       loopZXing(reader);
     }
-  } catch(e){ console.error(e); alert('Camera error: '+e.message); setStatus('Camera error'); }
+  } catch(e){ 
+    console.error(e); 
+    showCameraError();
+  }
 }
 
 let rafId=null;
@@ -546,6 +601,9 @@ $('#clearBtn').onclick = async ()=>{ if(!confirm('Clear ALL inventory?')) return
 $('#resetBtn').onclick = async ()=>{ if(!confirm('Reset app (delete DB)?')) return; await stopScan(); const req = indexedDB.deleteDatabase(DB_NAME); req.onsuccess = ()=> location.reload(); };
 $('#search').oninput = renderTable;
 $('#addItemBtn').onclick = async ()=>{ const barcode = prompt('Barcode?'); if(!barcode) return; const name = prompt('Name (optional)')||''; const qty = Number(prompt('Qty (default 0)')||0)||0; await upsertItem({ barcode, name, qty }); renderTable(); };
+
+// NEW: Add event listener for refresh camera button
+$('#refreshCameraBtn').onclick = refreshCamera;
 
 document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 
