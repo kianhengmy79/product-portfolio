@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Warehouse Scanner — Fixed Version</title>
+  <title>Warehouse Scanner</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-    /* Removed reverse effect */
+    /* ✅ FIXED: removed mirror effect */
     #video { transform: none; }
     .hidden { display:none !important; }
     .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
@@ -57,19 +57,41 @@
         </div>
       </header>
 
-      <!-- Scanner + Inventory sections (unchanged, omitted for brevity) -->
-      <!-- ... -->
+      <!-- Scanner Section -->
+      <section class="bg-white rounded-2xl shadow p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">Scanner</h2>
+        <div class="relative w-full max-w-md mx-auto">
+          <video id="video" class="w-full rounded-xl bg-black"></video>
+          <canvas id="canvas" class="hidden"></canvas>
+          <div id="scanOverlay" class="scanning-overlay"><div class="scanning-line"></div></div>
+        </div>
+        <div id="cameraError" class="camera-error hidden">⚠️ Camera not accessible.</div>
+      </section>
 
-      <footer class="text-center text-xs text-slate-400 mt-6">Data stored locally (IndexedDB). Cloud sync uses Apps Script endpoint if provided.</footer>
+      <!-- Inventory Section -->
+      <section class="bg-white rounded-2xl shadow p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">Inventory</h2>
+        <div class="flex gap-2 mb-3">
+          <button onclick="exportInventoryCSV()" class="px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700">Export Inventory CSV</button>
+          <button onclick="exportLogCSV()" class="px-3 py-2 rounded-lg bg-amber-100 text-amber-700">Export Log CSV</button>
+        </div>
+        <table class="w-full border text-sm">
+          <thead class="bg-slate-100">
+            <tr><th class="border px-2 py-1">Barcode</th><th class="border px-2 py-1">Name</th><th class="border px-2 py-1">Qty</th><th class="border px-2 py-1">Last Scan</th></tr>
+          </thead>
+          <tbody id="inventoryTable"></tbody>
+        </table>
+      </section>
     </div>
   </div>
 
   <script id="zxingScript"></script>
   <script>
-    // (all your JS unchanged, only CSV and camera fixes below)
-
+    // ======================
+    // CSV Export (✅ FIXED)
+    // ======================
     function downloadCSV(rows, filename){
-      const csv = rows.map(r => r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -80,15 +102,19 @@
 
     async function exportInventoryCSV(){
       const items = await getAll('inventory');
-      const rows = [['barcode','name','qty','lastScan'],
-        ...items.map(i=>[i.barcode, i.name||'', i.qty||0, i.lastScan||''])];
+      const rows = [
+        ["barcode","name","qty","lastScan"],   // ✅ header row
+        ...items.map(i => [i.barcode, i.name||"", i.qty||0, i.lastScan||""])
+      ];
       downloadCSV(rows, `inventory-${new Date().toISOString().slice(0,10)}.csv`);
     }
 
     async function exportLogCSV(){
       const items = await getAll('log');
-      const rows = [['id','ts','user','barcode','delta'],
-        ...items.map((i,idx)=>[idx+1,i.ts,i.user||'',i.barcode,i.delta])];
+      const rows = [
+        ["id","ts","user","barcode","delta"],  // ✅ header row
+        ...items.map((i, idx) => [idx+1, i.ts, i.user||"", i.barcode, i.delta])
+      ];
       downloadCSV(rows, `scanlog-${new Date().toISOString().slice(0,10)}.csv`);
     }
   </script>
