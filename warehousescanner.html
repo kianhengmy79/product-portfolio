@@ -193,6 +193,8 @@ let appsScriptUrl = '';
 let sheetId = '';
 let currentUser = null;
 let cameraList = [];
+let lastScannedCode = null; // Track last scanned code to prevent duplicates
+let scanCooldown = false; // Cooldown flag to prevent multiple scans
 
 // === NEW CODE: Save and Load Settings ===
 function saveSettings() {
@@ -482,6 +484,10 @@ async function startScan(){
     scanning = true; 
     setStatus('Scanning…');
     
+    // Reset scan tracking
+    lastScannedCode = null;
+    scanCooldown = false;
+    
     if('BarcodeDetector' in window){
       const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
       const bd = new window.BarcodeDetector({ formats });
@@ -504,11 +510,10 @@ async function loopBarcodeDetector(detector){
       try {
         const codes = await detector.detect(video);
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        if(codes && codes.length){ 
+        if(codes && codes.length && !scanCooldown){ 
           const val = codes[0].rawValue; 
           drawBox(ctx, codes[0].boundingBox); 
           await onBarcode(val); 
-          await new Promise(r=>setTimeout(r,400)); 
         }
       } catch(e){}
     }
@@ -537,9 +542,8 @@ async function loopZXing(reader){
       try {
         const result = await reader.decodeOnceFromVideoElement(video);
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        if(result && result.text){ 
+        if(result && result.text && !scanCooldown){ 
           await onBarcode(result.text); 
-          await new Promise(r=>setTimeout(r,400)); 
         }
       } catch(e){}
     }
@@ -548,11 +552,24 @@ async function loopZXing(reader){
 }
 
 async function onBarcode(code){
+  // Prevent duplicate scans of the same code
+  if (lastScannedCode === code && scanCooldown) return;
+  
+  // Set cooldown to prevent multiple scans
+  scanCooldown = true;
+  lastScannedCode = code;
+  
   const qty = Math.max(1, Number($('#qtyStep').value||1));
   const delta = MODE_IN ? qty : -qty;
   setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
   beep();
   await adjustQty(code, delta);
+  
+  // Reset cooldown after 1.5 seconds
+  setTimeout(() => {
+    scanCooldown = false;
+    lastScannedCode = null;
+  }, 1500);
 }
 
 function beep(){ try{ const ctx = new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='square'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); setTimeout(()=>{ o.stop(); ctx.close(); },170);}catch(e){} }
@@ -575,6 +592,14 @@ async function listCameras(){
     
     $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
   }catch(e){}
+}
+
+// Function to switch camera
+async function switchCamera() {
+  if (scanning) {
+    await stopScan();
+    await startScan();
+  }
 }
 
 async function initApp(){
@@ -629,6 +654,17 @@ $('#exportInvBtn').onclick = exportInventoryCSV;
 $('#exportLogBtn').onclick = exportLogCSV;
 $('#undoBtn').onclick = undoLast;
 $('#clearBtn').onclick = async ()=>{ 
+  // Password protection for clear inventory
+  const password = prompt('Enter your password to confirm clearing ALL inventory:');
+  if (!password) return;
+  
+  // Verify password
+  const isValid = await verifyPassword(password);
+  if (!isValid) {
+    alert('Incorrect password. Clear operation cancelled.');
+    return;
+  }
+  
   if(!confirm('Clear ALL inventory?')) return; 
   await tx('inventory','readwrite', s=>s.clear()); 
   await tx('log','readwrite', s=>s.clear()); 
@@ -649,6 +685,23 @@ $('#addItemBtn').onclick = async ()=>{
   await upsertItem({ barcode, name, qty }); 
   renderTable(); 
 };
+
+// Camera selection change event
+$('#cameraSelect').addEventListener('change', switchCamera);
+
+// Password verification function
+async function verifyPassword(password) {
+  if (currentUser && currentUser.via === 'sheet') {
+    // Check against sheet users
+    const sheetUsers = await fetchUsersFromSheet();
+    if (sheetUsers) {
+      return sheetUsers.some(u => u.username === currentUser.username && u.password === password);
+    }
+  }
+  
+  // Check against local users
+  return fallbackUsers().some(u => u.username === currentUser.username && u.password === password);
+}
 
 document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 
