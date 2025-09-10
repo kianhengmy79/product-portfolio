@@ -1,165 +1,560 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Warehouse Scanner — Fixed Version</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-/* Fixed: Remove mirror for back camera */
-#video { transform: none; }
-.hidden { display:none !important; }
-.badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
-.camera-error { background: #fee; border: 1px solid #fcc; color: #c33; padding: 10px; border-radius: 8px; margin: 10px 0; }
-.scanning-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
-.scanning-line { width: 80%; height: 4px; background: #4caf50; position: absolute; animation: scan 2s infinite; }
-@keyframes scan { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
-</style>
+  <meta charset="utf-8" />
+  <title>Warehouse Scanner — Login + Google Sheets Sync</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    #video { transform: scaleX(-1); }
+    .hidden { display:none !important; }
+    .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
-<div class="max-w-4xl mx-auto p-6">
+  <div class="max-w-4xl mx-auto p-6">
+    <div id="loginCard" class="bg-white rounded-2xl shadow p-6 max-w-md mx-auto">
+      <h1 class="text-2xl font-bold mb-2">Warehouse Scanner — Login</h1>
+      <p class="text-sm text-slate-500 mb-4">Sign in to track who scans inventory. You can store users in Google Sheet (recommended) or use local fallback users.</p>
+      <label class="block mb-2"><span class="text-sm">Apps Script Sync URL (optional)</span>
+        <input id="appsScriptUrl" class="mt-1 block w-full rounded-lg border p-2" placeholder="https://script.google.com/macros/s/XXXX/exec (optional)" />
+      </label>
+      <label class="block mb-2"><span class="text-sm">Sheet ID (optional)</span>
+        <input id="sheetId" class="mt-1 block w-full rounded-lg border p-2" placeholder="13T36w322JzTMFLNK3PEVAJAPa_pAMpWvDWWr7B9EC-A" />
+      </label>
+      <label class="block mb-2"><span class="text-sm">Username</span>
+        <input id="loginUser" class="mt-1 block w-full rounded-lg border p-2" placeholder="username" />
+      </label>
+      <label class="block mb-4"><span class="text-sm">Password</span>
+        <input id="loginPass" type="password" class="mt-1 block w-full rounded-lg border p-2" placeholder="password" />
+      </label>
+      <div class="flex gap-2">
+        <button id="loginBtn" class="px-4 py-2 rounded-xl bg-sky-600 text-white">Sign in</button>
+        <button id="demoBtn" class="px-4 py-2 rounded-xl bg-slate-200">Use Demo (no sheet)</button>
+        <button id="howBtn" class="ml-auto px-3 py-2 rounded-xl bg-amber-100">Instructions</button>
+      </div>
+      <p class="text-xs text-slate-400 mt-3">Tip: If you want cloud sync, deploy a tiny Google Apps Script web app (instructions available) and paste its URL above. The app will proxy reads/writes to your Sheet securely.</p>
+    </div>
 
-<!-- Login Card -->
-<div id="loginCard" class="bg-white rounded-2xl shadow p-6 max-w-md mx-auto">
-<h1 class="text-2xl font-bold mb-2">Warehouse Scanner — Login</h1>
-<p class="text-sm text-slate-500 mb-4">Sign in to track who scans inventory. You can store users in Google Sheet (recommended) or use local fallback users.</p>
-<label class="block mb-2"><span class="text-sm">Apps Script Sync URL (optional)</span>
-<input id="appsScriptUrl" class="mt-1 block w-full rounded-lg border p-2" placeholder="https://script.google.com/macros/s/XXXX/exec (optional)" />
-</label>
-<label class="block mb-2"><span class="text-sm">Sheet ID (optional)</span>
-<input id="sheetId" class="mt-1 block w-full rounded-lg border p-2" placeholder="13T36w322JzTMFLNK3PEVAJAPa_pAMpWvDWWr7B9EC-A" />
-</label>
-<label class="block mb-2"><span class="text-sm">Username</span>
-<input id="loginUser" class="mt-1 block w-full rounded-lg border p-2" placeholder="username" />
-</label>
-<label class="block mb-4"><span class="text-sm">Password</span>
-<input id="loginPass" type="password" class="mt-1 block w-full rounded-lg border p-2" placeholder="password" />
-</label>
-<div class="flex gap-2">
-<button id="loginBtn" class="px-4 py-2 rounded-xl bg-sky-600 text-white">Sign in</button>
-<button id="demoBtn" class="px-4 py-2 rounded-xl bg-slate-200">Use Demo (no sheet)</button>
-<button id="howBtn" class="ml-auto px-3 py-2 rounded-xl bg-amber-100">Instructions</button>
-</div>
-<p class="text-xs text-slate-400 mt-3">Tip: If you want cloud sync, deploy a tiny Google Apps Script web app (instructions available) and paste its URL above. The app will proxy reads/writes to your Sheet securely.</p>
-</div>
+    <!-- Main App -->
+    <div id="app" class="hidden mt-6">
+      <header class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-sky-100 grid place-items-center"><span class="text-sky-600 font-bold">WS</span></div>
+        <div>
+          <h1 id="title" class="text-2xl md:text-3xl font-bold">Warehouse Scanner</h1>
+          <p id="subtitle" class="text-sm text-slate-500 -mt-1">Scan • Auto-update • Cloud sync</p>
+        </div>
+        <div class="ml-auto flex items-center gap-3">
+          <span id="userBadge" class="badge bg-indigo-100 text-indigo-700">—</span>
+          <button id="logoutBtn" class="px-3 py-1 rounded-lg bg-rose-100 text-rose-700">Logout</button>
+        </div>
+      </header>
 
-<!-- Main App -->
-<div id="app" class="hidden mt-6">
-<header class="flex items-center gap-3 mb-4">
-<div class="w-10 h-10 rounded-2xl bg-sky-100 grid place-items-center"><span class="text-sky-600 font-bold">WS</span></div>
-<div>
-<h1 id="title" class="text-2xl md:text-3xl font-bold">Warehouse Scanner</h1>
-<p id="subtitle" class="text-sm text-slate-500 -mt-1">Scan • Auto-update • Cloud sync</p>
-</div>
-<div class="ml-auto flex items-center gap-3">
-<span id="userBadge" class="badge bg-indigo-100 text-indigo-700">—</span>
-<button id="logoutBtn" class="px-3 py-1 rounded-lg bg-rose-100 text-rose-700">Logout</button>
-</div>
-</header>
+      <section class="grid lg:grid-cols-[520px_1fr] gap-6">
+        <!-- Scanner pane -->
+        <div class="space-y-4">
+          <div class="bg-white rounded-2xl shadow p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <button id="startBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white">Start Scan</button>
+              <button id="stopBtn" class="px-3 py-2 rounded-xl bg-slate-200">Stop</button>
+              <button id="toggleModeBtn" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Toggle IN/OUT</button>
+              <label class="ml-auto text-sm text-slate-600 flex items-center gap-2">Qty
+                <input id="qtyStep" type="number" value="1" min="1" class="w-16 px-2 py-1 rounded-lg border" />
+              </label>
+            </div>
+            <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
+              <video id="video" class="w-full h-full object-cover"></video>
+              <canvas id="overlay" class="absolute inset-0"></canvas>
+            </div>
+            <div class="flex items-center gap-2 mt-3">
+              <select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
+              <button id="torchBtn" class="px-3 py-2 rounded-xl bg-slate-200">Toggle Torch</button>
+            </div>
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input id="manualInput" placeholder="Manual barcode entry…" class="px-3 py-2 rounded-xl border" />
+              <button id="manualSubmit" class="px-3 py-2 rounded-xl bg-slate-800 text-white">Submit Manual</button>
+            </div>
+          </div>
 
-<section class="grid lg:grid-cols-[520px_1fr] gap-6">
-<!-- Scanner pane -->
-<div class="space-y-4">
-<div class="bg-white rounded-2xl shadow p-4">
-<div class="flex items-center gap-2 mb-3">
-<button id="startBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white">Start Scan</button>
-<button id="stopBtn" class="px-3 py-2 rounded-xl bg-slate-200">Stop</button>
-<button id="toggleModeBtn" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Toggle IN/OUT</button>
-<label class="ml-auto text-sm text-slate-600 flex items-center gap-2">Qty <input id="qtyStep" type="number" value="1" min="1" class="w-16 px-2 py-1 rounded-lg border" /></label>
-</div>
-<div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
-<video id="video" class="w-full h-full object-cover"></video>
-<canvas id="overlay" class="absolute inset-0"></canvas>
-<div class="scanning-overlay" id="scanningOverlay">
-<div class="scanning-line"></div>
-</div>
-<div id="cameraError" class="camera-error hidden">
-<h3 class="font-bold mb-1">Camera Error</h3>
-<p class="text-sm">Requested device not found. Please check your camera connection and permissions.</p>
-</div>
-</div>
-<div class="flex items-center gap-2 mt-3">
-<select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
-<button id="torchBtn" class="px-3 py-2 rounded-xl bg-slate-200">Toggle Torch</button>
-</div>
-<div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-<input id="manualInput" placeholder="Manual barcode entry…" class="px-3 py-2 rounded-xl border" />
-<button id="manualSubmit" class="px-3 py-2 rounded-xl bg-slate-800 text-white">Submit Manual</button>
-</div>
-</div>
+          <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+            <h2 class="font-semibold">Import / Export</h2>
+            <div class="grid md:grid-cols-2 gap-2">
+              <div class="flex items-center gap-2">
+                <input id="csvFile" type="file" accept=".csv" class="block w-full text-sm" />
+                <button id="importBtn" class="px-3 py-2 rounded-xl bg-slate-200">Import CSV</button>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="exportInvBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white w-full">Export Inventory CSV</button>
+                <button id="exportLogBtn" class="px-3 py-2 rounded-xl bg-slate-800 text-white w-full">Export Log CSV</button>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500">CSV: <code>barcode, name, qty</code>. You can also sync to Sheet.</p>
+          </div>
 
-<div class="bg-white rounded-2xl shadow p-4 space-y-3">
-<h2 class="font-semibold">Import / Export</h2>
-<div class="grid md:grid-cols-2 gap-2">
-<div class="flex items-center gap-2">
-<input id="csvFile" type="file" accept=".csv" class="block w-full text-sm" />
-<button id="importBtn" class="px-3 py-2 rounded-xl bg-slate-200">Import CSV</button>
-</div>
-<div class="flex items-center gap-2">
-<button id="exportInvBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white w-full">Export Inventory CSV</button>
-<button id="exportLogBtn" class="px-3 py-2 rounded-xl bg-slate-800 text-white w-full">Export Log CSV</button>
-</div>
-</div>
-<p class="text-xs text-slate-500">CSV: <code>barcode, name, qty</code>. You can also sync to Sheet.</p>
-</div>
+          <div class="bg-white rounded-2xl shadow p-4 flex items-center gap-2">
+            <button id="undoBtn" class="px-3 py-2 rounded-xl bg-amber-500 text-white">Undo Last</button>
+            <button id="clearBtn" class="px-3 py-2 rounded-xl bg-rose-600 text-white">Clear Inventory</button>
+            <button id="resetBtn" class="ml-auto px-3 py-2 rounded-xl bg-slate-200">Reset App</button>
+          </div>
+        </div>
 
-<div class="bg-white rounded-2xl shadow p-4 flex items-center gap-2">
-<button id="undoBtn" class="px-3 py-2 rounded-xl bg-amber-500 text-white">Undo Last</button>
-<button id="clearBtn" class="px-3 py-2 rounded-xl bg-rose-600 text-white">Clear Inventory</button>
-<button id="resetBtn" class="ml-auto px-3 py-2 rounded-xl bg-slate-200">Reset App</button>
-</div>
-</div>
+        <!-- Inventory pane -->
+        <div class="bg-white rounded-2xl shadow p-4">
+          <div class="flex flex-col md:flex-row md:items-center gap-2 mb-3">
+            <div class="relative flex-1">
+              <input id="search" placeholder="Search name or barcode…" class="w-full px-3 py-2 rounded-xl border" />
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="addItemBtn" class="px-3 py-2 rounded-xl bg-slate-200">Add Item</button>
+              <span class="text-sm text-slate-500">Total SKUs: <span id="skuCount">0</span></span>
+            </div>
+          </div>
+          <div class="overflow-auto rounded-xl border">
+            <table class="min-w-full text-sm">
+              <thead class="bg-slate-50 text-slate-600">
+                <tr>
+                  <th class="text-left p-3">Barcode</th>
+                  <th class="text-left p-3">Name</th>
+                  <th class="text-right p-3">Qty</th>
+                  <th class="text-left p-3">Last Scan</th>
+                  <th class="text-left p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-<!-- Inventory pane -->
-<div class="bg-white rounded-2xl shadow p-4">
-<div class="flex flex-col md:flex-row md:items-center gap-2 mb-3">
-<div class="relative flex-1">
-<input id="search" placeholder="Search name or barcode…" class="w-full px-3 py-2 rounded-xl border" />
-</div>
-<div class="flex items-center gap-2">
-<button id="addItemBtn" class="px-3 py-2 rounded-xl bg-slate-200">Add Item</button>
-<span class="text-sm text-slate-500">Total SKUs: <span id="skuCount">0</span></span>
-</div>
-</div>
-<div class="overflow-auto rounded-xl border">
-<table class="min-w-full text-sm">
-<thead class="bg-slate-50 text-slate-600">
-<tr>
-<th class="text-left p-3">Barcode</th>
-<th class="text-left p-3">Name</th>
-<th class="text-right p-3">Qty</th>
-<th class="text-left p-3">Last Scan</th>
-<th class="text-left p-3">Actions</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
-</div>
-</div>
-</section>
+      <footer class="text-center text-xs text-slate-400 mt-6">Data stored locally (IndexedDB). Cloud sync uses Apps Script endpoint if provided.</footer>
+    </div>
+  </div>
 
-<footer class="text-center text-xs text-slate-400 mt-6">Data stored locally (IndexedDB). Cloud sync uses Apps Script endpoint if provided.</footer>
-</div>
+  <script id="zxingScript"></script>
 
-<script id="zxingScript"></script>
-<script>
-// --- ALL YOUR ORIGINAL SCRIPT HERE ---
+  <script>
+/*
+UPGRADE NOTES:
+- This file supports optional Google Sheets sync via a Google Apps Script Web App proxy.
+- Why use Apps Script? Browser cannot securely use Service Account JSON. Apps Script lets the server-side (your Google account) handle authentication and perform read/write on the sheet.
+- Steps to enable cloud sync using Apps Script:
+  1. Create a new Google Sheet. Note the Sheet ID (from URL).
+  2. In Google Drive, create a new Apps Script (Extensions → Apps Script) and paste a small server-side script (example provided below).
+  3. Deploy the Apps Script as a Web App (Execute as: Me; Who has access: Anyone with link).
+  4. Copy the Web App URL and paste into the "Apps Script Sync URL" field on the login screen.
+  5. Create sheet tabs named 'inventory' and 'users' with simple rows:
+     - inventory rows: barcode | name | qty
+     - users rows: username | password
+- Apps Script example (save as Code.gs in your Apps Script project):
+  function doGet(e) {
+    var action = e.parameter.action;
+    var sheetId = e.parameter.sheetId;
+    var ss = SpreadsheetApp.openById(sheetId);
+    var inv = ss.getSheetByName('inventory') || ss.insertSheet('inventory');
+    var users = ss.getSheetByName('users') || ss.insertSheet('users');
+    if (action == 'getInventory') {
+      var rows = inv.getDataRange().getValues();
+      return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (action == 'setRow') {
+      var barcode = e.parameter.barcode;
+      var name = e.parameter.name || '';
+      var qty = Number(e.parameter.qty || 0);
+      var data = inv.getDataRange().getValues();
+      var found = false;
+      for (var i=0;i<data.length;i++){
+        if (data[i][0] == barcode){ inv.getRange(i+1,1,1,3).setValues([[barcode,name,qty]]); found=true; break; }
+      }
+      if (!found) inv.appendRow([barcode,name,qty]);
+      return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (action == 'getUsers') {
+      var rows = users.getDataRange().getValues();
+      return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService.createTextOutput(JSON.stringify({error:'unknown action'})).setMimeType(ContentService.MimeType.JSON);
+  }
+- This Apps Script is a minimal example. You can extend it to log changes, secure calls via tokens, etc.
+
+USERS:
+- If Apps Script URL is provided, the app will try to fetch the 'users' sheet and match username/password (plain-text) — this is simple and convenient but not fully secure. For production, consider hashing or using a proper auth.
+- If no Apps Script is provided, fallback users are:
+   admin / admin123
+   staff / staff123
+*/
+
 const $ = sel => document.querySelector(sel);
-// Your full login, IndexedDB, scan, CSV, Apps Script logic remains unchanged
-// --- Fix CSV export ---
-function downloadCSV(rows, filename){
-  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
-  const blob = new Blob([csv], { type:'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  document.body.appendChild(a); // append to body to fix Firefox
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
+const DB_NAME = 'ws-upgraded-db', DB_VER = 1;
+let db;
+let MODE_IN = true;
+let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
+let appsScriptUrl = '';
+let sheetId = '';
+let currentUser = null;
+
+// === NEW CODE: Save and Load Settings ===
+function saveSettings() {
+  const settings = {
+    appsScriptUrl: $('#appsScriptUrl').value.trim(),
+    sheetId: $('#sheetId').value.trim()
+  };
+  localStorage.setItem('warehouseScannerSettings', JSON.stringify(settings));
 }
-// --- All other original functions untouched ---
-</script>
+
+function loadSettings() {
+  const saved = localStorage.getItem('warehouseScannerSettings');
+  if (saved) {
+    const settings = JSON.parse(saved);
+    $('#appsScriptUrl').value = settings.appsScriptUrl || '';
+    $('#sheetId').value = settings.sheetId || '';
+  }
+}
+// === END NEW CODE ===
+
+async function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = ()=>{
+      const d = req.result;
+      if(!d.objectStoreNames.contains('inventory')) {
+        const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
+        s.createIndex('name','name',{unique:false});
+      }
+      if(!d.objectStoreNames.contains('log')) d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
+    };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+async function tx(store, mode, fn){
+  return new Promise((resolve,reject)=>{
+    const t = db.transaction(store, mode);
+    const s = t.objectStore(store);
+    const r = fn(s);
+    t.oncomplete = ()=> resolve(r);
+    t.onerror = ()=> reject(t.error);
+  });
+}
+async function getAll(store){
+  return new Promise((resolve,reject)=>{
+    const req = db.transaction(store).objectStore(store).getAll();
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+function setStatus(msg){ $('#subtitle').textContent = msg || ''; }
+function setUserBadge(){ $('#userBadge').textContent = currentUser ? currentUser.username : '—'; }
+
+function fallbackUsers(){
+  return [{username:'admin',password:'admin123'},{username:'staff',password:'staff123'}];
+}
+
+async function fetchUsersFromSheet(){
+  if(!appsScriptUrl || !sheetId) return null;
+  try {
+    const url = new URL(appsScriptUrl);
+    url.searchParams.set('action','getUsers');
+    url.searchParams.set('sheetId', sheetId);
+    const res = await fetch(url.toString());
+    if(!res.ok) throw new Error('Apps Script error');
+    const rows = await res.json();
+    const out = rows.map(r => ({ username: String(r[0]||''), password: String(r[1]||'') })).filter(u=>u.username);
+    return out;
+  } catch(e){ console.warn('fetchUsersFromSheet', e); return null; }
+}
+
+async function tryLogin(username,password){
+  appsScriptUrl = $('#appsScriptUrl').value.trim();
+  sheetId = $('#sheetId').value.trim();
+  const sheetUsers = await fetchUsersFromSheet();
+  if(sheetUsers){
+    const found = sheetUsers.find(u => u.username === username && u.password === password);
+    if(found) return { username: found.username, via: 'sheet' };
+  }
+  const local = fallbackUsers().find(u=>u.username===username && u.password===password);
+  if(local) return { username: local.username, via: 'local' };
+  return null;
+}
+
+async function loginFlow(){
+  const u = $('#loginUser').value.trim();
+  const p = $('#loginPass').value;
+  if(!u || !p) return alert('Enter username and password');
+  setStatus('Authenticating…');
+  
+  appsScriptUrl = $('#appsScriptUrl').value.trim();
+  sheetId = $('#sheetId').value.trim();
+  saveSettings(); // <-- ADDED: Save the URL and ID on login
+
+  const res = await tryLogin(u,p);
+  if(!res){ setStatus('Login failed'); return alert('Invalid credentials'); }
+  currentUser = { username: res.username, via: res.via };
+  $('#loginCard').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  setUserBadge();
+  await initApp();
+}
+
+$('#loginBtn').onclick = loginFlow;
+$('#demoBtn').onclick = ()=>{
+  $('#loginUser').value = 'admin'; $('#loginPass').value='admin123';
+  $('#loginBtn').click();
+};
+$('#howBtn').onclick = ()=> alert('Instructions:\\n1) (Optional) Deploy Apps Script web app and paste URL + sheet ID.\\n2) Create a \"users\" sheet with username,password rows, and an \"inventory\" sheet with barcode,name,qty rows.\\n3) Login and start scanning. See file comments for Apps Script code.');
+
+$('#logoutBtn').onclick = async ()=>{
+  currentUser=null;
+  $('#app').classList.add('hidden');
+  $('#loginCard').classList.remove('hidden');
+  setStatus('');
+};
+
+// Inventory functions
+async function upsertItem({barcode,name='',qty=0}){
+  await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null }));
+}
+async function adjustQty(barcode, delta){
+  await tx('inventory','readwrite', s=>{
+    const req = s.get(barcode);
+    req.onsuccess = async ()=>{
+      const item = req.result || { barcode, name:'', qty:0, lastScan:null };
+      item.qty = Math.max(0, (item.qty||0) + delta);
+      item.lastScan = new Date().toISOString();
+      s.put(item);
+      lastAction = { barcode, delta };
+      renderTable();
+      await tx('log','readwrite', ss => ss.add({ ts: new Date().toISOString(), user: currentUser.username, barcode, delta }));
+      await syncRowToCloud(item);
+    };
+  });
+}
+
+async function syncRowToCloud(item){
+  if(!appsScriptUrl || !sheetId) return;
+  try {
+    const url = new URL(appsScriptUrl);
+    url.searchParams.set('action','setRow');
+    url.searchParams.set('sheetId', sheetId);
+    url.searchParams.set('barcode', item.barcode);
+    url.searchParams.set('name', item.name||'');
+    url.searchParams.set('qty', String(item.qty||0));
+    url.searchParams.set('user', currentUser.username);
+    await fetch(url.toString());
+  } catch(e){ console.warn('syncRowToCloud', e); }
+}
+
+async function fetchInventoryFromCloud(){
+  if(!appsScriptUrl || !sheetId) return null;
+  try {
+    const url = new URL(appsScriptUrl);
+    url.searchParams.set('action','getInventory');
+    url.searchParams.set('sheetId', sheetId);
+    const res = await fetch(url.toString());
+    if(!res.ok) throw new Error('Apps Script fetch failed');
+    const rows = await res.json();
+    return rows.map(r => ({ barcode: String(r[0]||''), name: String(r[1]||''), qty: Number(r[2]||0) })).filter(x=>x.barcode);
+  } catch(e){ console.warn('fetchInventoryFromCloud', e); return null; }
+}
+
+async function importCSVText(text){
+  const rows = text.split(/\\r?\\n/).map(r=>r.trim()).filter(Boolean);
+  for(const r of rows){
+    const [barcode,name,qty] = r.split(',');
+    if(!barcode) continue;
+    await upsertItem({ barcode: barcode.trim(), name: (name||'').trim(), qty: Number(qty||0) });
+  }
+  renderTable();
+}
+
+function downloadCSV(rows, filename){
+  const csv = rows.map(r => r.map(v=>'\"'+String(v).replaceAll('\"','\"\"')+'\"').join(',')).join('\\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+
+async function exportInventoryCSV(){
+  const items = await getAll('inventory');
+  const rows = [['barcode','name','qty','lastScan'], ...items.map(i=>[i.barcode,i.name||'',i.qty||0,i.lastScan||''])];
+  downloadCSV(rows, `inventory-${new Date().toISOString().slice(0,10)}.csv`);
+}
+async function exportLogCSV(){
+  const items = await getAll('log');
+  const rows = [['id','ts','user','barcode','delta'], ...items.map((i,idx)=>[idx+1,i.ts,i.user||'',i.barcode,i.delta])];
+  downloadCSV(rows, `scanlog-${new Date().toISOString().slice(0,10)}.csv`);
+}
+
+async function renderTable(){
+  const q = $('#search').value.toLowerCase();
+  const items = await getAll('inventory');
+  items.sort((a,b)=> (b.lastScan||'').localeCompare(a.lastScan||''));
+  const filtered = items.filter(i => (i.barcode+' '+(i.name||'')).toLowerCase().includes(q));
+  $('#skuCount').textContent = String(items.length);
+  const tbody = $('#tbody'); tbody.innerHTML = '';
+  for(const it of filtered){
+    const tr = document.createElement('tr'); tr.className='border-t border-slate-100 hover:bg-slate-50';
+    tr.innerHTML = `
+      <td class="p-3 font-mono text-xs">${it.barcode}</td>
+      <td class="p-3"><input data-bc="${it.barcode}" class="nameInput w-full bg-transparent outline-none" value="${(it.name||'').replaceAll('"','&quot;')}" /></td>
+      <td class="p-3 text-right font-semibold tabular-nums">${it.qty||0}</td>
+      <td class="p-3 text-xs text-slate-500">${it.lastScan ? new Date(it.lastScan).toLocaleString() : '-'}</td>
+      <td class="p-3 flex items-center gap-2">
+        <button data-bc="${it.barcode}" class="inc px-2 py-1 rounded-lg bg-slate-200">+1</button>
+        <button data-bc="${it.barcode}" class="dec px-2 py-1 rounded-lg bg-slate-200">-1</button>
+        <button data-bc="${it.barcode}" class="del px-2 py-1 rounded-lg bg-rose-600 text-white">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+  tbody.querySelectorAll('.inc').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, +1));
+  tbody.querySelectorAll('.dec').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, -1));
+  tbody.querySelectorAll('.del').forEach(b=>b.onclick=async ()=>{ if(confirm('Delete this SKU?')) await removeItem(b.dataset.bc); });
+  tbody.querySelectorAll('.nameInput').forEach(inp=>{
+    inp.onchange = async ()=> {
+      await tx('inventory','readwrite', s=>{
+        const req = s.get(inp.dataset.bc);
+        req.onsuccess = ()=>{ const it=req.result; it.name=inp.value; s.put(it); syncRowToCloud(it); };
+      });
+    };
+  });
+}
+
+async function removeItem(barcode){
+  await tx('inventory','readwrite', s=> s.delete(barcode));
+  renderTable();
+}
+
+async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAction; await adjustQty(barcode, -delta); lastAction=null; }
+
+async function startScan(){
+  try {
+    await stopScan();
+    const deviceId = $('#cameraSelect').value || undefined;
+    const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined, facingMode: 'environment' }, audio:false };
+    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = $('#video'); video.srcObject = currentStream; await video.play();
+    currentTrack = currentStream.getVideoTracks()[0];
+    scanning = true; setStatus('Scanning…');
+    if('BarcodeDetector' in window){
+      const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
+      const bd = new window.BarcodeDetector({ formats });
+      loopBarcodeDetector(bd);
+    } else {
+      await loadZXing();
+      const reader = new ZXing.BrowserMultiFormatReader();
+      loopZXing(reader);
+    }
+  } catch(e){ console.error(e); alert('Camera error: '+e.message); setStatus('Camera error'); }
+}
+
+let rafId=null;
+async function loopBarcodeDetector(detector){
+  const video = $('#video'); const canvas = $('#overlay'); const ctx = canvas.getContext('2d');
+  const step = async ()=>{
+    if(!scanning) return;
+    if(video.readyState>=2){
+      canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+      try {
+        const codes = await detector.detect(video);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(codes && codes.length){ const val = codes[0].rawValue; drawBox(ctx, codes[0].boundingBox); await onBarcode(val); await new Promise(r=>setTimeout(r,400)); }
+      } catch(e){}
+    }
+    rafId = requestAnimationFrame(step);
+  }; step();
+}
+
+function drawBox(ctx, box){ if(!box) return; ctx.lineWidth=3; ctx.strokeStyle='lime'; ctx.strokeRect(box.x, box.y, box.width, box.height); }
+
+async function loadZXing(){
+  return new Promise((resolve,reject)=>{
+    const s = document.getElementById('zxingScript');
+    if(s.getAttribute('src')) return resolve();
+    s.onload = ()=>resolve();
+    s.onerror = ()=>reject(new Error('Failed to load ZXing'));
+    s.src = 'https://unpkg.com/@zxing/library@0.21.2/esm/index.min.js';
+  });
+}
+
+async function loopZXing(reader){
+  const video = $('#video'); const canvas = $('#overlay'); const ctx = canvas.getContext('2d');
+  const step = async ()=>{
+    if(!scanning) return;
+    if(video.readyState>=2){
+      canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+      try {
+        const result = await reader.decodeOnceFromVideoElement(video);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(result && result.text){ await onBarcode(result.text); await new Promise(r=>setTimeout(r,400)); }
+      } catch(e){}
+    }
+    rafId = requestAnimationFrame(step);
+  }; step();
+}
+
+async function onBarcode(code){
+  const qty = Math.max(1, Number($('#qtyStep').value||1));
+  const delta = MODE_IN ? qty : -qty;
+  setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
+  beep();
+  await adjustQty(code, delta);
+}
+
+function beep(){ try{ const ctx = new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='square'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); setTimeout(()=>{ o.stop(); ctx.close(); },170);}catch(e){} }
+
+async function stopScan(){ scanning=false; if(rafId) cancelAnimationFrame(rafId); if(currentTrack) try{ currentTrack.stop(); }catch(_){} if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); currentTrack=null; currentStream=null; setStatus(''); }
+
+async function listCameras(){
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d=>d.kind==='videoinput');
+    $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
+  }catch(e){}
+}
+
+async function initApp(){
+  db = await openDB();
+  setUserBadge();
+  await listCameras();
+  appsScriptUrl = $('#appsScriptUrl').value.trim();
+  sheetId = $('#sheetId').value.trim();
+  if(appsScriptUrl && sheetId){
+    setStatus('Syncing from cloud…');
+    const rows = await fetchInventoryFromCloud();
+    if(rows){
+      await tx('inventory','readwrite', s=> s.clear());
+      for(const r of rows){ await upsertItem(r); }
+    }
+    setStatus('');
+  }
+  renderTable();
+}
+
+$('#startBtn').onclick = startScan; $('#stopBtn').onclick = stopScan;
+$('#toggleModeBtn').onclick = ()=>{ MODE_IN = !MODE_IN; $('#toggleModeBtn').classList.toggle('bg-emerald-600'); };
+$('#torchBtn').onclick = async ()=>{ if(!currentTrack) return alert('Start camera first'); const caps = currentTrack.getCapabilities?.(); if(!caps||!caps.torch) return alert('Torch unsupported'); const settings = currentTrack.getSettings(); const torchOn = !settings.torch; await currentTrack.applyConstraints({ advanced:[{ torch: torchOn }] }); };
+$('#manualSubmit').onclick = async ()=>{ const v = $('#manualInput').value.trim(); if(!v) return; await onBarcode(v); $('#manualInput').value=''; };
+$('#manualInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#manualSubmit').click(); });
+
+$('#importBtn').onclick = async ()=>{
+  const f = $('#csvFile').files?.[0]; if(!f) return alert('Choose CSV'); const text = await f.text(); await importCSVText(text);
+};
+$('#exportInvBtn').onclick = exportInventoryCSV; $('#exportLogBtn').onclick = exportLogCSV;
+$('#undoBtn').onclick = undoLast;
+$('#clearBtn').onclick = async ()=>{ if(!confirm('Clear ALL inventory?')) return; await tx('inventory','readwrite', s=>s.clear()); await tx('log','readwrite', s=>s.clear()); renderTable(); };
+$('#resetBtn').onclick = async ()=>{ if(!confirm('Reset app (delete DB)?')) return; await stopScan(); const req = indexedDB.deleteDatabase(DB_NAME); req.onsuccess = ()=> location.reload(); };
+$('#search').oninput = renderTable;
+$('#addItemBtn').onclick = async ()=>{ const barcode = prompt('Barcode?'); if(!barcode) return; const name = prompt('Name (optional)')||''; const qty = Number(prompt('Qty (default 0)')||0)||0; await upsertItem({ barcode, name, qty }); renderTable(); };
+
+document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+
+(async function preinit(){ 
+  db = await openDB(); 
+  loadSettings(); // <-- ADDED: Load saved URL and ID on page load
+  setStatus('Ready'); 
+})();
+
+  </script>
 </body>
 </html>
