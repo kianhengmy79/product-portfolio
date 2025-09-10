@@ -7,9 +7,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-    #video { transform: scaleX(-1); }
     .hidden { display:none !important; }
     .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
+    .mirrored { transform: scaleX(-1); }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -192,6 +192,7 @@ let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
 let appsScriptUrl = '';
 let sheetId = '';
 let currentUser = null;
+let cameraList = [];
 
 // === NEW CODE: Save and Load Settings ===
 function saveSettings() {
@@ -360,7 +361,7 @@ async function fetchInventoryFromCloud(){
 }
 
 async function importCSVText(text){
-  const rows = text.split(/\\r?\\n/).map(r=>r.trim()).filter(Boolean);
+  const rows = text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
   for(const r of rows){
     const [barcode,name,qty] = r.split(',');
     if(!barcode) continue;
@@ -370,7 +371,7 @@ async function importCSVText(text){
 }
 
 function downloadCSV(rows, filename){
-  const csv = rows.map(r => r.map(v=>'\"'+String(v).replaceAll('\"','\"\"')+'\"').join(',')).join('\\n');
+  const csv = rows.map(r => r.map(v=>'\"'+String(v).replaceAll('\"','\"\"')+'\"').join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
 }
@@ -433,9 +434,22 @@ async function startScan(){
     const deviceId = $('#cameraSelect').value || undefined;
     const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined, facingMode: 'environment' }, audio:false };
     currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-    const video = $('#video'); video.srcObject = currentStream; await video.play();
+    const video = $('#video'); 
+    video.srcObject = currentStream; 
+    
+    // Apply mirroring only for front-facing cameras
+    const selectedCamera = cameraList.find(cam => cam.deviceId === deviceId);
+    if (selectedCamera && selectedCamera.label.toLowerCase().includes('front')) {
+      video.classList.add('mirrored');
+    } else {
+      video.classList.remove('mirrored');
+    }
+    
+    await video.play();
     currentTrack = currentStream.getVideoTracks()[0];
-    scanning = true; setStatus('Scanning…');
+    scanning = true; 
+    setStatus('Scanning…');
+    
     if('BarcodeDetector' in window){
       const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
       const bd = new window.BarcodeDetector({ formats });
@@ -458,7 +472,12 @@ async function loopBarcodeDetector(detector){
       try {
         const codes = await detector.detect(video);
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        if(codes && codes.length){ const val = codes[0].rawValue; drawBox(ctx, codes[0].boundingBox); await onBarcode(val); await new Promise(r=>setTimeout(r,400)); }
+        if(codes && codes.length){ 
+          const val = codes[0].rawValue; 
+          drawBox(ctx, codes[0].boundingBox); 
+          await onBarcode(val); 
+          await new Promise(r=>setTimeout(r,400)); 
+        }
       } catch(e){}
     }
     rafId = requestAnimationFrame(step);
@@ -486,7 +505,10 @@ async function loopZXing(reader){
       try {
         const result = await reader.decodeOnceFromVideoElement(video);
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        if(result && result.text){ await onBarcode(result.text); await new Promise(r=>setTimeout(r,400)); }
+        if(result && result.text){ 
+          await onBarcode(result.text); 
+          await new Promise(r=>setTimeout(r,400)); 
+        }
       } catch(e){}
     }
     rafId = requestAnimationFrame(step);
@@ -503,12 +525,22 @@ async function onBarcode(code){
 
 function beep(){ try{ const ctx = new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='square'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); setTimeout(()=>{ o.stop(); ctx.close(); },170);}catch(e){} }
 
-async function stopScan(){ scanning=false; if(rafId) cancelAnimationFrame(rafId); if(currentTrack) try{ currentTrack.stop(); }catch(_){} if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); currentTrack=null; currentStream=null; setStatus(''); }
+async function stopScan(){ 
+  scanning=false; 
+  if(rafId) cancelAnimationFrame(rafId); 
+  if(currentTrack) try{ currentTrack.stop(); }catch(_){} 
+  if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); 
+  currentTrack=null; 
+  currentStream=null; 
+  setStatus(''); 
+}
 
 async function listCameras(){
   try{
     const devices = await navigator.mediaDevices.enumerateDevices();
     const cams = devices.filter(d=>d.kind==='videoinput');
+    cameraList = cams; // Store camera list for later reference
+    
     $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
   }catch(e){}
 }
@@ -531,21 +563,60 @@ async function initApp(){
   renderTable();
 }
 
-$('#startBtn').onclick = startScan; $('#stopBtn').onclick = stopScan;
-$('#toggleModeBtn').onclick = ()=>{ MODE_IN = !MODE_IN; $('#toggleModeBtn').classList.toggle('bg-emerald-600'); };
-$('#torchBtn').onclick = async ()=>{ if(!currentTrack) return alert('Start camera first'); const caps = currentTrack.getCapabilities?.(); if(!caps||!caps.torch) return alert('Torch unsupported'); const settings = currentTrack.getSettings(); const torchOn = !settings.torch; await currentTrack.applyConstraints({ advanced:[{ torch: torchOn }] }); };
-$('#manualSubmit').onclick = async ()=>{ const v = $('#manualInput').value.trim(); if(!v) return; await onBarcode(v); $('#manualInput').value=''; };
+$('#startBtn').onclick = startScan; 
+$('#stopBtn').onclick = stopScan;
+$('#toggleModeBtn').onclick = ()=>{ 
+  MODE_IN = !MODE_IN; 
+  $('#toggleModeBtn').textContent = MODE_IN ? 'Toggle IN/OUT' : 'Toggle OUT/IN';
+  $('#toggleModeBtn').classList.toggle('bg-emerald-600');
+  $('#toggleModeBtn').classList.toggle('bg-amber-600');
+};
+$('#torchBtn').onclick = async ()=>{ 
+  if(!currentTrack) return alert('Start camera first'); 
+  const caps = currentTrack.getCapabilities?.(); 
+  if(!caps||!caps.torch) return alert('Torch unsupported'); 
+  const settings = currentTrack.getSettings(); 
+  const torchOn = !settings.torch; 
+  await currentTrack.applyConstraints({ advanced:[{ torch: torchOn }] }); 
+};
+$('#manualSubmit').onclick = async ()=>{ 
+  const v = $('#manualInput').value.trim(); 
+  if(!v) return; 
+  await onBarcode(v); 
+  $('#manualInput').value=''; 
+};
 $('#manualInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#manualSubmit').click(); });
 
 $('#importBtn').onclick = async ()=>{
-  const f = $('#csvFile').files?.[0]; if(!f) return alert('Choose CSV'); const text = await f.text(); await importCSVText(text);
+  const f = $('#csvFile').files?.[0]; 
+  if(!f) return alert('Choose CSV'); 
+  const text = await f.text(); 
+  await importCSVText(text);
 };
-$('#exportInvBtn').onclick = exportInventoryCSV; $('#exportLogBtn').onclick = exportLogCSV;
+$('#exportInvBtn').onclick = exportInventoryCSV; 
+$('#exportLogBtn').onclick = exportLogCSV;
 $('#undoBtn').onclick = undoLast;
-$('#clearBtn').onclick = async ()=>{ if(!confirm('Clear ALL inventory?')) return; await tx('inventory','readwrite', s=>s.clear()); await tx('log','readwrite', s=>s.clear()); renderTable(); };
-$('#resetBtn').onclick = async ()=>{ if(!confirm('Reset app (delete DB)?')) return; await stopScan(); const req = indexedDB.deleteDatabase(DB_NAME); req.onsuccess = ()=> location.reload(); };
+$('#clearBtn').onclick = async ()=>{ 
+  if(!confirm('Clear ALL inventory?')) return; 
+  await tx('inventory','readwrite', s=>s.clear()); 
+  await tx('log','readwrite', s=>s.clear()); 
+  renderTable(); 
+};
+$('#resetBtn').onclick = async ()=>{ 
+  if(!confirm('Reset app (delete DB)?')) return; 
+  await stopScan(); 
+  const req = indexedDB.deleteDatabase(DB_NAME); 
+  req.onsuccess = ()=> location.reload(); 
+};
 $('#search').oninput = renderTable;
-$('#addItemBtn').onclick = async ()=>{ const barcode = prompt('Barcode?'); if(!barcode) return; const name = prompt('Name (optional)')||''; const qty = Number(prompt('Qty (default 0)')||0)||0; await upsertItem({ barcode, name, qty }); renderTable(); };
+$('#addItemBtn').onclick = async ()=>{ 
+  const barcode = prompt('Barcode?'); 
+  if(!barcode) return; 
+  const name = prompt('Name (optional)')||''; 
+  const qty = Number(prompt('Qty (default 0)')||0)||0; 
+  await upsertItem({ barcode, name, qty }); 
+  renderTable(); 
+};
 
 document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 
