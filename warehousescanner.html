@@ -371,9 +371,26 @@ async function importCSVText(text){
 }
 
 function downloadCSV(rows, filename){
-  const csv = rows.map(r => r.map(v=>'\"'+String(v).replaceAll('\"','\"\"')+'\"').join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+  // Fix CSV formatting to ensure proper alignment
+  const csvContent = rows.map(row => {
+    return row.map(cell => {
+      // Handle values that contain commas or quotes
+      if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"'))) {
+        return '"' + cell.replace(/"/g, '""') + '"';
+      }
+      return cell;
+    }).join(',');
+  }).join('\r\n');
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 async function exportInventoryCSV(){
@@ -437,7 +454,7 @@ async function startScan(){
     const video = $('#video'); 
     video.srcObject = currentStream; 
     
-    // Apply mirroring only for front-facing cameras
+    // Fix camera mirroring - only mirror front cameras
     const selectedCamera = cameraList.find(cam => cam.deviceId === deviceId);
     if (selectedCamera && selectedCamera.label.toLowerCase().includes('front')) {
       video.classList.add('mirrored');
@@ -516,6 +533,7 @@ async function loopZXing(reader){
 }
 
 async function onBarcode(code){
+  // FIX: Use the qtyStep value instead of always 1
   const qty = Math.max(1, Number($('#qtyStep').value||1));
   const delta = MODE_IN ? qty : -qty;
   setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
