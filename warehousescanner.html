@@ -371,26 +371,33 @@ async function importCSVText(text){
 }
 
 function downloadCSV(rows, filename){
-  // Fix CSV formatting to ensure proper alignment
+  // Fixed CSV formatting with proper escaping
   const csvContent = rows.map(row => {
     return row.map(cell => {
-      // Handle values that contain commas or quotes
-      if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"'))) {
-        return '"' + cell.replace(/"/g, '""') + '"';
+      if (cell === null || cell === undefined) return '""';
+      const stringCell = String(cell);
+      // Escape quotes and wrap in quotes if contains commas, quotes, or newlines
+      if (stringCell.includes('"') || stringCell.includes(',') || stringCell.includes('\n')) {
+        return '"' + stringCell.replace(/"/g, '""') + '"';
       }
-      return cell;
+      return stringCell;
     }).join(',');
-  }).join('\r\n');
+  }).join('\r\n'); // Use CRLF for better compatibility
   
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
+  const a = document.createElement('a'); 
   const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  a.href = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  
+  // Clean up
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
 }
 
 async function exportInventoryCSV(){
@@ -454,10 +461,18 @@ async function startScan(){
     const video = $('#video'); 
     video.srcObject = currentStream; 
     
-    // Fix camera mirroring - only mirror front cameras
+    // Fixed: Only mirror front-facing cameras
     const selectedCamera = cameraList.find(cam => cam.deviceId === deviceId);
-    if (selectedCamera && selectedCamera.label.toLowerCase().includes('front')) {
-      video.classList.add('mirrored');
+    if (selectedCamera) {
+      // Check if it's a front-facing camera (more reliable method)
+      const isFrontCamera = selectedCamera.label.toLowerCase().includes('front') || 
+                           selectedCamera.label.toLowerCase().includes('facetime');
+      
+      if (isFrontCamera) {
+        video.classList.add('mirrored');
+      } else {
+        video.classList.remove('mirrored');
+      }
     } else {
       video.classList.remove('mirrored');
     }
@@ -533,7 +548,6 @@ async function loopZXing(reader){
 }
 
 async function onBarcode(code){
-  // FIX: Use the qtyStep value instead of always 1
   const qty = Math.max(1, Number($('#qtyStep').value||1));
   const delta = MODE_IN ? qty : -qty;
   setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
