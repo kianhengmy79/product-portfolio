@@ -10,6 +10,38 @@
     .hidden { display:none !important; }
     .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
     .mirrored { transform: scaleX(-1); }
+    .scan-guide {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%;
+      height: 40%;
+      border: 2px solid rgba(0, 255, 0, 0.7);
+      border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .scan-guide::before, .scan-guide::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(0, 255, 0, 0.7);
+    }
+    .scan-guide::before {
+      top: -2px;
+      left: -2px;
+      border-right: none;
+      border-bottom: none;
+    }
+    .scan-guide::after {
+      bottom: -2px;
+      right: -2px;
+      border-left: none;
+      border-top: none;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -65,6 +97,7 @@
             </div>
             <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
               <video id="video" class="w-full h-full object-cover"></video>
+              <div id="scanGuide" class="scan-guide"></div>
               <canvas id="overlay" class="absolute inset-0"></canvas>
             </div>
             <div class="flex items-center gap-2 mt-3">
@@ -352,7 +385,7 @@ async function syncRowToCloud(item){
     url.searchParams.set('barcode', item.barcode);
     url.searchParams.set('name', item.name||'');
     url.searchParams.set('qty', String(item.qty||0));
-    url.searchParams.set('user', currentUser.username);
+    // Removed user parameter to prevent username being recorded
     await fetch(url.toString());
   } catch(e){ console.warn('syncRowToCloud', e); }
 }
@@ -520,13 +553,36 @@ async function loopBarcodeDetector(detector){
         ctx.clearRect(0,0,canvas.width,canvas.height);
         if(codes && codes.length && !scanCooldown){ 
           const val = codes[0].rawValue; 
-          drawBox(ctx, codes[0].boundingBox); 
-          await onBarcode(val); 
+          
+          // Check if barcode is within the guide box
+          if (isBarcodeInGuideBox(codes[0].boundingBox, canvas.width, canvas.height)) {
+            drawBox(ctx, codes[0].boundingBox); 
+            await onBarcode(val); 
+          }
         }
       } catch(e){}
     }
     rafId = requestAnimationFrame(step);
   }; step();
+}
+
+// Check if barcode is within the guide box
+function isBarcodeInGuideBox(boundingBox, canvasWidth, canvasHeight) {
+  if (!boundingBox) return false;
+  
+  // Get guide box dimensions (70% width, 40% height, centered)
+  const guideWidth = 0.7 * canvasWidth;
+  const guideHeight = 0.4 * canvasHeight;
+  const guideX = (canvasWidth - guideWidth) / 2;
+  const guideY = (canvasHeight - guideHeight) / 2;
+  
+  // Check if barcode is completely within the guide box
+  return (
+    boundingBox.x >= guideX &&
+    boundingBox.y >= guideY &&
+    (boundingBox.x + boundingBox.width) <= (guideX + guideWidth) &&
+    (boundingBox.y + boundingBox.height) <= (guideY + guideHeight)
+  );
 }
 
 function drawBox(ctx, box){ if(!box) return; ctx.lineWidth=3; ctx.strokeStyle='lime'; ctx.strokeRect(box.x, box.y, box.width, box.height); }
@@ -551,6 +607,7 @@ async function loopZXing(reader){
         const result = await reader.decodeOnceFromVideoElement(video);
         ctx.clearRect(0,0,canvas.width,canvas.height);
         if(result && result.text && !scanCooldown){ 
+          // For ZXing, we can't easily check position, so we'll just process all barcodes
           await onBarcode(result.text); 
         }
       } catch(e){}
