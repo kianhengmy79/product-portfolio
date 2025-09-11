@@ -16,31 +16,53 @@
       left: 50%;
       transform: translate(-50%, -50%);
       width: 70%;
-      height: 40%;
-      border: 2px solid rgba(0, 255, 0, 0.7);
-      border-radius: 8px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+      height: 70%;
+      border: 3px solid rgba(0, 255, 0, 0.8);
+      border-radius: 12px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
       pointer-events: none;
       z-index: 10;
     }
     .scan-guide::before, .scan-guide::after {
       content: '';
       position: absolute;
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(0, 255, 0, 0.7);
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(0, 255, 0, 0.8);
     }
     .scan-guide::before {
-      top: -2px;
-      left: -2px;
+      top: -3px;
+      left: -3px;
       border-right: none;
       border-bottom: none;
+      border-top-left-radius: 8px;
     }
     .scan-guide::after {
-      bottom: -2px;
-      right: -2px;
+      bottom: -3px;
+      right: -3px;
       border-left: none;
       border-top: none;
+      border-bottom-right-radius: 8px;
+    }
+    .scan-guide .corner-top-right, .scan-guide .corner-bottom-left {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(0, 255, 0, 0.8);
+    }
+    .scan-guide .corner-top-right {
+      top: -3px;
+      right: -3px;
+      border-left: none;
+      border-bottom: none;
+      border-top-right-radius: 8px;
+    }
+    .scan-guide .corner-bottom-left {
+      bottom: -3px;
+      left: -3px;
+      border-right: none;
+      border-top: none;
+      border-bottom-left-radius: 8px;
     }
   </style>
 </head>
@@ -97,7 +119,10 @@
             </div>
             <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
               <video id="video" class="w-full h-full object-cover"></video>
-              <div id="scanGuide" class="scan-guide"></div>
+              <div id="scanGuide" class="scan-guide">
+                <div class="corner-top-right"></div>
+                <div class="corner-bottom-left"></div>
+              </div>
               <canvas id="overlay" class="absolute inset-0"></canvas>
             </div>
             <div class="flex items-center gap-2 mt-3">
@@ -252,16 +277,16 @@ function loadSettings() {
 async function openDB(){
   return new Promise((resolve,reject)=>{
     const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = ()=>{
-      const d = req.result;
-      if(!d.objectStoreNames.contains('inventory')) {
-        const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
-        s.createIndex('name','name',{unique:false});
-      }
-      if(!d.objectStoreNames.contains('log')) d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
-    };
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
+  req.onupgradeneeded = ()=>{
+    const d = req.result;
+    if(!d.objectStoreNames.contains('inventory')) {
+      const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
+      s.createIndex('name','name',{unique:false});
+    }
+    if(!d.objectStoreNames.contains('log')) d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
+  };
+  req.onsuccess = ()=> resolve(req.result);
+  req.onerror = ()=> reject(req.error);
   });
 }
 
@@ -385,7 +410,7 @@ async function syncRowToCloud(item){
     url.searchParams.set('barcode', item.barcode);
     url.searchParams.set('name', item.name||'');
     url.searchParams.set('qty', String(item.qty||0));
-    // Removed user parameter to prevent username being recorded
+    url.searchParams.set('user', currentUser.username); // Keep username recording
     await fetch(url.toString());
   } catch(e){ console.warn('syncRowToCloud', e); }
 }
@@ -554,8 +579,8 @@ async function loopBarcodeDetector(detector){
         if(codes && codes.length && !scanCooldown){ 
           const val = codes[0].rawValue; 
           
-          // Check if barcode is within the guide box
-          if (isBarcodeInGuideBox(codes[0].boundingBox, canvas.width, canvas.height)) {
+          // Check if barcode completely fills the guide box
+          if (isBarcodeFillingGuideBox(codes[0].boundingBox, canvas.width, canvas.height)) {
             drawBox(ctx, codes[0].boundingBox); 
             await onBarcode(val); 
           }
@@ -566,23 +591,24 @@ async function loopBarcodeDetector(detector){
   }; step();
 }
 
-// Check if barcode is within the guide box
-function isBarcodeInGuideBox(boundingBox, canvasWidth, canvasHeight) {
+// Check if barcode completely fills the guide box (at least 80% coverage)
+function isBarcodeFillingGuideBox(boundingBox, canvasWidth, canvasHeight) {
   if (!boundingBox) return false;
   
-  // Get guide box dimensions (70% width, 40% height, centered)
+  // Get guide box dimensions (70% width, 70% height, centered)
   const guideWidth = 0.7 * canvasWidth;
-  const guideHeight = 0.4 * canvasHeight;
+  const guideHeight = 0.7 * canvasHeight;
   const guideX = (canvasWidth - guideWidth) / 2;
   const guideY = (canvasHeight - guideHeight) / 2;
   
-  // Check if barcode is completely within the guide box
-  return (
-    boundingBox.x >= guideX &&
-    boundingBox.y >= guideY &&
-    (boundingBox.x + boundingBox.width) <= (guideX + guideWidth) &&
-    (boundingBox.y + boundingBox.height) <= (guideY + guideHeight)
-  );
+  // Calculate barcode coverage of guide box
+  const barcodeArea = boundingBox.width * boundingBox.height;
+  const guideArea = guideWidth * guideHeight;
+  
+  // Check if barcode covers at least 80% of the guide box area
+  const coverage = barcodeArea / guideArea;
+  
+  return coverage >= 0.8;
 }
 
 function drawBox(ctx, box){ if(!box) return; ctx.lineWidth=3; ctx.strokeStyle='lime'; ctx.strokeRect(box.x, box.y, box.width, box.height); }
