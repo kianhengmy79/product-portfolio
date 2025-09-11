@@ -195,6 +195,7 @@ let currentUser = null;
 let cameraList = [];
 let lastScannedCode = null; // Track last scanned code to prevent duplicates
 let scanCooldown = false; // Cooldown flag to prevent multiple scans
+let scannedBarcodes = new Set(); // Track all barcodes scanned in this session
 
 // === NEW CODE: Save and Load Settings ===
 function saveSettings() {
@@ -313,12 +314,15 @@ $('#logoutBtn').onclick = async ()=>{
   $('#app').classList.add('hidden');
   $('#loginCard').classList.remove('hidden');
   setStatus('');
+  // Clear scanned barcodes on logout
+  scannedBarcodes.clear();
 };
 
 // Inventory functions
 async function upsertItem({barcode,name='',qty=0}){
   await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null }));
 }
+
 async function adjustQty(barcode, delta){
   await tx('inventory','readwrite', s=>{
     const req = s.get(barcode);
@@ -330,7 +334,12 @@ async function adjustQty(barcode, delta){
       lastAction = { barcode, delta };
       renderTable();
       await tx('log','readwrite', ss => ss.add({ ts: new Date().toISOString(), user: currentUser.username, barcode, delta }));
-      await syncRowToCloud(item);
+      
+      // Only sync to cloud if this is a new barcode scan (not already processed)
+      if (!scannedBarcodes.has(barcode)) {
+        await syncRowToCloud(item);
+        scannedBarcodes.add(barcode); // Mark as processed
+      }
     };
   });
 }
@@ -345,7 +354,10 @@ async function syncRowToCloud(item){
     url.searchParams.set('name', item.name||'');
     url.searchParams.set('qty', String(item.qty||0));
     url.searchParams.set('user', currentUser.username);
-    await fetch(url.toString());
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      console.warn('Google Sheets sync failed:', response.status);
+    }
   } catch(e){ console.warn('syncRowToCloud', e); }
 }
 
@@ -365,9 +377,14 @@ async function fetchInventoryFromCloud(){
 async function importCSVText(text){
   const rows = text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
   for(const r of rows){
-    const [barcode,name,qty] = r.split(',');
+    const [barcode,name,qty] = r.split(',').map(cell => cell.trim());
     if(!barcode) continue;
-    await upsertItem({ barcode: barcode.trim(), name: (name||'').trim(), qty: Number(qty||0) });
+    await upsertItem({ barcode, name: name || '', qty: Number(qty||0) });
+    
+    // Sync imported items to Google Sheets
+    if(appsScriptUrl && sheetId) {
+      await syncRowToCloud({ barcode, name: name || '', qty: Number(qty||0) });
+    }
   }
   renderTable();
 }
@@ -407,6 +424,7 @@ async function exportInventoryCSV(){
   const rows = [['barcode','name','qty','lastScan'], ...items.map(i=>[i.barcode,i.name||'',i.qty||0,i.lastScan||''])];
   downloadCSV(rows, `inventory-${new Date().toISOString().slice(0,10)}.csv`);
 }
+
 async function exportLogCSV(){
   const items = await getAll('log');
   const rows = [['id','ts','user','barcode','delta'], ...items.map((i,idx)=>[idx+1,i.ts,i.user||'',i.barcode,i.delta])];
@@ -441,7 +459,12 @@ async function renderTable(){
     inp.onchange = async ()=> {
       await tx('inventory','readwrite', s=>{
         const req = s.get(inp.dataset.bc);
-        req.onsuccess = ()=>{ const it=req.result; it.name=inp.value; s.put(it); syncRowToCloud(it); };
+        req.onsuccess = ()=>{ 
+          const it=req.result; 
+          it.name=inp.value; 
+          s.put(it); 
+          syncRowToCloud(it); 
+        };
       });
     };
   });
@@ -553,7 +576,10 @@ async function loopZXing(reader){
 
 async function onBarcode(code){
   // Prevent duplicate scans of the same code
-  if (lastScannedCode === code && scanCooldown) return;
+  if (scannedBarcodes.has(code)) {
+    setStatus('Already scanned: ' + code);
+    return;
+  }
   
   // Set cooldown to prevent multiple scans
   scanCooldown = true;
@@ -563,12 +589,15 @@ async function onBarcode(code){
   const delta = MODE_IN ? qty : -qty;
   setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
   beep();
+  
+  // Add to scanned barcodes set to prevent re-scanning
+  scannedBarcodes.add(code);
+  
   await adjustQty(code, delta);
   
-  // Reset cooldown after 1.5 seconds
+  // Reset cooldown after 1.5 seconds for other barcodes
   setTimeout(() => {
     scanCooldown = false;
-    lastScannedCode = null;
   }, 1500);
 }
 
@@ -613,7 +642,9 @@ async function initApp(){
     const rows = await fetchInventoryFromCloud();
     if(rows){
       await tx('inventory','readwrite', s=> s.clear());
-      for(const r of rows){ await upsertItem(r); }
+      for(const r of rows){ 
+        await upsertItem(r); 
+      }
     }
     setStatus('');
   }
@@ -669,6 +700,8 @@ $('#clearBtn').onclick = async ()=>{
   await tx('inventory','readwrite', s=>s.clear()); 
   await tx('log','readwrite', s=>s.clear()); 
   renderTable(); 
+  // Clear scanned barcodes when inventory is cleared
+  scannedBarcodes.clear();
 };
 $('#resetBtn').onclick = async ()=>{ 
   if(!confirm('Reset app (delete DB)?')) return; 
