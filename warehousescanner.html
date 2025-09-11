@@ -15,8 +15,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 70%;
-      height: 70%;
+      width: 50%;
+      height: 30%;
       border: 3px solid rgba(0, 255, 0, 0.8);
       border-radius: 12px;
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
@@ -26,8 +26,8 @@
     .scan-guide::before, .scan-guide::after {
       content: '';
       position: absolute;
-      width: 30px;
-      height: 30px;
+      width: 20px;
+      height: 20px;
       border: 3px solid rgba(0, 255, 0, 0.8);
     }
     .scan-guide::before {
@@ -46,8 +46,8 @@
     }
     .scan-guide .corner-top-right, .scan-guide .corner-bottom-left {
       position: absolute;
-      width: 30px;
-      height: 30px;
+      width: 20px;
+      height: 20px;
       border: 3px solid rgba(0, 255, 0, 0.8);
     }
     .scan-guide .corner-top-right {
@@ -195,7 +195,7 @@
 /*
 UPGRADE NOTES:
 - This file supports optional Google Sheets sync via a Google Apps Script Web App proxy.
-- Why use Apps Script? Browser cannot securely use Service Account JSON. Apps Script lets the server-side (your Google account) handle authentication and perform read/write on the sheet.
+- Why use Apps Script? Browser cannot securely use Service Account JSON. Apps Script lets the server-side (your Google account) handle authentication and perform read/writes on the sheet.
 - Steps to enable cloud sync using Apps Script:
   1. Create a new Google Sheet. Note the Sheet ID (from URL).
   2. In Google Drive, create a new Apps Script (Extensions → Apps Script) and paste a small server-side script (example provided below).
@@ -251,9 +251,9 @@ let appsScriptUrl = '';
 let sheetId = '';
 let currentUser = null;
 let cameraList = [];
-let lastScannedCode = null; // Track last scanned code to prevent duplicates
-let scanCooldown = false; // Cooldown flag to prevent multiple scans
-let scannedBarcodes = new Set(); // Track all barcodes scanned in this session
+let lastScannedCode = null;
+let scanCooldown = false;
+let scannedBarcodes = new Set();
 
 // === NEW CODE: Save and Load Settings ===
 function saveSettings() {
@@ -277,16 +277,16 @@ function loadSettings() {
 async function openDB(){
   return new Promise((resolve,reject)=>{
     const req = indexedDB.open(DB_NAME, DB_VER);
-  req.onupgradeneeded = ()=>{
-    const d = req.result;
-    if(!d.objectStoreNames.contains('inventory')) {
-      const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
-      s.createIndex('name','name',{unique:false});
-    }
-    if(!d.objectStoreNames.contains('log')) d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
-  };
-  req.onsuccess = ()=> resolve(req.result);
-  req.onerror = ()=> reject(req.error);
+    req.onupgradeneeded = ()=>{
+      const d = req.result;
+      if(!d.objectStoreNames.contains('inventory')) {
+        const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
+        s.createIndex('name','name',{unique:false});
+      }
+      if(!d.objectStoreNames.contains('log')) d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
+    };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
   });
 }
 
@@ -372,7 +372,6 @@ $('#logoutBtn').onclick = async ()=>{
   $('#app').classList.add('hidden');
   $('#loginCard').classList.remove('hidden');
   setStatus('');
-  // Clear scanned barcodes on logout
   scannedBarcodes.clear();
 };
 
@@ -380,6 +379,7 @@ $('#logoutBtn').onclick = async ()=>{
 async function upsertItem({barcode,name='',qty=0}){
   await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null }));
 }
+
 async function adjustQty(barcode, delta){
   await tx('inventory','readwrite', s=>{
     const req = s.get(barcode);
@@ -410,7 +410,7 @@ async function syncRowToCloud(item){
     url.searchParams.set('barcode', item.barcode);
     url.searchParams.set('name', item.name||'');
     url.searchParams.set('qty', String(item.qty||0));
-    url.searchParams.set('user', currentUser.username); // Keep username recording
+    url.searchParams.set('user', currentUser.username);
     await fetch(url.toString());
   } catch(e){ console.warn('syncRowToCloud', e); }
 }
@@ -439,18 +439,16 @@ async function importCSVText(text){
 }
 
 function downloadCSV(rows, filename){
-  // Fixed CSV formatting with proper escaping
   const csvContent = rows.map(row => {
     return row.map(cell => {
       if (cell === null || cell === undefined) return '""';
       const stringCell = String(cell);
-      // Escape quotes and wrap in quotes if contains commas, quotes, or newlines
       if (stringCell.includes('"') || stringCell.includes(',') || stringCell.includes('\n')) {
         return '"' + stringCell.replace(/"/g, '""') + '"';
       }
       return stringCell;
     }).join(',');
-  }).join('\r\n'); // Use CRLF for better compatibility
+  }).join('\r\n');
   
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a'); 
@@ -461,7 +459,6 @@ function downloadCSV(rows, filename){
   document.body.appendChild(a);
   a.click();
   
-  // Clean up
   setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
@@ -529,10 +526,8 @@ async function startScan(){
     const video = $('#video'); 
     video.srcObject = currentStream; 
     
-    // Fixed: Only mirror front-facing cameras
     const selectedCamera = cameraList.find(cam => cam.deviceId === deviceId);
     if (selectedCamera) {
-      // Check if it's a front-facing camera (more reliable method)
       const isFrontCamera = selectedCamera.label.toLowerCase().includes('front') || 
                            selectedCamera.label.toLowerCase().includes('facetime');
       
@@ -550,7 +545,6 @@ async function startScan(){
     scanning = true; 
     setStatus('Scanning…');
     
-    // Reset scan tracking
     lastScannedCode = null;
     scanCooldown = false;
     
@@ -579,8 +573,8 @@ async function loopBarcodeDetector(detector){
         if(codes && codes.length && !scanCooldown){ 
           const val = codes[0].rawValue; 
           
-          // Check if barcode completely fills the guide box
-          if (isBarcodeFillingGuideBox(codes[0].boundingBox, canvas.width, canvas.height)) {
+          // Check if barcode is completely within the guide box
+          if (isBarcodeInGuideBox(codes[0].boundingBox, canvas.width, canvas.height)) {
             drawBox(ctx, codes[0].boundingBox); 
             await onBarcode(val); 
           }
@@ -591,24 +585,23 @@ async function loopBarcodeDetector(detector){
   }; step();
 }
 
-// Check if barcode completely fills the guide box (at least 80% coverage)
-function isBarcodeFillingGuideBox(boundingBox, canvasWidth, canvasHeight) {
+// Check if barcode is completely within the guide box
+function isBarcodeInGuideBox(boundingBox, canvasWidth, canvasHeight) {
   if (!boundingBox) return false;
   
-  // Get guide box dimensions (70% width, 70% height, centered)
-  const guideWidth = 0.7 * canvasWidth;
-  const guideHeight = 0.7 * canvasHeight;
+  // Get guide box dimensions (50% width, 30% height, centered)
+  const guideWidth = 0.5 * canvasWidth;
+  const guideHeight = 0.3 * canvasHeight;
   const guideX = (canvasWidth - guideWidth) / 2;
   const guideY = (canvasHeight - guideHeight) / 2;
   
-  // Calculate barcode coverage of guide box
-  const barcodeArea = boundingBox.width * boundingBox.height;
-  const guideArea = guideWidth * guideHeight;
-  
-  // Check if barcode covers at least 80% of the guide box area
-  const coverage = barcodeArea / guideArea;
-  
-  return coverage >= 0.8;
+  // Check if barcode is completely within the guide box
+  return (
+    boundingBox.x >= guideX &&
+    boundingBox.y >= guideY &&
+    (boundingBox.x + boundingBox.width) <= (guideX + guideWidth) &&
+    (boundingBox.y + boundingBox.height) <= (guideY + guideHeight)
+  );
 }
 
 function drawBox(ctx, box){ if(!box) return; ctx.lineWidth=3; ctx.strokeStyle='lime'; ctx.strokeRect(box.x, box.y, box.width, box.height); }
@@ -633,7 +626,7 @@ async function loopZXing(reader){
         const result = await reader.decodeOnceFromVideoElement(video);
         ctx.clearRect(0,0,canvas.width,canvas.height);
         if(result && result.text && !scanCooldown){ 
-          // For ZXing, we can't easily check position, so we'll just process all barcodes
+          // For ZXing, we'll process all barcodes since we can't check position
           await onBarcode(result.text); 
         }
       } catch(e){}
@@ -663,10 +656,9 @@ async function onBarcode(code){
   
   await adjustQty(code, delta);
   
-  // Reset cooldown after 1.5 seconds for other barcodes
-  setTimeout(() => {
-    scanCooldown = false;
-  }, 1500);
+  // Stop scanning after successful scan
+  await stopScan();
+  setStatus('Scan complete. Press Start Scan to scan again.');
 }
 
 function beep(){ try{ const ctx = new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='square'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); setTimeout(()=>{ o.stop(); ctx.close(); },170);}catch(e){} }
@@ -678,20 +670,18 @@ async function stopScan(){
   if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); 
   currentTrack=null; 
   currentStream=null; 
-  setStatus(''); 
 }
 
 async function listCameras(){
   try{
     const devices = await navigator.mediaDevices.enumerateDevices();
     const cams = devices.filter(d=>d.kind==='videoinput');
-    cameraList = cams; // Store camera list for later reference
+    cameraList = cams;
     
     $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
   }catch(e){}
 }
 
-// Function to switch camera
 async function switchCamera() {
   if (scanning) {
     await stopScan();
@@ -751,11 +741,9 @@ $('#exportInvBtn').onclick = exportInventoryCSV;
 $('#exportLogBtn').onclick = exportLogCSV;
 $('#undoBtn').onclick = undoLast;
 $('#clearBtn').onclick = async ()=>{ 
-  // Password protection for clear inventory
   const password = prompt('Enter your password to confirm clearing ALL inventory:');
   if (!password) return;
   
-  // Verify password
   const isValid = await verifyPassword(password);
   if (!isValid) {
     alert('Incorrect password. Clear operation cancelled.');
@@ -766,7 +754,6 @@ $('#clearBtn').onclick = async ()=>{
   await tx('inventory','readwrite', s=>s.clear()); 
   await tx('log','readwrite', s=>s.clear()); 
   renderTable(); 
-  // Clear scanned barcodes when inventory is cleared
   scannedBarcodes.clear();
 };
 $('#resetBtn').onclick = async ()=>{ 
@@ -785,20 +772,16 @@ $('#addItemBtn').onclick = async ()=>{
   renderTable(); 
 };
 
-// Camera selection change event
 $('#cameraSelect').addEventListener('change', switchCamera);
 
-// Password verification function
 async function verifyPassword(password) {
   if (currentUser && currentUser.via === 'sheet') {
-    // Check against sheet users
     const sheetUsers = await fetchUsersFromSheet();
     if (sheetUsers) {
       return sheetUsers.some(u => u.username === currentUser.username && u.password === password);
     }
   }
   
-  // Check against local users
   return fallbackUsers().some(u => u.username === currentUser.username && u.password === password);
 }
 
@@ -806,7 +789,7 @@ document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key
 
 (async function preinit(){ 
   db = await openDB(); 
-  loadSettings(); // <-- ADDED: Load saved URL and ID on page load
+  loadSettings();
   setStatus('Ready'); 
 })();
 
