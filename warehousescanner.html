@@ -10,6 +10,30 @@
     .hidden { display:none !important; }
     .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
     .mirrored { transform: scaleX(-1); }
+    .scan-region {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%;
+      height: 40%;
+      border: 2px solid rgba(0, 255, 0, 0.5);
+      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .scan-line {
+      position: absolute;
+      height: 2px;
+      width: 100%;
+      background: rgba(0, 255, 0, 0.8);
+      top: 0;
+      animation: scan 2s infinite linear;
+    }
+    @keyframes scan {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -65,6 +89,9 @@
             </div>
             <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
               <video id="video" class="w-full h-full object-cover"></video>
+              <div id="scanRegion" class="scan-region hidden">
+                <div class="scan-line"></div>
+              </div>
               <canvas id="overlay" class="absolute inset-0"></canvas>
             </div>
             <div class="flex items-center gap-2 mt-3">
@@ -118,6 +145,7 @@
                   <th class="text-left p-3">Name</th>
                   <th class="text-right p-3">Qty</th>
                   <th class="text-left p-3">Last Scan</th>
+                  <th class="text-left p-3">User</th>
                   <th class="text-left p-3">Actions</th>
                 </tr>
               </thead>
@@ -134,58 +162,8 @@
   <script id="zxingScript"></script>
 
   <script>
-/*
-UPGRADE NOTES:
-- This file supports optional Google Sheets sync via a Google Apps Script Web App proxy.
-- Why use Apps Script? Browser cannot securely use Service Account JSON. Apps Script lets the server-side (your Google account) handle authentication and perform read/write on the sheet.
-- Steps to enable cloud sync using Apps Script:
-  1. Create a new Google Sheet. Note the Sheet ID (from URL).
-  2. In Google Drive, create a new Apps Script (Extensions → Apps Script) and paste a small server-side script (example provided below).
-  3. Deploy the Apps Script as a Web App (Execute as: Me; Who has access: Anyone with link).
-  4. Copy the Web App URL and paste into the "Apps Script Sync URL" field on the login screen.
-  5. Create sheet tabs named 'inventory' and 'users' with simple rows:
-     - inventory rows: barcode | name | qty
-     - users rows: username | password
-- Apps Script example (save as Code.gs in your Apps Script project):
-  function doGet(e) {
-    var action = e.parameter.action;
-    var sheetId = e.parameter.sheetId;
-    var ss = SpreadsheetApp.openById(sheetId);
-    var inv = ss.getSheetByName('inventory') || ss.insertSheet('inventory');
-    var users = ss.getSheetByName('users') || ss.insertSheet('users');
-    if (action == 'getInventory') {
-      var rows = inv.getDataRange().getValues();
-      return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
-    }
-    if (action == 'setRow') {
-      var barcode = e.parameter.barcode;
-      var name = e.parameter.name || '';
-      var qty = Number(e.parameter.qty || 0);
-      var data = inv.getDataRange().getValues();
-      var found = false;
-      for (var i=0;i<data.length;i++){
-        if (data[i][0] == barcode){ inv.getRange(i+1,1,1,3).setValues([[barcode,name,qty]]); found=true; break; }
-      }
-      if (!found) inv.appendRow([barcode,name,qty]);
-      return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
-    }
-    if (action == 'getUsers') {
-      var rows = users.getDataRange().getValues();
-      return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
-    }
-    return ContentService.createTextOutput(JSON.stringify({error:'unknown action'})).setMimeType(ContentService.MimeType.JSON);
-  }
-- This Apps Script is a minimal example. You can extend it to log changes, secure calls via tokens, etc.
-
-USERS:
-- If Apps Script URL is provided, the app will try to fetch the 'users' sheet and match username/password (plain-text) — this is simple and convenient but not fully secure. For production, consider hashing or using a proper auth.
-- If no Apps Script is provided, fallback users are:
-   admin / admin123
-   staff / staff123
-*/
-
 const $ = sel => document.querySelector(sel);
-const DB_NAME = 'ws-upgraded-db', DB_VER = 1;
+const DB_NAME = 'ws-upgraded-db', DB_VER = 2; // Version increased for schema changes
 let db;
 let MODE_IN = true;
 let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
@@ -193,9 +171,11 @@ let appsScriptUrl = '';
 let sheetId = '';
 let currentUser = null;
 let cameraList = [];
-let lastScannedCode = null; // Track last scanned code to prevent duplicates
-let scanCooldown = false; // Cooldown flag to prevent multiple scans
-let scannedBarcodes = new Set(); // Track all barcodes scanned in this session
+let lastScannedCode = null;
+let scanCooldown = false;
+let scannedBarcodes = new Set();
+let scanRegion = null;
+let scanRegionRect = null;
 
 // === NEW CODE: Save and Load Settings ===
 function saveSettings() {
@@ -225,7 +205,12 @@ async function openDB(){
         const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
         s.createIndex('name','name',{unique:false});
       }
-      if(!d.objectStoreNames.contains('log')) d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains('log')) {
+        const logStore = d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
+        logStore.createIndex('barcode', 'barcode', {unique: false});
+        logStore.createIndex('user', 'user', {unique: false});
+        logStore.createIndex('ts', 'ts', {unique: false});
+      }
     };
     req.onsuccess = ()=> resolve(req.result);
     req.onerror = ()=> reject(req.error);
@@ -291,7 +276,7 @@ async function loginFlow(){
   
   appsScriptUrl = $('#appsScriptUrl').value.trim();
   sheetId = $('#sheetId').value.trim();
-  saveSettings(); // <-- ADDED: Save the URL and ID on login
+  saveSettings();
 
   const res = await tryLogin(u,p);
   if(!res){ setStatus('Login failed'); return alert('Invalid credentials'); }
@@ -314,51 +299,72 @@ $('#logoutBtn').onclick = async ()=>{
   $('#app').classList.add('hidden');
   $('#loginCard').classList.remove('hidden');
   setStatus('');
-  // Clear scanned barcodes on logout
   scannedBarcodes.clear();
 };
 
 // Inventory functions
 async function upsertItem({barcode,name='',qty=0}){
-  await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null }));
+  await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null, lastUser: null }));
 }
 
 async function adjustQty(barcode, delta){
   await tx('inventory','readwrite', s=>{
     const req = s.get(barcode);
     req.onsuccess = async ()=>{
-      const item = req.result || { barcode, name:'', qty:0, lastScan:null };
+      const item = req.result || { barcode, name:'', qty:0, lastScan:null, lastUser: null };
       item.qty = Math.max(0, (item.qty||0) + delta);
       item.lastScan = new Date().toISOString();
+      item.lastUser = currentUser.username; // Record username
       s.put(item);
       lastAction = { barcode, delta };
       renderTable();
-      await tx('log','readwrite', ss => ss.add({ ts: new Date().toISOString(), user: currentUser.username, barcode, delta }));
       
-      // Only sync to cloud if this is a new barcode scan (not already processed)
-      if (!scannedBarcodes.has(barcode)) {
-        await syncRowToCloud(item);
-        scannedBarcodes.add(barcode); // Mark as processed
-      }
+      // Log the action with username
+      await tx('log','readwrite', ss => ss.add({ 
+        ts: new Date().toISOString(), 
+        user: currentUser.username, 
+        barcode, 
+        delta 
+      }));
+      
+      // Sync to cloud
+      await syncRowToCloud(item);
     };
   });
 }
 
-async function syncRowToCloud(item){
+async function syncRowToCloud(item, retries = 3) {
   if(!appsScriptUrl || !sheetId) return;
-  try {
-    const url = new URL(appsScriptUrl);
-    url.searchParams.set('action','setRow');
-    url.searchParams.set('sheetId', sheetId);
-    url.searchParams.set('barcode', item.barcode);
-    url.searchParams.set('name', item.name||'');
-    url.searchParams.set('qty', String(item.qty||0));
-    url.searchParams.set('user', currentUser.username);
-    const response = await fetch(url.toString());
-    if (!response.ok) {
-      console.warn('Google Sheets sync failed:', response.status);
+  
+  for (let i = 0; i < retries; i++) {
+    try {
+      const url = new URL(appsScriptUrl);
+      url.searchParams.set('action','setRow');
+      url.searchParams.set('sheetId', sheetId);
+      url.searchParams.set('barcode', item.barcode);
+      url.searchParams.set('name', item.name||'');
+      url.searchParams.set('qty', String(item.qty||0));
+      url.searchParams.set('user', currentUser.username);
+      
+      const response = await fetch(url.toString());
+      if (response.ok) {
+        console.log('Successfully synced to Google Sheets');
+        return true;
+      } else {
+        console.warn('Google Sheets sync failed:', response.status);
+      }
+    } catch(e){ 
+      console.warn('syncRowToCloud attempt ' + (i+1), e); 
     }
-  } catch(e){ console.warn('syncRowToCloud', e); }
+    
+    // Wait before retrying (exponential backoff)
+    if (i < retries - 1) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+    }
+  }
+  
+  console.error('All sync attempts failed');
+  return false;
 }
 
 async function fetchInventoryFromCloud(){
@@ -381,7 +387,6 @@ async function importCSVText(text){
     if(!barcode) continue;
     await upsertItem({ barcode, name: name || '', qty: Number(qty||0) });
     
-    // Sync imported items to Google Sheets
     if(appsScriptUrl && sheetId) {
       await syncRowToCloud({ barcode, name: name || '', qty: Number(qty||0) });
     }
@@ -390,18 +395,16 @@ async function importCSVText(text){
 }
 
 function downloadCSV(rows, filename){
-  // Fixed CSV formatting with proper escaping
   const csvContent = rows.map(row => {
     return row.map(cell => {
       if (cell === null || cell === undefined) return '""';
       const stringCell = String(cell);
-      // Escape quotes and wrap in quotes if contains commas, quotes, or newlines
       if (stringCell.includes('"') || stringCell.includes(',') || stringCell.includes('\n')) {
         return '"' + stringCell.replace(/"/g, '""') + '"';
       }
       return stringCell;
     }).join(',');
-  }).join('\r\n'); // Use CRLF for better compatibility
+  }).join('\r\n');
   
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a'); 
@@ -412,7 +415,6 @@ function downloadCSV(rows, filename){
   document.body.appendChild(a);
   a.click();
   
-  // Clean up
   setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
@@ -421,7 +423,7 @@ function downloadCSV(rows, filename){
 
 async function exportInventoryCSV(){
   const items = await getAll('inventory');
-  const rows = [['barcode','name','qty','lastScan'], ...items.map(i=>[i.barcode,i.name||'',i.qty||0,i.lastScan||''])];
+  const rows = [['barcode','name','qty','lastScan','lastUser'], ...items.map(i=>[i.barcode,i.name||'',i.qty||0,i.lastScan||'',i.lastUser||''])];
   downloadCSV(rows, `inventory-${new Date().toISOString().slice(0,10)}.csv`);
 }
 
@@ -445,6 +447,7 @@ async function renderTable(){
       <td class="p-3"><input data-bc="${it.barcode}" class="nameInput w-full bg-transparent outline-none" value="${(it.name||'').replaceAll('"','&quot;')}" /></td>
       <td class="p-3 text-right font-semibold tabular-nums">${it.qty||0}</td>
       <td class="p-3 text-xs text-slate-500">${it.lastScan ? new Date(it.lastScan).toLocaleString() : '-'}</td>
+      <td class="p-3 text-xs text-slate-500">${it.lastUser || '-'}</td>
       <td class="p-3 flex items-center gap-2">
         <button data-bc="${it.barcode}" class="inc px-2 py-1 rounded-lg bg-slate-200">+1</button>
         <button data-bc="${it.barcode}" class="dec px-2 py-1 rounded-lg bg-slate-200">-1</button>
@@ -481,15 +484,25 @@ async function startScan(){
   try {
     await stopScan();
     const deviceId = $('#cameraSelect').value || undefined;
-    const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined, facingMode: 'environment' }, audio:false };
+    
+    // Improved camera constraints for better scanning
+    const constraints = { 
+      video: { 
+        deviceId: deviceId ? { exact: deviceId } : undefined, 
+        facingMode: 'environment',
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        focusMode: 'continuous'
+      }, 
+      audio: false 
+    };
+    
     currentStream = await navigator.mediaDevices.getUserMedia(constraints);
     const video = $('#video'); 
     video.srcObject = currentStream; 
     
-    // Fixed: Only mirror front-facing cameras
     const selectedCamera = cameraList.find(cam => cam.deviceId === deviceId);
     if (selectedCamera) {
-      // Check if it's a front-facing camera (more reliable method)
       const isFrontCamera = selectedCamera.label.toLowerCase().includes('front') || 
                            selectedCamera.label.toLowerCase().includes('facetime');
       
@@ -507,9 +520,27 @@ async function startScan(){
     scanning = true; 
     setStatus('Scanning…');
     
+    // Show scan region
+    $('#scanRegion').classList.remove('hidden');
+    
     // Reset scan tracking
     lastScannedCode = null;
     scanCooldown = false;
+    
+    // Get scan region dimensions for focused scanning
+    setTimeout(() => {
+      scanRegion = $('#scanRegion');
+      scanRegionRect = scanRegion.getBoundingClientRect();
+      const videoRect = video.getBoundingClientRect();
+      
+      // Calculate relative position for scanning region
+      scanRegionRect = {
+        x: scanRegionRect.left - videoRect.left,
+        y: scanRegionRect.top - videoRect.top,
+        width: scanRegionRect.width,
+        height: scanRegionRect.height
+      };
+    }, 500);
     
     if('BarcodeDetector' in window){
       const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
@@ -525,26 +556,76 @@ async function startScan(){
 
 let rafId=null;
 async function loopBarcodeDetector(detector){
-  const video = $('#video'); const canvas = $('#overlay'); const ctx = canvas.getContext('2d');
+  const video = $('#video'); 
+  const canvas = $('#overlay'); 
+  const ctx = canvas.getContext('2d');
+  
   const step = async ()=>{
     if(!scanning) return;
     if(video.readyState>=2){
-      canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+      canvas.width=video.videoWidth; 
+      canvas.height=video.videoHeight;
+      
       try {
-        const codes = await detector.detect(video);
+        // If we have a scan region, only process that area for better performance
+        let codes = [];
+        
+        if (scanRegionRect) {
+          // Create a temporary canvas for the scan region only
+          const tempCanvas = document.createElement('canvas');
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCanvas.width = scanRegionRect.width * (video.videoWidth / video.clientWidth);
+          tempCanvas.height = scanRegionRect.height * (video.videoHeight / video.clientHeight);
+          
+          // Draw only the scan region portion
+          tempCtx.drawImage(
+            video, 
+            scanRegionRect.x * (video.videoWidth / video.clientWidth),
+            scanRegionRect.y * (video.videoHeight / video.clientHeight),
+            tempCanvas.width,
+            tempCanvas.height,
+            0, 0, tempCanvas.width, tempCanvas.height
+          );
+          
+          // Detect barcodes in the scan region only
+          codes = await detector.detect(tempCanvas);
+        } else {
+          // Fallback to full frame detection
+          codes = await detector.detect(video);
+        }
+        
         ctx.clearRect(0,0,canvas.width,canvas.height);
+        
+        // Draw scan region border
+        if (scanRegionRect) {
+          ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(
+            scanRegionRect.x * (video.videoWidth / video.clientWidth),
+            scanRegionRect.y * (video.videoHeight / video.clientHeight),
+            scanRegionRect.width * (video.videoWidth / video.clientWidth),
+            scanRegionRect.height * (video.videoHeight / video.clientHeight)
+          );
+        }
+        
         if(codes && codes.length && !scanCooldown){ 
           const val = codes[0].rawValue; 
           drawBox(ctx, codes[0].boundingBox); 
           await onBarcode(val); 
         }
-      } catch(e){}
+      } catch(e){ console.log('Detection error:', e); }
     }
     rafId = requestAnimationFrame(step);
-  }; step();
+  }; 
+  step();
 }
 
-function drawBox(ctx, box){ if(!box) return; ctx.lineWidth=3; ctx.strokeStyle='lime'; ctx.strokeRect(box.x, box.y, box.width, box.height); }
+function drawBox(ctx, box){ 
+  if(!box) return; 
+  ctx.lineWidth=3; 
+  ctx.strokeStyle='lime'; 
+  ctx.strokeRect(box.x, box.y, box.width, box.height); 
+}
 
 async function loadZXing(){
   return new Promise((resolve,reject)=>{
@@ -557,21 +638,62 @@ async function loadZXing(){
 }
 
 async function loopZXing(reader){
-  const video = $('#video'); const canvas = $('#overlay'); const ctx = canvas.getContext('2d');
+  const video = $('#video'); 
+  const canvas = $('#overlay'); 
+  const ctx = canvas.getContext('2d');
+  
   const step = async ()=>{
     if(!scanning) return;
     if(video.readyState>=2){
-      canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+      canvas.width=video.videoWidth; 
+      canvas.height=video.videoHeight;
+      
+      // Draw scan region border
+      if (scanRegionRect) {
+        ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          scanRegionRect.x * (video.videoWidth / video.clientWidth),
+          scanRegionRect.y * (video.videoHeight / video.clientHeight),
+          scanRegionRect.width * (video.videoWidth / video.clientWidth),
+          scanRegionRect.height * (video.videoHeight / video.clientHeight)
+        );
+      }
+      
       try {
-        const result = await reader.decodeOnceFromVideoElement(video);
-        ctx.clearRect(0,0,canvas.width,canvas.height);
+        let result = null;
+        
+        // If we have a scan region, crop the image for ZXing
+        if (scanRegionRect) {
+          const tempCanvas = document.createElement('canvas');
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCanvas.width = scanRegionRect.width * (video.videoWidth / video.clientWidth);
+          tempCanvas.height = scanRegionRect.height * (video.videoHeight / video.clientHeight);
+          
+          tempCtx.drawImage(
+            video, 
+            scanRegionRect.x * (video.videoWidth / video.clientWidth),
+            scanRegionRect.y * (video.videoHeight / video.clientHeight),
+            tempCanvas.width,
+            tempCanvas.height,
+            0, 0, tempCanvas.width, tempCanvas.height
+          );
+          
+          // ZXing doesn't have a direct method for canvas, so we'd need to convert to ImageData
+          // For now, fall back to full frame if using ZXing with scan region
+          result = await reader.decodeOnceFromVideoElement(video);
+        } else {
+          result = await reader.decodeOnceFromVideoElement(video);
+        }
+        
         if(result && result.text && !scanCooldown){ 
           await onBarcode(result.text); 
         }
       } catch(e){}
     }
     rafId = requestAnimationFrame(step);
-  }; step();
+  }; 
+  step();
 }
 
 async function onBarcode(code){
@@ -601,7 +723,20 @@ async function onBarcode(code){
   }, 1500);
 }
 
-function beep(){ try{ const ctx = new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='square'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); setTimeout(()=>{ o.stop(); ctx.close(); },170);}catch(e){} }
+function beep(){ 
+  try{ 
+    const ctx = new (window.AudioContext||window.webkitAudioContext)(); 
+    const o=ctx.createOscillator(); 
+    const g=ctx.createGain(); 
+    o.type='sine'; 
+    o.frequency.value=880; 
+    o.connect(g); 
+    g.connect(ctx.destination); 
+    o.start(); 
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); 
+    setTimeout(()=>{ o.stop(); ctx.close(); },170);
+  } catch(e){} 
+}
 
 async function stopScan(){ 
   scanning=false; 
@@ -611,13 +746,17 @@ async function stopScan(){
   currentTrack=null; 
   currentStream=null; 
   setStatus(''); 
+  
+  // Hide scan region
+  $('#scanRegion').classList.add('hidden');
+  scanRegionRect = null;
 }
 
 async function listCameras(){
   try{
-    const devices = await navigator.mediaDevices.enumerateDevices();
+    const devices = await navig.mediaDevices.enumerateDevices();
     const cams = devices.filter(d=>d.kind==='videoinput');
-    cameraList = cams; // Store camera list for later reference
+    cameraList = cams;
     
     $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
   }catch(e){}
@@ -685,11 +824,9 @@ $('#exportInvBtn').onclick = exportInventoryCSV;
 $('#exportLogBtn').onclick = exportLogCSV;
 $('#undoBtn').onclick = undoLast;
 $('#clearBtn').onclick = async ()=>{ 
-  // Password protection for clear inventory
   const password = prompt('Enter your password to confirm clearing ALL inventory:');
   if (!password) return;
   
-  // Verify password
   const isValid = await verifyPassword(password);
   if (!isValid) {
     alert('Incorrect password. Clear operation cancelled.');
@@ -700,7 +837,6 @@ $('#clearBtn').onclick = async ()=>{
   await tx('inventory','readwrite', s=>s.clear()); 
   await tx('log','readwrite', s=>s.clear()); 
   renderTable(); 
-  // Clear scanned barcodes when inventory is cleared
   scannedBarcodes.clear();
 };
 $('#resetBtn').onclick = async ()=>{ 
@@ -725,14 +861,12 @@ $('#cameraSelect').addEventListener('change', switchCamera);
 // Password verification function
 async function verifyPassword(password) {
   if (currentUser && currentUser.via === 'sheet') {
-    // Check against sheet users
     const sheetUsers = await fetchUsersFromSheet();
     if (sheetUsers) {
       return sheetUsers.some(u => u.username === currentUser.username && u.password === password);
     }
   }
   
-  // Check against local users
   return fallbackUsers().some(u => u.username === currentUser.username && u.password === password);
 }
 
@@ -740,10 +874,9 @@ document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key
 
 (async function preinit(){ 
   db = await openDB(); 
-  loadSettings(); // <-- ADDED: Load saved URL and ID on page load
+  loadSettings();
   setStatus('Ready'); 
 })();
-
   </script>
 </body>
 </html>
