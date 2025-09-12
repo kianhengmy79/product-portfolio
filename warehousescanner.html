@@ -1,931 +1,289 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Inventory Scanner — Login + Google Sheets Sync</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-    .hidden { display:none !important; }
-    .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
-    .mirrored { transform: scaleX(-1); }
-    .scan-region {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 70%;
-      height: 40%;
-      border: 2px solid rgba(0, 255, 0, 0.5);
-      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
-      pointer-events: none;
-      z-index: 10;
-    }
-    .scan-line {
-      position: absolute;
-      height: 2px;
-      width: 100%;
-      background: rgba(0, 255, 0, 0.8);
-      top: 0;
-      animation: scan 2s infinite linear;
-    }
-    @keyframes scan {
-      0% { top: 0; }
-      100% { top: 100%; }
-    }
-    .camera-error {
-      background: #fee2e2;
-      color: #b91c1c;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-top: 1rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Scanner - Camera Permission Help</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+        .permission-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .permission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .browser-icon {
+            transition: all 0.3s ease;
+        }
+        .browser-icon:hover {
+            transform: scale(1.05);
+        }
+        .step-number {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: bold;
+        }
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
-  <div class="max-w-4xl mx-auto p-6">
-    <div id="loginCard" class="bg-white rounded-2xl shadow p-6 max-w-md mx-auto">
-      <h1 class="text-2xl font-bold mb-2">Inventory Scanner — Login</h1>
-      <p class="text-sm text-slate-500 mb-4">Sign in to track who scans inventory. You can store users in Google Sheet (recommended) or use local fallback users.</p>
-      <label class="block mb-2"><span class="text-sm">Apps Script Sync URL (optional)</span>
-        <input id="appsScriptUrl" class="mt-1 block w-full rounded-lg border p-2" placeholder="https://script.google.com/macros/s/XXXX/exec (optional)" />
-      </label>
-      <label class="block mb-2"><span class="text-sm">Sheet ID (optional)</span>
-        <input id="sheetId" class="mt-1 block w-full rounded-lg border p-2" placeholder="13T36w322JzTMFLNK3PEVAJAPa_pAMpWvDWWr7B9EC-A" />
-      </label>
-      <label class="block mb-2"><span class="text-sm">Username</span>
-        <input id="loginUser" class="mt-1 block w-full rounded-lg border p-2" placeholder="username" />
-      </label>
-      <label class="block mb-4"><span class="text-sm">Password</span>
-        <input id="loginPass" type="password" class="mt-1 block w-full rounded-lg border p-2" placeholder="password" />
-      </label>
-      <div class="flex gap-2">
-        <button id="loginBtn" class="px-4 py-2 rounded-xl bg-sky-600 text-white">Sign in</button>
-        <button id="demoBtn" class="px-4 py-2 rounded-xl bg-slate-200">Use Demo (no sheet)</button>
-        <button id="howBtn" class="ml-auto px-3 py-2 rounded-xl bg-amber-100">Instructions</button>
-      </div>
-      <p class="text-xs text-slate-400 mt-3">Tip: If you want cloud sync, deploy a tiny Google Apps Script web app (instructions available) and paste its URL above. The app will proxy reads/writes to your Sheet securely.</p>
+<body class="py-12 px-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-slate-800 mb-4">Camera Permission Required</h1>
+            <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+                Your inventory scanner needs camera access to scan barcodes. Please allow camera permissions to use this feature.
+            </p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <!-- Browser Instructions -->
+            <div class="bg-white rounded-xl shadow-md p-6 permission-card">
+                <h2 class="text-2xl font-semibold text-slate-800 mb-6 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Browser Instructions
+                </h2>
+                
+                <div class="space-y-6">
+                    <!-- Chrome -->
+                    <div class="flex items-start space-x-4">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgaGVpZ2h0PSI0OCIgd2lkdGg9IjQ4Ij48cGF0aCBmaWxsPSIjZGI0MDI3IiBkPSJNMjIgMjNIMTZsLTYgOWExNi4wNiAxNi4wNiAwIDAgMCAyMiAwbC01LTloLTZ6Ii8+PHBhdGggZmlsbD0iI2ZhYmMwMCIgZD0iTTI4IDIzaDZsNSA5YTE2LjA2IDE2LjA2IDAgMCAxLTIyIDBsNi05aDZ6Ii8+PHBhdGggZmlsbD0iIzQ4YTU0MyIgZD0iTTM0IDIzYTE2LjA2IDE2LjA2IDAgMSAxLTYtMTloMTJjMCA4Ljg1LTcuMTUgMTYtMTYgMTZWNEMyNi4wNiA0IDM0IDExLjE1IDM0IDIweiIvPjxjaXJjbGUgZmlsbD0iIzQ3ODdmYiIgY3g9IjI0IiBjeT0iMTIiIHI9IjQiLz48L3N2Zz4=" class="w-10 h-10 browser-icon" alt="Chrome">
+                        <div>
+                            <h3 class="font-medium text-slate-800">Google Chrome</h3>
+                            <ol class="mt-2 text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">1</span>
+                                    Click the camera icon in the address bar
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">2</span>
+                                    Select "Allow" from the dropdown menu
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">3</span>
+                                    Refresh the page if needed
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <!-- Firefox -->
+                    <div class="flex items-start space-x-4 pt-4 border-t border-slate-100">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgaGVpZ2h0PSI0OCIgd2lkdGg9IjQ4Ij48cGF0aCBmaWxsPSIjZmY3MTE0IiBkPSJNNDEgMjRjMCA4LjgzLTcuMTcgMTYtMTYgMTZINWMtLjgzIDAtMS41NC0uNTQtMS43NS0xLjMyQTM0LjYgMzQuNiAwIDAgMSA0IDI0YTM0LjYgMzQuNiAwIDAgMSAxLjI1LTkuNjhDMzUuNDYgMTQuMzMgNDEgMTguNzYgNDEgMjR6Ii8+PHBhdGggZmlsbD0iI2ZmOWQwMCIgZD0iTTI0IDhjOC44MyAwIDE2IDcuMTcgMTYgMTZzLTcuMTcgMTYtMTYgMTZTMCAzMi44MyAwIDI0IDcuMTcgOCAyNCA4em0wIDI4YzYuNjIgMCAxMi01LjM4IDEyLTEyUzMwLjYyIDEyIDI0IDEyIDEyIDE3LjM4IDEyIDI0czUuMzggMTIgMTIgMTJ6Ii8+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0iTTI0IDI4YzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptOC04YzAgMi4yMS0xLjc5IDQtNCA0cy00LTEuNzktNC00IDEuNzktNCA0LTQgNCAxLjc5IDQgNHoiLz48cGF0aCBmaWxsPSIjZmY3MTE0IiBkPSJNMzIgMjBjMCAyLjIxLTEuNzkgNC00IDRzLTQtMS43OS00LTQgMS43OS00IDQtNCA0IDEuNzkgNCA0eiIvPjwvc3ZnPg==" class="w-10 h-10 browser-icon" alt="Firefox">
+                        <div>
+                            <h3 class="font-medium text-slate-800">Mozilla Firefox</h3>
+                            <ol class="mt-2 text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">1</span>
+                                    Click the camera icon in the address bar
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">2</span>
+                                    Select "Allow" to grant camera access
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">3</span>
+                                    Refresh the page if the prompt doesn't appear
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <!-- Safari -->
+                    <div class="flex items-start space-x-4 pt-4 border-t border-slate-100">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgaGVpZ2h0PSI0OCIgd2lkdGg9IjQ4Ij48cGF0aCBmaWxsPSIjMDhjZTM0IiBkPSJNMjQgNEMxMi45NSA0IDQgMTIuOTUgNCAyNHM4Ljk1IDIwIDIwIDIwIDIwLTguOTUgMjAtMjBTMzUuMDUgNCAyNCA0em0wIDM2Yy04LjgyIDAtMTYtNy4xOC0xNi0xNlMxNS4xOCA4IDI0IDhzMTYgNy4xOCAxNiAxNi03LjE4IDE2LTE2IDE2eiIvPjxwYXRoIGZpbGw9IiMwOGNlMzQiIGQ9Ik0yNC4wMSAxMGMtNy4xIDAtNy45OSA0Ljg3LTcuOTkgNC44N2wtMi4zOS01LjYyYy0uMDYtLjE0LS4yMS0uMjQtLjM3LS4yN0M2Ljg0IDguODIgNCAxNS42OSA0IDI0YzAgMTEuMDUgOC45NSAyMCAyMCAyMCA3LjM1IDAgMTMuNzUtMy45NiAxNy4zMi05LjguMDYtLjExLjA0LS4yNC0uMDQtLjM0QzM3LjYyIDI3LjQ0IDI0LjAxIDEwIDI0LjAxIDEweiIvPjxwYXRoIGZpbGw9IiMwOGNlMzQiIGQ9Ik0zMS4wMSAyNGMwIDMuODctMy4xNCA3LTcgN3MtNy0zLjEzLTctN2MwLTMuODYgMy4xNC03IDctN3M3IDMuMTQgNyA3eiIvPjwvc3ZnPg==" class="w-10 h-10 browser-icon" alt="Safari">
+                        <div>
+                            <h3 class="font-medium text-slate-800">Safari</h3>
+                            <ol class="mt-2 text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">1</span>
+                                    Go to Safari > Preferences > Websites
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">2</span>
+                                    Select Camera from the left sidebar
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">3</span>
+                                    Set this website to "Allow"
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Instructions -->
+            <div class="bg-white rounded-xl shadow-md p-6 permission-card">
+                <h2 class="text-2xl font-semibold text-slate-800 mb-6 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Device Settings
+                </h2>
+                
+                <div class="space-y-6">
+                    <!-- Android -->
+                    <div class="flex items-start space-x-4">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgaGVpZ2h0PSI0OCIgd2lkdGg9IjQ4Ij48cGF0aCBmaWxsPSIjNzg5MDNjIiBkPSJNOCA0MHYtM2gzMnYzeiIvPjxwYXRoIGZpbGw9IiMzNGExN2UiIGQ9Ik00MCA0MXYtMjRjMC0yLjIxLTEuNzktNC00LTRIMTJjLTIuMjEgMC00IDEuNzktNCA0djI0YzAgMi4yMSAxLjc5IDQgNCA0aDI0YzIuMjEgMCA0LTEuNzkgNC00eiIvPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0yNCAzNGMwIDEuMTEtLjg5IDItMiAycy0yLS44OS0yLTIgLjg5LTIgMi0yIDIgLjg5IDIgMnptOC02YzAgMS4xMS0uODkgMi0yIDJzLTItLjg5LTItMiAuODktMiAyLTIgMiAuODkgMiAyem0tMTYgMGMwIDEuMTEtLjg5IDItMiAycy0yLS44OS0yLTIgLjg5LTIgMi0yIDIgLjg5IDIgMnoiLz48cGF0aCBmaWxsPSIjZmZjMTA3IiBkPSJNMzAgMTBWNmMwLTIuMjEtMS43OS00LTQtNHMtNCAxLjc5LTQgNHY0aDguMDF6Ii8+PHBhdGggZmlsbD0iI2ZhYmMwMCIgZD0iTTM2IDEwVjZjMC0zLjMxLTIuNjktNi02LTZzLTYgMi42OS02IDZ2NGgxMnoiLz48L3N2Zz4=" class="w-10 h-10 browser-icon" alt="Android">
+                        <div>
+                            <h3 class="font-medium text-slate-800">Android Devices</h3>
+                            <ol class="mt-2 text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">1</span>
+                                    Open Settings > Apps
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">2</span>
+                                    Find your browser app and tap it
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">3</span>
+                                    Tap Permissions > Camera and allow access
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <!-- iOS -->
+                    <div class="flex items-start space-x-4 pt-4 border-t border-slate-100">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgaGVpZ2h0PSI0OCIgd2lkdGg9IjQ4Ij48cGF0aCBmaWxsPSIjMjcxODM4IiBkPSJNMzQgNDFIMTQuMDJjLTIuMjEgMC00LTEuNzktNC00VjExYzAtMi4yMSAxLjc5LTQgNC00aDE5Ljk2YzIuMjEgMCA0IDEuNzkgNCA0djI2YzAgMi4yMS0xLjc5IDQtNCA0eiIvPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0yNCAzOGMwIDEuMTEtLjg5IDItMiAycy0yLS44OS0yLTIgLjg5LTIgMi0yIDIgLjg5IDIgMnptOC02YzAgMS4xMS0uODkgMi0yIDJzLTItLjg5LTItMiAuODktMiAyLTIgMiAuODkgMiAyem0tMTYgMGMwIDEuMTEtLjg5IDItMiAycy0yLS44OS0yLTIgLjg5LTIgMi0yIDIgLjg5IDIgMnoiLz48cGF0aCBmaWxsPSIjMjcxODM4IiBkPSJNMjQgMTBjLTEuMTEgMC0yLS44OS0yLTJzLjg5LTIgMi0yIDIgLjg5IDIgMi0uODkgMi0yIDJ6Ii8+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0iTTI0IDExYzEuMTEgMCAyIC44OSAyIDJzLS44OSAyLTIgMi0yLS44OS0yLTIgLjg5LTIgMi0yeiIvPjwvc3ZnPg==" class="w-10 h-10 browser-icon" alt="iOS">
+                        <div>
+                            <h3 class="font-medium text-slate-800">iOS Devices</h3>
+                            <ol class="mt-2 text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">1</span>
+                                    Open Settings > Safari
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">2</span>
+                                    Scroll down to Camera
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">3</span>
+                                    Set to "Allow" or "Ask"
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <!-- Desktop -->
+                    <div class="flex items-start space-x-4 pt-4 border-t border-slate-100">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgaGVpZ2h0PSI0OCIgd2lkdGg9IjQ4Ij48cGF0aCBmaWxsPSIjMDA3ZWZmIiBkPSJNNDAgM0g4YTIgMiAwIDAgMC0yIDJ2MjZhMiAyIDAgMCAwIDIgMmgzMmEyIDIgMCAwIDAgMi0yVjVhMiAyIDAgMCAwLTItMnptMCAyOHYtMjRIMTJsLTQgNGgyNHYyMHoiLz48cGF0aCBmaWxsPSIjMDA3ZWZmIiBkPSJNMjQgMTJjLTYuNjIgMC0xMiA1LjM4LTEyIDEyczUuMzggMTIgMTIgMTIgMTItNS4zOCAxMi0xMi01LjM4LTEyLTEyLTEyem0wIDIwYy00LjQyIDAtOC0zLjU4LTgtOHMzLjU4LTggOC04IDggMy41OCA4IDgtMy41OCA4LTggOHoiLz48cGF0aCBmaWxsPSIjMDA3ZWZmIiBkPSJNMjQgMTdjLTMuODYgMC03IDMuMTQtNyA3czMuMTQgNyA3IDcgNy0zLjE0IDctNy0zLjE0LTctNy03em0wIDEwYy0xLjY1IDAtMy0xLjM1LTMtM3MxLjM1LTMgMy0zIDMgMS4zNSAzIDMtMS4zNSAzLTMgM3oiLz48L3N2Zz4=" class="w-10 h-10 browser-icon" alt="Desktop">
+                        <div>
+                            <h3 class="font-medium text-slate-800">Desktop Computers</h3>
+                            <ol class="mt-2 text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">1</span>
+                                    Check if your camera is connected and working
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">2</span>
+                                    Ensure no other application is using the camera
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="step-number mr-3 flex-shrink-0">3</span>
+                                    Check browser settings for camera permissions
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Camera Button -->
+        <div class="text-center mb-12">
+            <button id="testCamera" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md transition-all duration-300 animate-pulse">
+                Test Camera Access
+            </button>
+            <p id="cameraStatus" class="mt-4 text-sm text-slate-600"></p>
+        </div>
+
+        <!-- Troubleshooting Tips -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                Additional Troubleshooting Tips
+            </h2>
+            <ul class="list-disc pl-5 text-slate-700 space-y-2">
+                <li>Make sure you're using a secure connection (HTTPS)</li>
+                <li>Restart your browser after changing permission settings</li>
+                <li>Check if your camera is being used by another application</li>
+                <li>Update your browser to the latest version</li>
+                <li>Try using a different browser if issues persist</li>
+            </ul>
+        </div>
+
+        <!-- Support Section -->
+        <div class="text-center text-sm text-slate-500">
+            <p>Still having issues? Contact support at <span class="text-blue-600">support@inventoryscanner.com</span></p>
+        </div>
     </div>
 
-    <!-- Main App -->
-    <div id="app" class="hidden mt-6">
-      <header class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-2xl bg-sky-100 grid place-items-center"><span class="text-sky-600 font-bold">WS</span></div>
-        <div>
-          <h1 id="title" class="text-2xl md:text-3xl font-bold">Inventory Scanner</h1>
-          <p id="subtitle" class="text-sm text-slate-500 -mt-1">Scan • Auto-update • Cloud sync</p>
-        </div>
-        <div class="ml-auto flex items-center gap-3">
-          <span id="userBadge" class="badge bg-indigo-100 text-indigo-700">—</span>
-          <button id="logoutBtn" class="px-3 py-1 rounded-lg bg-rose-100 text-rose-700">Logout</button>
-        </div>
-      </header>
-
-      <section class="grid lg:grid-cols-[520px_1fr] gap-6">
-        <!-- Scanner pane -->
-        <div class="space-y-4">
-          <div class="bg-white rounded-2xl shadow p-4">
-            <div class="flex items-center gap-2 mb-3">
-              <button id="startBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white">Start Scan</button>
-              <button id="stopBtn" class="px-3 py-2 rounded-xl bg-slate-200">Stop</button>
-              <button id="toggleModeBtn" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Toggle IN/OUT</button>
-              <label class="ml-auto text-sm text-slate-600 flex items-center gap-2">Qty
-                <input id="qtyStep" type="number" value="1" min="1" class="w-16 px-2 py-1 rounded-lg border" />
-              </label>
-            </div>
-            <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
-              <video id="video" class="w-full h-full object-cover"></video>
-              <div id="scanRegion" class="scan-region hidden">
-                <div class="scan-line"></div>
-              </div>
-              <canvas id="overlay" class="absolute inset-0"></canvas>
-              <div id="cameraError" class="camera-error hidden text-center">
-                <p class="font-bold">Camera Error</p>
-                <p class="text-sm">Please check camera permissions</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 mt-3">
-              <select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
-              <button id="torchBtn" class="px-3 py-2 rounded-xl bg-slate-200">Toggle Torch</button>
-            </div>
-            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-              <input id="manualInput" placeholder="Manual barcode entry…" class="px-3 py-2 rounded-xl border" />
-              <button id="manualSubmit" class="px-3 py-2 rounded-xl bg-slate-800 text-white">Submit Manual</button>
-            </div>
-            <div id="cameraHelp" class="mt-3 p-3 bg-amber-50 rounded-lg hidden">
-              <h3 class="font-bold text-amber-800">Camera Troubleshooting</h3>
-              <ul class="text-sm text-amber-700 mt-1 list-disc pl-5">
-                <li>Ensure your browser has camera permissions</li>
-                <li>Check if another app is using your camera</li>
-                <li>Try refreshing the page and allowing camera access</li>
-                <li>If on mobile, make sure you're using HTTPS</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-            <h2 class="font-semibold">Import / Export</h2>
-            <div class="grid md:grid-cols-2 gap-2">
-              <div class="flex items-center gap-2">
-                <input id="csvFile" type="file" accept=".csv" class="block w-full text-sm" />
-                <button id="importBtn" class="px-3 py-2 rounded-xl bg-slate-200">Import CSV</button>
-              </div>
-              <div class="flex items-center gap-2">
-                <button id="exportInvBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white w-full">Export Inventory CSV</button>
-                <button id="exportLogBtn" class="px-3 py-2 rounded-xl bg-slate-800 text-white w-full">Export Log CSV</button>
-              </div>
-            </div>
-            <p class="text-xs text-slate-500">CSV: <code>barcode, name, qty</code>. You can also sync to Sheet.</p>
-          </div>
-
-          <div class="bg-white rounded-2xl shadow p-4 flex items-center gap-2">
-            <button id="undoBtn" class="px-3 py-2 rounded-xl bg-amber-500 text-white">Undo Last</button>
-            <button id="clearBtn" class="px-3 py-2 rounded-xl bg-rose-600 text-white">Clear Inventory</button>
-            <button id="resetBtn" class="ml-auto px-3 py-2 rounded-xl bg-slate-200">Reset App</button>
-          </div>
-        </div>
-
-        <!-- Inventory pane -->
-        <div class="bg-white rounded-2xl shadow p-4">
-          <div class="flex flex-col md:flex-row md:items-center gap-2 mb-3">
-            <div class="relative flex-1">
-              <input id="search" placeholder="Search name or barcode…" class="w-full px-3 py-2 rounded-xl border" />
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="addItemBtn" class="px-3 py-2 rounded-xl bg-slate-200">Add Item</button>
-              <span class="text-sm text-slate-500">Total SKUs: <span id="skuCount">0</span></span>
-            </div>
-          </div>
-          <div class="overflow-auto rounded-xl border">
-            <table class="min-w-full text-sm">
-              <thead class="bg-slate-50 text-slate-600">
-                <tr>
-                  <th class="text-left p-3">Barcode</th>
-                  <th class="text-left p-3">Name</th>
-                  <th class="text-right p-3">Qty</th>
-                  <th class="text-left p-3">Last Scan</th>
-                  <th class="text-left p-3">User</th>
-                  <th class="text-left p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <footer class="text-center text-xs text-slate-400 mt-6">Data stored locally (IndexedDB). Cloud sync uses Apps Script endpoint if provided.</footer>
-    </div>
-  </div>
-
-  <script id="zxingScript"></script>
-
-  <script>
-const $ = sel => document.querySelector(sel);
-const DB_NAME = 'ws-upgraded-db', DB_VER = 2;
-let db;
-let MODE_IN = true;
-let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
-let appsScriptUrl = '';
-let sheetId = '';
-let currentUser = null;
-let cameraList = [];
-let lastScannedCode = null;
-let scanCooldown = false;
-let scannedBarcodes = new Set();
-let scanRegion = null;
-let scanRegionRect = null;
-
-// === NEW CODE: Save and Load Settings ===
-function saveSettings() {
-  const settings = {
-    appsScriptUrl: $('#appsScriptUrl').value.trim(),
-    sheetId: $('#sheetId').value.trim()
-  };
-  localStorage.setItem('warehouseScannerSettings', JSON.stringify(settings));
-}
-
-function loadSettings() {
-  const saved = localStorage.getItem('warehouseScannerSettings');
-  if (saved) {
-    const settings = JSON.parse(saved);
-    $('#appsScriptUrl').value = settings.appsScriptUrl || '';
-    $('#sheetId').value = settings.sheetId || '';
-  }
-}
-// === END NEW CODE ===
-
-async function openDB(){
-  return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = ()=>{
-      const d = req.result;
-      if(!d.objectStoreNames.contains('inventory')) {
-        const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
-        s.createIndex('name','name',{unique:false});
-      }
-      if(!d.objectStoreNames.contains('log')) {
-        const logStore = d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
-        logStore.createIndex('barcode', 'barcode', {unique: false});
-        logStore.createIndex('user', 'user', {unique: false});
-        logStore.createIndex('ts', 'ts', {unique: false});
-      }
-    };
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-
-async function tx(store, mode, fn){
-  return new Promise((resolve,reject)=>{
-    const t = db.transaction(store, mode);
-    const s = t.objectStore(store);
-    const r = fn(s);
-    t.oncomplete = ()=> resolve(r);
-    t.onerror = ()=> reject(t.error);
-  });
-}
-async function getAll(store){
-  return new Promise((resolve,reject)=>{
-    const req = db.transaction(store).objectStore(store).getAll();
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-
-function setStatus(msg){ $('#subtitle').textContent = msg || ''; }
-function setUserBadge(){ $('#userBadge').textContent = currentUser ? currentUser.username : '—'; }
-
-function fallbackUsers(){
-  return [{username:'admin',password:'admin123'},{username:'staff',password:'staff123'}];
-}
-
-async function fetchUsersFromSheet(){
-  if(!appsScriptUrl || !sheetId) return null;
-  try {
-    const url = new URL(appsScriptUrl);
-    url.searchParams.set('action','getUsers');
-    url.searchParams.set('sheetId', sheetId);
-    const res = await fetch(url.toString());
-    if(!res.ok) throw new Error('Apps Script error');
-    const rows = await res.json();
-    const out = rows.map(r => ({ username: String(r[0]||''), password: String(r[1]||'') })).filter(u=>u.username);
-    return out;
-  } catch(e){ console.warn('fetchUsersFromSheet', e); return null; }
-}
-
-async function tryLogin(username,password){
-  appsScriptUrl = $('#appsScriptUrl').value.trim();
-  sheetId = $('#sheetId').value.trim();
-  const sheetUsers = await fetchUsersFromSheet();
-  if(sheetUsers){
-    const found = sheetUsers.find(u => u.username === username && u.password === password);
-    if(found) return { username: found.username, via: 'sheet' };
-  }
-  const local = fallbackUsers().find(u=>u.username===username && u.password===password);
-  if(local) return { username: local.username, via: 'local' };
-  return null;
-}
-
-async function loginFlow(){
-  const u = $('#loginUser').value.trim();
-  const p = $('#loginPass').value;
-  if(!u || !p) return alert('Enter username and password');
-  setStatus('Authenticating…');
-  
-  appsScriptUrl = $('#appsScriptUrl').value.trim();
-  sheetId = $('#sheetId').value.trim();
-  saveSettings();
-
-  const res = await tryLogin(u,p);
-  if(!res){ setStatus('Login failed'); return alert('Invalid credentials'); }
-  currentUser = { username: res.username, via: res.via };
-  $('#loginCard').classList.add('hidden');
-  $('#app').classList.remove('hidden');
-  setUserBadge();
-  await initApp();
-}
-
-$('#loginBtn').onclick = loginFlow;
-$('#demoBtn').onclick = ()=>{
-  $('#loginUser').value = 'admin'; $('#loginPass').value='admin123';
-  $('#loginBtn').click();
-};
-$('#howBtn').onclick = ()=> alert('Instructions:\\n1) (Optional) Deploy Apps Script web app and paste URL + sheet ID.\\n2) Create a \"users\" sheet with username,password rows, and an \"inventory\" sheet with barcode,name,qty rows.\\n3) Login and start scanning. See file comments for Apps Script code.');
-
-$('#logoutBtn').onclick = async ()=>{
-  currentUser=null;
-  $('#app').classList.add('hidden');
-  $('#loginCard').classList.remove('hidden');
-  setStatus('');
-  scannedBarcodes.clear();
-};
-
-// Inventory functions
-async function upsertItem({barcode,name='',qty=0}){
-  await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null, lastUser: null }));
-}
-
-async function adjustQty(barcode, delta){
-  await tx('inventory','readwrite', s=>{
-    const req = s.get(barcode);
-    req.onsuccess = async ()=>{
-      const item = req.result || { barcode, name:'', qty:0, lastScan:null, lastUser: null };
-      item.qty = Math.max(0, (item.qty||0) + delta);
-      item.lastScan = new Date().toISOString();
-      item.lastUser = currentUser.username; // Record username
-      s.put(item);
-      lastAction = { barcode, delta };
-      renderTable();
-      
-      // Log the action with username
-      await tx('log','readwrite', ss => ss.add({ 
-        ts: new Date().toISOString(), 
-        user: currentUser.username, 
-        barcode, 
-        delta 
-      }));
-      
-      // Sync to cloud
-      await syncRowToCloud(item);
-    };
-  });
-}
-
-async function syncRowToCloud(item, retries = 3) {
-  if(!appsScriptUrl || !sheetId) return;
-  
-  for (let i = 0; i < retries; i++) {
-    try {
-      const url = new URL(appsScriptUrl);
-      url.searchParams.set('action','setRow');
-      url.searchParams.set('sheetId', sheetId);
-      url.searchParams.set('barcode', item.barcode);
-      url.searchParams.set('name', item.name||'');
-      url.searchParams.set('qty', String(item.qty||0));
-      url.searchParams.set('user', currentUser.username);
-      
-      const response = await fetch(url.toString());
-      if (response.ok) {
-        console.log('Successfully synced to Google Sheets');
-        return true;
-      } else {
-        console.warn('Google Sheets sync failed:', response.status);
-      }
-    } catch(e){ 
-      console.warn('syncRowToCloud attempt ' + (i+1), e); 
-    }
-    
-    // Wait before retrying (exponential backoff)
-    if (i < retries - 1) {
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
-    }
-  }
-  
-  console.error('All sync attempts failed');
-  return false;
-}
-
-async function fetchInventoryFromCloud(){
-  if(!appsScriptUrl || !sheetId) return null;
-  try {
-    const url = new URL(appsScriptUrl);
-    url.searchParams.set('action','getInventory');
-    url.searchParams.set('sheetId', sheetId);
-    const res = await fetch(url.toString());
-    if(!res.ok) throw new Error('Apps Script fetch failed');
-    const rows = await res.json();
-    return rows.map(r => ({ barcode: String(r[0]||''), name: String(r[1]||''), qty: Number(r[2]||0) })).filter(x=>x.barcode);
-  } catch(e){ console.warn('fetchInventoryFromCloud', e); return null; }
-}
-
-async function importCSVText(text){
-  const rows = text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
-  for(const r of rows){
-    const [barcode,name,qty] = r.split(',').map(cell => cell.trim());
-    if(!barcode) continue;
-    await upsertItem({ barcode, name: name || '', qty: Number(qty||0) });
-    
-    if(appsScriptUrl && sheetId) {
-      await syncRowToCloud({ barcode, name: name || '', qty: Number(qty||0) });
-    }
-  }
-  renderTable();
-}
-
-function downloadCSV(rows, filename){
-  const csvContent = rows.map(row => {
-    return row.map(cell => {
-      if (cell === null || cell === undefined) return '""';
-      const stringCell = String(cell);
-      if (stringCell.includes('"') || stringCell.includes(',') || stringCell.includes('\n')) {
-        return '"' + stringCell.replace(/"/g, '""') + '"';
-      }
-      return stringCell;
-    }).join(',');
-  }).join('\r\n');
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a'); 
-  const url = URL.createObjectURL(blob);
-  a.href = url;
-  a.download = filename;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 100);
-}
-
-async function exportInventoryCSV(){
-  const items = await getAll('inventory');
-  const rows = [['barcode','name','qty','lastScan','lastUser'], ...items.map(i=>[i.barcode,i.name||'',i.qty||0,i.lastScan||'',i.lastUser||''])];
-  downloadCSV(rows, `inventory-${new Date().toISOString().slice(0,10)}.csv`);
-}
-
-async function exportLogCSV(){
-  const items = await getAll('log');
-  const rows = [['id','ts','user','barcode','delta'], ...items.map((i,idx)=>[idx+1,i.ts,i.user||'',i.barcode,i.delta])];
-  downloadCSV(rows, `scanlog-${new Date().toISOString().slice(0,10)}.csv`);
-}
-
-async function renderTable(){
-  const q = $('#search').value.toLowerCase();
-  const items = await getAll('inventory');
-  items.sort((a,b)=> (b.lastScan||'').localeCompare(a.lastScan||''));
-  const filtered = items.filter(i => (i.barcode+' '+(i.name||'')).toLowerCase().includes(q));
-  $('#skuCount').textContent = String(items.length);
-  const tbody = $('#tbody'); tbody.innerHTML = '';
-  for(const it of filtered){
-    const tr = document.createElement('tr'); tr.className='border-t border-slate-100 hover:bg-slate-50';
-    tr.innerHTML = `
-      <td class="p-3 font-mono text-xs">${it.barcode}</td>
-      <td class="p-3"><input data-bc="${it.barcode}" class="nameInput w-full bg-transparent outline-none" value="${(it.name||'').replaceAll('"','&quot;')}" /></td>
-      <td class="p-3 text-right font-semibold tabular-nums">${it.qty||0}</td>
-      <td class="p-3 text-xs text-slate-500">${it.lastScan ? new Date(it.lastScan).toLocaleString() : '-'}</td>
-      <td class="p-3 text-xs text-slate-500">${it.lastUser || '-'}</td>
-      <td class="p-3 flex items-center gap-2">
-        <button data-bc="${it.barcode}" class="inc px-2 py-1 rounded-lg bg-slate-200">+1</button>
-        <button data-bc="${it.barcode}" class="dec px-2 py-1 rounded-lg bg-slate-200">-1</button>
-        <button data-bc="${it.barcode}" class="del px-2 py-1 rounded-lg bg-rose-600 text-white">Delete</button>
-      </td>`;
-    tbody.appendChild(tr);
-  }
-  tbody.querySelectorAll('.inc').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, +1));
-  tbody.querySelectorAll('.dec').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, -1));
-  tbody.querySelectorAll('.del').forEach(b=>b.onclick=async ()=>{ if(confirm('Delete this SKU?')) await removeItem(b.dataset.bc); });
-  tbody.querySelectorAll('.nameInput').forEach(inp=>{
-    inp.onchange = async ()=> {
-      await tx('inventory','readwrite', s=>{
-        const req = s.get(inp.dataset.bc);
-        req.onsuccess = ()=>{ 
-          const it=req.result; 
-          it.name=inp.value; 
-          s.put(it); 
-          syncRowToCloud(it); 
-        };
-      });
-    };
-  });
-}
-
-async function removeItem(barcode){
-  await tx('inventory','readwrite', s=> s.delete(barcode));
-  renderTable();
-}
-
-async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAction; await adjustQty(barcode, -delta); lastAction=null; }
-
-async function startScan(){
-  try {
-    await stopScan();
-    const deviceId = $('#cameraSelect').value || undefined;
-    
-    // Improved camera constraints for better scanning
-    const constraints = { 
-      video: { 
-        deviceId: deviceId ? { exact: deviceId } : undefined, 
-        facingMode: 'environment',
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }, 
-      audio: false 
-    };
-    
-    // Hide error messages and show camera help
-    $('#cameraError').classList.add('hidden');
-    $('#cameraHelp').classList.remove('hidden');
-    
-    setStatus('Accessing camera...');
-    
-    currentStream = await navigator.mediaDevices.getUserMedia(constraints)
-      .catch(err => {
-        console.error('Camera error:', err);
-        $('#cameraError').classList.remove('hidden');
-        $('#cameraHelp').classList.remove('hidden');
-        setStatus('Camera access denied');
-        throw err;
-      });
-    
-    const video = $('#video'); 
-    video.srcObject = currentStream; 
-    
-    const selectedCamera = cameraList.find(cam => cam.deviceId === deviceId);
-    if (selectedCamera) {
-      const isFrontCamera = selectedCamera.label.toLowerCase().includes('front') || 
-                           selectedCamera.label.toLowerCase().includes('facetime');
-      
-      if (isFrontCamera) {
-        video.classList.add('mirrored');
-      } else {
-        video.classList.remove('mirrored');
-      }
-    } else {
-      video.classList.remove('mirrored');
-    }
-    
-    await video.play();
-    currentTrack = currentStream.getVideoTracks()[0];
-    scanning = true; 
-    setStatus('Scanning…');
-    
-    // Show scan region
-    $('#scanRegion').classList.remove('hidden');
-    $('#cameraHelp').classList.add('hidden');
-    
-    // Reset scan tracking
-    lastScannedCode = null;
-    scanCooldown = false;
-    
-    // Get scan region dimensions for focused scanning
-    setTimeout(() => {
-      scanRegion = $('#scanRegion');
-      const videoRect = video.getBoundingClientRect();
-      const scanRect = scanRegion.getBoundingClientRect();
-      
-      // Calculate relative position for scanning region
-      scanRegionRect = {
-        x: scanRect.left - videoRect.left,
-        y: scanRect.top - videoRect.top,
-        width: scanRect.width,
-        height: scanRect.height
-      };
-    }, 500);
-    
-    if('BarcodeDetector' in window){
-      const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
-      const bd = new window.BarcodeDetector({ formats });
-      loopBarcodeDetector(bd);
-    } else {
-      await loadZXing();
-      const reader = new ZXing.BrowserMultiFormatReader();
-      loopZXing(reader);
-    }
-  } catch(e){ 
-    console.error('Camera initialization error:', e);
-    $('#cameraError').classList.remove('hidden');
-    $('#cameraHelp').classList.remove('hidden');
-    setStatus('Camera error: ' + e.message);
-  }
-}
-
-let rafId=null;
-async function loopBarcodeDetector(detector){
-  const video = $('#video'); 
-  const canvas = $('#overlay'); 
-  const ctx = canvas.getContext('2d');
-  
-  const step = async ()=>{
-    if(!scanning) return;
-    if(video.readyState>=2){
-      canvas.width=video.videoWidth; 
-      canvas.height=video.videoHeight;
-      
-      try {
-        // If we have a scan region, only process that area for better performance
-        let codes = [];
-        
-        if (scanRegionRect) {
-          // Create a temporary canvas for the scan region only
-          const tempCanvas = document.createElement('canvas');
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCanvas.width = scanRegionRect.width * (video.videoWidth / video.clientWidth);
-          tempCanvas.height = scanRegionRect.height * (video.videoHeight / video.clientHeight);
-          
-          // Draw only the scan region portion
-          tempCtx.drawImage(
-            video, 
-            scanRegionRect.x * (video.videoWidth / video.clientWidth),
-            scanRegionRect.y * (video.videoHeight / video.clientHeight),
-            tempCanvas.width,
-            tempCanvas.height,
-            0, 0, tempCanvas.width, tempCanvas.height
-          );
-          
-          // Detect barcodes in the scan region only
-          codes = await detector.detect(tempCanvas);
-        } else {
-          // Fallback to full frame detection
-          codes = await detector.detect(video);
-        }
-        
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        
-        // Draw scan region border
-        if (scanRegionRect) {
-          ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(
-            scanRegionRect.x * (video.videoWidth / video.clientWidth),
-            scanRegionRect.y * (video.videoHeight / video.clientHeight),
-            scanRegionRect.width * (video.videoWidth / video.clientWidth),
-            scanRegionRect.height * (video.videoHeight / video.clientHeight)
-          );
-        }
-        
-        if(codes && codes.length && !scanCooldown){ 
-          const val = codes[0].rawValue; 
-          drawBox(ctx, codes[0].boundingBox); 
-          await onBarcode(val); 
-        }
-      } catch(e){ console.log('Detection error:', e); }
-    }
-    rafId = requestAnimationFrame(step);
-  }; 
-  step();
-}
-
-function drawBox(ctx, box){ 
-  if(!box) return; 
-  ctx.lineWidth=3; 
-  ctx.strokeStyle='lime'; 
-  ctx.strokeRect(box.x, box.y, box.width, box.height); 
-}
-
-async function loadZXing(){
-  return new Promise((resolve,reject)=>{
-    const s = document.getElementById('zxingScript');
-    if(s.getAttribute('src')) return resolve();
-    s.onload = ()=>resolve();
-    s.onerror = ()=>reject(new Error('Failed to load ZXing'));
-    s.src = 'https://unpkg.com/@zxing/library@0.21.2/esm/index.min.js';
-  });
-}
-
-async function loopZXing(reader){
-  const video = $('#video'); 
-  const canvas = $('#overlay'); 
-  const ctx = canvas.getContext('2d');
-  
-  const step = async ()=>{
-    if(!scanning) return;
-    if(video.readyState>=2){
-      canvas.width=video.videoWidth; 
-      canvas.height=video.videoHeight;
-      
-      // Draw scan region border
-      if (scanRegionRect) {
-        ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(
-          scanRegionRect.x * (video.videoWidth / video.clientWidth),
-          scanRegionRect.y * (video.videoHeight / video.clientHeight),
-          scanRegionRect.width * (video.videoWidth / video.clientWidth),
-          scanRegionRect.height * (video.videoHeight / video.clientHeight)
-        );
-      }
-      
-      try {
-        let result = null;
-        
-        // If we have a scan region, crop the image for ZXing
-        if (scanRegionRect) {
-          const tempCanvas = document.createElement('canvas');
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCanvas.width = scanRegionRect.width * (video.videoWidth / video.clientWidth);
-          tempCanvas.height = scanRegionRect.height * (video.videoHeight / video.clientHeight);
-          
-          tempCtx.drawImage(
-            video, 
-            scanRegionRect.x * (video.videoWidth / video.clientWidth),
-            scanRegionRect.y * (video.videoHeight / video.clientHeight),
-            tempCanvas.width,
-            tempCanvas.height,
-            0, 0, tempCanvas.width, tempCanvas.height
-          );
-          
-          // ZXing doesn't have a direct method for canvas, so we'd need to convert to ImageData
-          // For now, fall back to full frame if using ZXing with scan region
-          result = await reader.decodeOnceFromVideoElement(video);
-        } else {
-          result = await reader.decodeOnceFromVideoElement(video);
-        }
-        
-        if(result && result.text && !scanCooldown){ 
-          await onBarcode(result.text); 
-        }
-      } catch(e){}
-    }
-    rafId = requestAnimationFrame(step);
-  }; 
-  step();
-}
-
-async function onBarcode(code){
-  // Prevent duplicate scans of the same code
-  if (scannedBarcodes.has(code)) {
-    setStatus('Already scanned: ' + code);
-    return;
-  }
-  
-  // Set cooldown to prevent multiple scans
-  scanCooldown = true;
-  lastScannedCode = code;
-  
-  const qty = Math.max(1, Number($('#qtyStep').value||1));
-  const delta = MODE_IN ? qty : -qty;
-  setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
-  beep();
-  
-  // Add to scanned barcodes set to prevent re-scanning
-  scannedBarcodes.add(code);
-  
-  await adjustQty(code, delta);
-  
-  // Reset cooldown after 1.5 seconds for other barcodes
-  setTimeout(() => {
-    scanCooldown = false;
-  }, 1500);
-}
-
-function beep(){ 
-  try{ 
-    const ctx = new (window.AudioContext||window.webkitAudioContext)(); 
-    const o=ctx.createOscillator(); 
-    const g=ctx.createGain(); 
-    o.type='sine'; 
-    o.frequency.value=880; 
-    o.connect(g); 
-    g.connect(ctx.destination); 
-    o.start(); 
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); 
-    setTimeout(()=>{ o.stop(); ctx.close(); },170);
-  } catch(e){} 
-}
-
-async function stopScan(){ 
-  scanning=false; 
-  if(rafId) cancelAnimationFrame(rafId); 
-  if(currentTrack) try{ currentTrack.stop(); }catch(_){} 
-  if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); 
-  currentTrack=null; 
-  currentStream=null; 
-  setStatus(''); 
-  
-  // Hide scan region
-  $('#scanRegion').classList.add('hidden');
-  scanRegionRect = null;
-}
-
-async function listCameras(){
-  try{
-    // First get user media to ensure permissions are granted
-    await navigator.mediaDevices.getUserMedia({ video: true });
-    
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cams = devices.filter(d=>d.kind==='videoinput');
-    cameraList = cams;
-    
-    $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
-  }catch(e){
-    console.error('Camera enumeration error:', e);
-    $('#cameraHelp').classList.remove('hidden');
-  }
-}
-
-// Function to switch camera
-async function switchCamera() {
-  if (scanning) {
-    await stopScan();
-    await startScan();
-  }
-}
-
-async function initApp(){
-  db = await openDB();
-  setUserBadge();
-  await listCameras();
-  appsScriptUrl = $('#appsScriptUrl').value.trim();
-  sheetId = $('#sheetId').value.trim();
-  if(appsScriptUrl && sheetId){
-    setStatus('Syncing from cloud…');
-    const rows = await fetchInventoryFromCloud();
-    if(rows){
-      await tx('inventory','readwrite', s=> s.clear());
-      for(const r of rows){ 
-        await upsertItem(r); 
-      }
-    }
-    setStatus('');
-  }
-  renderTable();
-}
-
-$('#startBtn').onclick = startScan; 
-$('#stopBtn').onclick = stopScan;
-$('#toggleModeBtn').onclick = ()=>{ 
-  MODE_IN = !MODE_IN; 
-  $('#toggleModeBtn').textContent = MODE_IN ? 'Toggle IN/OUT' : 'Toggle OUT/IN';
-  $('#toggleModeBtn').classList.toggle('bg-emerald-600');
-  $('#toggleModeBtn').classList.toggle('bg-amber-600');
-};
-$('#torchBtn').onclick = async ()=>{ 
-  if(!currentTrack) return alert('Start camera first'); 
-  const caps = currentTrack.getCapabilities?.(); 
-  if(!caps||!caps.torch) return alert('Torch unsupported'); 
-  const settings = currentTrack.getSettings(); 
-  const torchOn = !settings.torch; 
-  await currentTrack.applyConstraints({ advanced:[{ torch: torchOn }] }); 
-};
-$('#manualSubmit').onclick = async ()=>{ 
-  const v = $('#manualInput').value.trim(); 
-  if(!v) return; 
-  await onBarcode(v); 
-  $('#manualInput').value=''; 
-};
-$('#manualInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#manualSubmit').click(); });
-
-$('#importBtn').onclick = async ()=>{
-  const f = $('#csvFile').files?.[0]; 
-  if(!f) return alert('Choose CSV'); 
-  const text = await f.text(); 
-  await importCSVText(text);
-};
-$('#exportInvBtn').onclick = exportInventoryCSV; 
-$('#exportLogBtn').onclick = exportLogCSV;
-$('#undoBtn').onclick = undoLast;
-$('#clearBtn').onclick = async ()=>{ 
-  const password = prompt('Enter your password to confirm clearing ALL inventory:');
-  if (!password) return;
-  
-  const isValid = await verifyPassword(password);
-  if (!isValid) {
-    alert('Incorrect password. Clear operation cancelled.');
-    return;
-  }
-  
-  if(!confirm('Clear ALL inventory?')) return; 
-  await tx('inventory','readwrite', s=>s.clear()); 
-  await tx('log','readwrite', s=>s.clear()); 
-  renderTable(); 
-  scannedBarcodes.clear();
-};
-$('#resetBtn').onclick = async ()=>{ 
-  if(!confirm('Reset app (delete DB)?')) return; 
-  await stopScan(); 
-  const req = indexedDB.deleteDatabase(DB_NAME); 
-  req.onsuccess = ()=> location.reload(); 
-};
-$('#search').oninput = renderTable;
-$('#addItemBtn').onclick = async ()=>{ 
-  const barcode = prompt('Barcode?'); 
-  if(!barcode) return; 
-  const name = prompt('Name (optional)')||''; 
-  const qty = Number(prompt('Qty (default 0)')||0)||0; 
-  await upsertItem({ barcode, name, qty }); 
-  renderTable(); 
-};
-
-// Camera selection change event
-$('#cameraSelect').addEventListener('change', switchCamera);
-
-// Password verification function
-async function verifyPassword(password) {
-  if (currentUser && currentUser.via === 'sheet') {
-    const sheetUsers = await fetchUsersFromSheet();
-    if (sheetUsers) {
-      return sheetUsers.some(u => u.username === currentUser.username && u.password === password);
-    }
-  }
-  
-  return fallbackUsers().some(u => u.username === currentUser.username && u.password === password);
-}
-
-document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
-
-(async function preinit(){ 
-  try {
-    db = await openDB(); 
-    loadSettings();
-    setStatus('Ready'); 
-  } catch(e) {
-    console.error('Database initialization error:', e);
-  }
-})();
-  </script>
+    <script>
+        document.getElementById('testCamera').addEventListener('click', async function() {
+            const statusElement = document.getElementById('cameraStatus');
+            statusElement.textContent = 'Checking camera access...';
+            
+            try {
+                // Test camera access
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                
+                // Success
+                statusElement.innerHTML = '<span class="text-green-600">✓ Camera access granted! You can now use the scanner.</span>';
+                
+                // Stop all tracks
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Change button to success state
+                this.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'animate-pulse');
+                this.classList.add('bg-green-600', 'hover:bg-green-700');
+                this.textContent = 'Camera Access Successful!';
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                
+                // Show appropriate error message
+                if (error.name === 'NotAllowedError') {
+                    statusElement.innerHTML = '<span class="text-red-600">✗ Camera permission denied. Please follow the instructions above to allow camera access.</span>';
+                } else if (error.name === 'NotFoundError') {
+                    statusElement.innerHTML = '<span class="text-red-600">✗ No camera found. Please check if your camera is connected properly.</span>';
+                } else {
+                    statusElement.innerHTML = `<span class="text-red-600">✗ Camera error: ${error.message}</span>`;
+                }
+                
+                // Change button to error state
+                this.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'animate-pulse');
+                this.classList.add('bg-red-600', 'hover:bg-red-700');
+                this.textContent = 'Camera Access Failed';
+            }
+        });
+    </script>
 </body>
 </html>
