@@ -34,6 +34,13 @@
       0% { top: 0; }
       100% { top: 100%; }
     }
+    .camera-error {
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -93,6 +100,10 @@
                 <div class="scan-line"></div>
               </div>
               <canvas id="overlay" class="absolute inset-0"></canvas>
+              <div id="cameraError" class="camera-error hidden text-center">
+                <p class="font-bold">Camera Error</p>
+                <p class="text-sm">Please check camera permissions</p>
+              </div>
             </div>
             <div class="flex items-center gap-2 mt-3">
               <select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
@@ -101,6 +112,15 @@
             <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
               <input id="manualInput" placeholder="Manual barcode entry…" class="px-3 py-2 rounded-xl border" />
               <button id="manualSubmit" class="px-3 py-2 rounded-xl bg-slate-800 text-white">Submit Manual</button>
+            </div>
+            <div id="cameraHelp" class="mt-3 p-3 bg-amber-50 rounded-lg hidden">
+              <h3 class="font-bold text-amber-800">Camera Troubleshooting</h3>
+              <ul class="text-sm text-amber-700 mt-1 list-disc pl-5">
+                <li>Ensure your browser has camera permissions</li>
+                <li>Check if another app is using your camera</li>
+                <li>Try refreshing the page and allowing camera access</li>
+                <li>If on mobile, make sure you're using HTTPS</li>
+              </ul>
             </div>
           </div>
 
@@ -163,7 +183,7 @@
 
   <script>
 const $ = sel => document.querySelector(sel);
-const DB_NAME = 'ws-upgraded-db', DB_VER = 2; // Version increased for schema changes
+const DB_NAME = 'ws-upgraded-db', DB_VER = 2;
 let db;
 let MODE_IN = true;
 let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
@@ -490,14 +510,27 @@ async function startScan(){
       video: { 
         deviceId: deviceId ? { exact: deviceId } : undefined, 
         facingMode: 'environment',
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        focusMode: 'continuous'
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
       }, 
       audio: false 
     };
     
-    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+    // Hide error messages and show camera help
+    $('#cameraError').classList.add('hidden');
+    $('#cameraHelp').classList.remove('hidden');
+    
+    setStatus('Accessing camera...');
+    
+    currentStream = await navigator.mediaDevices.getUserMedia(constraints)
+      .catch(err => {
+        console.error('Camera error:', err);
+        $('#cameraError').classList.remove('hidden');
+        $('#cameraHelp').classList.remove('hidden');
+        setStatus('Camera access denied');
+        throw err;
+      });
+    
     const video = $('#video'); 
     video.srcObject = currentStream; 
     
@@ -522,6 +555,7 @@ async function startScan(){
     
     // Show scan region
     $('#scanRegion').classList.remove('hidden');
+    $('#cameraHelp').classList.add('hidden');
     
     // Reset scan tracking
     lastScannedCode = null;
@@ -530,15 +564,15 @@ async function startScan(){
     // Get scan region dimensions for focused scanning
     setTimeout(() => {
       scanRegion = $('#scanRegion');
-      scanRegionRect = scanRegion.getBoundingClientRect();
       const videoRect = video.getBoundingClientRect();
+      const scanRect = scanRegion.getBoundingClientRect();
       
       // Calculate relative position for scanning region
       scanRegionRect = {
-        x: scanRegionRect.left - videoRect.left,
-        y: scanRegionRect.top - videoRect.top,
-        width: scanRegionRect.width,
-        height: scanRegionRect.height
+        x: scanRect.left - videoRect.left,
+        y: scanRect.top - videoRect.top,
+        width: scanRect.width,
+        height: scanRect.height
       };
     }, 500);
     
@@ -551,7 +585,12 @@ async function startScan(){
       const reader = new ZXing.BrowserMultiFormatReader();
       loopZXing(reader);
     }
-  } catch(e){ console.error(e); alert('Camera error: '+e.message); setStatus('Camera error'); }
+  } catch(e){ 
+    console.error('Camera initialization error:', e);
+    $('#cameraError').classList.remove('hidden');
+    $('#cameraHelp').classList.remove('hidden');
+    setStatus('Camera error: ' + e.message);
+  }
 }
 
 let rafId=null;
@@ -754,12 +793,18 @@ async function stopScan(){
 
 async function listCameras(){
   try{
-    const devices = await navig.mediaDevices.enumerateDevices();
+    // First get user media to ensure permissions are granted
+    await navigator.mediaDevices.getUserMedia({ video: true });
+    
+    const devices = await navigator.mediaDevices.enumerateDevices();
     const cams = devices.filter(d=>d.kind==='videoinput');
     cameraList = cams;
     
     $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
-  }catch(e){}
+  }catch(e){
+    console.error('Camera enumeration error:', e);
+    $('#cameraHelp').classList.remove('hidden');
+  }
 }
 
 // Function to switch camera
@@ -873,9 +918,13 @@ async function verifyPassword(password) {
 document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 
 (async function preinit(){ 
-  db = await openDB(); 
-  loadSettings();
-  setStatus('Ready'); 
+  try {
+    db = await openDB(); 
+    loadSettings();
+    setStatus('Ready'); 
+  } catch(e) {
+    console.error('Database initialization error:', e);
+  }
 })();
   </script>
 </body>
