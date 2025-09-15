@@ -159,6 +159,9 @@
               <button id="addItemBtn" class="px-3 py-2 rounded-xl bg-slate-200">Add Item</button>
               <span class="text-sm text-slate-500">Total SKUs: <span id="skuCount">0</span></span>
             </div>
+            <div class="flex items-center gap-2">
+              <button id="syncBtn" class="px-3 py-2 rounded-xl bg-blue-500 text-white">Sync to Sheet</button>
+            </div>
           </div>
           <div class="overflow-auto rounded-xl border">
             <table class="min-w-full text-sm">
@@ -247,9 +250,9 @@ async function tx(store, mode, fn){
   return new Promise((resolve,reject)=>{
     const t = db.transaction(store, mode);
     const s = t.objectStore(store);
-    const r = fn(s);
-    t.oncomplete = ()=> resolve(r);
-    t.onerror = ()=> reject(t.error);
+    const req = fn(s);
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
   });
 }
 
@@ -335,20 +338,23 @@ async function upsertItem({barcode,name='',qty=0}){
 }
 
 async function adjustQty(barcode, delta, name = ''){
+  const timestamp = new Date().toISOString();
+  const username = currentUser.username;
+  
   await tx('inventory','readwrite', s=>{
     const req = s.get(barcode);
     req.onsuccess = async ()=>{
       const item = req.result || { barcode, name: name || '', qty:0, lastScan:null, lastUser: null };
       item.qty = Math.max(0, (item.qty||0) + delta);
-      item.lastScan = new Date().toISOString();
-      item.lastUser = currentUser.username;
+      item.lastScan = timestamp;
+      item.lastUser = username;
       s.put(item);
       lastAction = { barcode, delta };
       renderTable();
       
       await tx('log','readwrite', ss => ss.add({ 
-        ts: new Date().toISOString(), 
-        user: currentUser.username, 
+        ts: timestamp, 
+        user: username, 
         barcode, 
         delta 
       }));
@@ -369,7 +375,8 @@ async function syncRowToCloud(item, retries = 3) {
       url.searchParams.set('barcode', item.barcode);
       url.searchParams.set('name', item.name||'');
       url.searchParams.set('qty', String(item.qty||0));
-      url.searchParams.set('user', currentUser.username);
+      url.searchParams.set('lastScan', item.lastScan || '');
+      url.searchParams.set('lastUser', item.lastUser || '');
       
       const response = await fetch(url.toString());
       if (response.ok) {
@@ -430,7 +437,13 @@ async function fetchInventoryFromCloud(){
     const res = await fetch(url.toString());
     if(!res.ok) throw new Error('Apps Script fetch failed');
     const rows = await res.json();
-    return rows.map(r => ({ barcode: String(r[0]||''), name: String(r[1]||''), qty: Number(r[2]||0) })).filter(x=>x.barcode);
+    return rows.map(r => ({ 
+      barcode: String(r[0]||''), 
+      name: String(r[1]||''), 
+      qty: Number(r[2]||0),
+      lastScan: String(r[3]||''),
+      lastUser: String(r[4]||'')
+    })).filter(x=>x.barcode);
   } catch(e){ console.warn('fetchInventoryFromCloud', e); return null; }
 }
 
@@ -539,9 +552,9 @@ async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAct
 
 // Pending items functions
 async function addPendingItem(barcode, name = '') {
-  // Validate barcode length
-  if (barcode.length !== 13) {
-    setStatus('Invalid barcode: must be 13 digits');
+  // Validate barcode length - must be exactly 13 digits
+  if (!/^\d{13}$/.test(barcode)) {
+    setStatus('Invalid barcode: must be exactly 13 digits');
     return;
   }
   
@@ -892,9 +905,9 @@ async function loopZXing(reader){
 }
 
 async function onBarcode(code){
-  // Validate barcode length
-  if (code.length !== 13) {
-    setStatus('Invalid barcode: must be 13 digits');
+  // Validate barcode length - must be exactly 13 digits
+  if (!/^\d{13}$/.test(code)) {
+    setStatus('Invalid barcode: must be exactly 13 digits');
     return;
   }
   
@@ -1039,6 +1052,23 @@ $('#addItemBtn').onclick = async ()=>{
 
 // Submit all pending items
 $('#submitAllBtn').onclick = submitAllPendingItems;
+
+// Manual sync to Google Sheets
+$('#syncBtn').onclick = async () => {
+  if(!appsScriptUrl || !sheetId) {
+    alert('Please configure Apps Script URL and Sheet ID first');
+    return;
+  }
+  
+  setStatus('Syncing to Google Sheets...');
+  const items = await getAll('inventory');
+  
+  for (const item of items) {
+    await syncRowToCloud(item);
+  }
+  
+  setStatus('Sync completed');
+};
 
 // Camera selection change event
 $('#cameraSelect').addEventListener('change', switchCamera);
