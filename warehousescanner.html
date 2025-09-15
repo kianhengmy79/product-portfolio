@@ -16,7 +16,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
       width: 70%;
-      height: 40%;
+      height: 50%; /* Increased height */
       border: 2px solid rgba(0, 255, 0, 0.5);
       box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
       pointer-events: none;
@@ -145,7 +145,6 @@
 
           <div class="bg-white rounded-2xl shadow p-4 flex items-center gap-2">
             <button id="undoBtn" class="px-3 py-2 rounded-xl bg-amber-500 text-white">Undo Last</button>
-            <button id="clearBtn" class="px-3 py-2 rounded-xl bg-rose-600 text-white">Clear Inventory</button>
             <button id="resetBtn" class="ml-auto px-3 py-2 rounded-xl bg-slate-200">Reset App</button>
           </div>
         </div>
@@ -396,6 +395,37 @@ async function syncRowToCloud(item, retries = 3) {
   return false;
 }
 
+async function deleteFromCloud(barcode, retries = 3) {
+  if(!appsScriptUrl || !sheetId) return;
+  
+  for (let i = 0; i < retries; i++) {
+    try {
+      const url = new URL(appsScriptUrl);
+      url.searchParams.set('action','deleteRow');
+      url.searchParams.set('sheetId', sheetId);
+      url.searchParams.set('barcode', barcode);
+      
+      const response = await fetch(url.toString());
+      if (response.ok) {
+        console.log('Successfully deleted from Google Sheets');
+        return true;
+      } else {
+        console.warn('Google Sheets delete failed:', response.status);
+      }
+    } catch(e){ 
+      console.warn('deleteFromCloud attempt ' + (i+1), e); 
+    }
+    
+    // Wait before retrying (exponential backoff)
+    if (i < retries - 1) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+    }
+  }
+  
+  console.error('All delete attempts failed');
+  return false;
+}
+
 async function fetchInventoryFromCloud(){
   if(!appsScriptUrl || !sheetId) return null;
   try {
@@ -486,7 +516,9 @@ async function renderTable(){
   }
   tbody.querySelectorAll('.inc').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, +1));
   tbody.querySelectorAll('.dec').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, -1));
-  tbody.querySelectorAll('.del').forEach(b=>b.onclick=async ()=>{ if(confirm('Delete this SKU?')) await removeItem(b.dataset.bc); });
+  tbody.querySelectorAll('.del').forEach(b=>b.onclick=async ()=>{ 
+    if(confirm('Delete this SKU?')) await removeItem(b.dataset.bc); 
+  });
   tbody.querySelectorAll('.nameInput').forEach(inp=>{
     inp.onchange = async ()=> {
       await tx('inventory','readwrite', s=>{
@@ -504,6 +536,8 @@ async function renderTable(){
 
 async function removeItem(barcode){
   await tx('inventory','readwrite', s=> s.delete(barcode));
+  // Also delete from Google Sheets
+  await deleteFromCloud(barcode);
   renderTable();
 }
 
@@ -524,7 +558,10 @@ async function addPendingItem(barcode, name = '') {
   pendingItems.push(pendingItem);
   
   // Save to database
-  await tx('pending', 'readwrite', s => s.add(pendingItem));
+  const result = await tx('pending', 'readwrite', s => s.add(pendingItem));
+  
+  // Store the ID for later reference
+  pendingItem.id = result;
   
   // Show pending section
   $('#pendingSection').classList.remove('hidden');
@@ -906,7 +943,6 @@ function beep(){
     g.connect(ctx.destination); 
     o.start(); 
     g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); 
-    setTimeout(()=>{ o.stop(); ctx.close(); },170);
   } catch(e){} 
 }
 
@@ -993,25 +1029,6 @@ $('#importBtn').onclick = async ()=>{
 $('#exportInvBtn').onclick = exportInventoryCSV; 
 $('#exportLogBtn').onclick = exportLogCSV;
 $('#undoBtn').onclick = undoLast;
-$('#clearBtn').onclick = async ()=>{ 
-  const password = prompt('Enter your password to confirm clearing ALL inventory:');
-  if (!password) return;
-  
-  const isValid = await verifyPassword(password);
-  if (!isValid) {
-    alert('Incorrect password. Clear operation cancelled.');
-    return;
-  }
-  
-  if(!confirm('Clear ALL inventory?')) return; 
-  await tx('inventory','readwrite', s=>s.clear()); 
-  await tx('log','readwrite', s=>s.clear()); 
-  await tx('pending','readwrite', s=>s.clear()); 
-  pendingItems = [];
-  $('#pendingSection').classList.add('hidden');
-  renderTable(); 
-  scannedBarcodes.clear();
-};
 $('#resetBtn').onclick = async ()=>{ 
   if(!confirm('Reset app (delete DB)?')) return; 
   await stopScan(); 
