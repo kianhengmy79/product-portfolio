@@ -34,6 +34,9 @@
       0% { top: 0; }
       100% { top: 100%; }
     }
+    .pending-item {
+      background-color: #fef3cd;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -82,7 +85,6 @@
             <div class="flex items-center gap-2 mb-3">
               <button id="startBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white">Start Scan</button>
               <button id="stopBtn" class="px-3 py-2 rounded-xl bg-slate-200">Stop</button>
-              <button id="toggleModeBtn" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Toggle IN/OUT</button>
               <label class="ml-auto text-sm text-slate-600 flex items-center gap-2">Qty
                 <input id="qtyStep" type="number" value="1" min="1" class="w-16 px-2 py-1 rounded-lg border" />
               </label>
@@ -101,6 +103,28 @@
             <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
               <input id="manualInput" placeholder="Manual barcode entry…" class="px-3 py-2 rounded-xl border" />
               <button id="manualSubmit" class="px-3 py-2 rounded-xl bg-slate-800 text-white">Submit Manual</button>
+            </div>
+          </div>
+
+          <!-- Pending Items Section -->
+          <div id="pendingSection" class="bg-white rounded-2xl shadow p-4 hidden">
+            <h2 class="font-semibold mb-3">Pending Items</h2>
+            <div class="overflow-auto rounded-xl border max-h-60">
+              <table class="min-w-full text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                  <tr>
+                    <th class="text-left p-2">Barcode</th>
+                    <th class="text-left p-2">Name</th>
+                    <th class="text-right p-2">Qty</th>
+                    <th class="text-left p-2">Time</th>
+                    <th class="text-left p-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="pendingTbody"></tbody>
+              </table>
+            </div>
+            <div class="mt-3 flex justify-end">
+              <button id="submitAllBtn" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Submit All</button>
             </div>
           </div>
 
@@ -163,9 +187,8 @@
 
   <script>
 const $ = sel => document.querySelector(sel);
-const DB_NAME = 'ws-upgraded-db', DB_VER = 2; // Version increased for schema changes
+const DB_NAME = 'ws-upgraded-db', DB_VER = 3; // Version increased for schema changes
 let db;
-let MODE_IN = true;
 let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
 let appsScriptUrl = '';
 let sheetId = '';
@@ -176,6 +199,7 @@ let scanCooldown = false;
 let scannedBarcodes = new Set();
 let scanRegion = null;
 let scanRegionRect = null;
+let pendingItems = [];
 
 // === NEW CODE: Save and Load Settings ===
 function saveSettings() {
@@ -210,6 +234,11 @@ async function openDB(){
         logStore.createIndex('barcode', 'barcode', {unique: false});
         logStore.createIndex('user', 'user', {unique: false});
         logStore.createIndex('ts', 'ts', {unique: false});
+      }
+      if(!d.objectStoreNames.contains('pending')) {
+        const pendingStore = d.createObjectStore('pending', {keyPath: 'id', autoIncrement: true});
+        pendingStore.createIndex('barcode', 'barcode', {unique: false});
+        pendingStore.createIndex('ts', 'ts', {unique: false});
       }
     };
     req.onsuccess = ()=> resolve(req.result);
@@ -307,11 +336,11 @@ async function upsertItem({barcode,name='',qty=0}){
   await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null, lastUser: null }));
 }
 
-async function adjustQty(barcode, delta){
+async function adjustQty(barcode, delta, name = ''){
   await tx('inventory','readwrite', s=>{
     const req = s.get(barcode);
     req.onsuccess = async ()=>{
-      const item = req.result || { barcode, name:'', qty:0, lastScan:null, lastUser: null };
+      const item = req.result || { barcode, name: name || '', qty:0, lastScan:null, lastUser: null };
       item.qty = Math.max(0, (item.qty||0) + delta);
       item.lastScan = new Date().toISOString();
       item.lastUser = currentUser.username; // Record username
@@ -479,6 +508,150 @@ async function removeItem(barcode){
 }
 
 async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAction; await adjustQty(barcode, -delta); lastAction=null; }
+
+// Pending items functions
+async function addPendingItem(barcode, name = '') {
+  const timestamp = new Date().toISOString();
+  const pendingItem = {
+    barcode,
+    name,
+    qty: 1,
+    ts: timestamp,
+    user: currentUser.username
+  };
+  
+  // Add to pending items array
+  pendingItems.push(pendingItem);
+  
+  // Save to database
+  await tx('pending', 'readwrite', s => s.add(pendingItem));
+  
+  // Show pending section
+  $('#pendingSection').classList.remove('hidden');
+  
+  // Update pending items display
+  renderPendingItems();
+}
+
+async function removePendingItem(id) {
+  // Remove from array
+  pendingItems = pendingItems.filter(item => item.id !== id);
+  
+  // Remove from database
+  await tx('pending', 'readwrite', s => s.delete(id));
+  
+  // Update display
+  renderPendingItems();
+  
+  // Hide section if no more pending items
+  if (pendingItems.length === 0) {
+    $('#pendingSection').classList.add('hidden');
+  }
+}
+
+async function updatePendingItemQty(id, newQty) {
+  // Find item in array
+  const itemIndex = pendingItems.findIndex(item => item.id === id);
+  if (itemIndex !== -1) {
+    pendingItems[itemIndex].qty = newQty;
+    
+    // Update in database
+    await tx('pending', 'readwrite', s => {
+      const req = s.get(id);
+      req.onsuccess = () => {
+        const item = req.result;
+        item.qty = newQty;
+        s.put(item);
+      };
+    });
+    
+    // Update display
+    renderPendingItems();
+  }
+}
+
+async function submitPendingItem(id) {
+  // Find item
+  const itemIndex = pendingItems.findIndex(item => item.id === id);
+  if (itemIndex !== -1) {
+    const item = pendingItems[itemIndex];
+    
+    // Update inventory
+    await adjustQty(item.barcode, item.qty, item.name);
+    
+    // Remove from pending
+    await removePendingItem(id);
+  }
+}
+
+async function submitAllPendingItems() {
+  for (const item of pendingItems) {
+    await adjustQty(item.barcode, item.qty, item.name);
+  }
+  
+  // Clear all pending items
+  await tx('pending', 'readwrite', s => s.clear());
+  pendingItems = [];
+  $('#pendingSection').classList.add('hidden');
+}
+
+function renderPendingItems() {
+  const tbody = $('#pendingTbody');
+  tbody.innerHTML = '';
+  
+  for (const item of pendingItems) {
+    const tr = document.createElement('tr');
+    tr.className = 'border-t border-slate-100 hover:bg-slate-50 pending-item';
+    tr.innerHTML = `
+      <td class="p-2 font-mono text-xs">${item.barcode}</td>
+      <td class="p-2">${item.name || '—'}</td>
+      <td class="p-2 text-right">
+        <input type="number" value="${item.qty}" min="1" class="w-16 px-1 py-0.5 rounded border pending-qty" data-id="${item.id}" />
+      </td>
+      <td class="p-2 text-xs text-slate-500">${new Date(item.ts).toLocaleTimeString()}</td>
+      <td class="p-2 flex items-center gap-1">
+        <button class="submit-pending px-2 py-1 rounded-lg bg-emerald-600 text-white text-xs" data-id="${item.id}">Submit</button>
+        <button class="remove-pending px-2 py-1 rounded-lg bg-rose-600 text-white text-xs" data-id="${item.id}">Remove</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+  
+  // Add event listeners
+  tbody.querySelectorAll('.pending-qty').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      const newQty = parseInt(e.target.value);
+      if (newQty > 0) {
+        updatePendingItemQty(id, newQty);
+      }
+    });
+  });
+  
+  tbody.querySelectorAll('.submit-pending').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      submitPendingItem(id);
+    });
+  });
+  
+  tbody.querySelectorAll('.remove-pending').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      removePendingItem(id);
+    });
+  });
+}
+
+async function loadPendingItems() {
+  pendingItems = await getAll('pending');
+  if (pendingItems.length > 0) {
+    $('#pendingSection').classList.remove('hidden');
+    renderPendingItems();
+  } else {
+    $('#pendingSection').classList.add('hidden');
+  }
+}
 
 async function startScan(){
   try {
@@ -707,15 +880,14 @@ async function onBarcode(code){
   scanCooldown = true;
   lastScannedCode = code;
   
-  const qty = Math.max(1, Number($('#qtyStep').value||1));
-  const delta = MODE_IN ? qty : -qty;
-  setStatus((MODE_IN? 'IN +' : 'OUT ') + qty + ' → ' + code);
+  setStatus('Scanned: ' + code);
   beep();
   
   // Add to scanned barcodes set to prevent re-scanning
   scannedBarcodes.add(code);
   
-  await adjustQty(code, delta);
+  // Add to pending items instead of directly updating inventory
+  await addPendingItem(code);
   
   // Reset cooldown after 1.5 seconds for other barcodes
   setTimeout(() => {
@@ -754,7 +926,7 @@ async function stopScan(){
 
 async function listCameras(){
   try{
-    const devices = await navig.mediaDevices.enumerateDevices();
+    const devices = await navigator.mediaDevices.enumerateDevices();
     const cams = devices.filter(d=>d.kind==='videoinput');
     cameraList = cams;
     
@@ -787,17 +959,15 @@ async function initApp(){
     }
     setStatus('');
   }
+  
+  // Load pending items
+  await loadPendingItems();
+  
   renderTable();
 }
 
 $('#startBtn').onclick = startScan; 
 $('#stopBtn').onclick = stopScan;
-$('#toggleModeBtn').onclick = ()=>{ 
-  MODE_IN = !MODE_IN; 
-  $('#toggleModeBtn').textContent = MODE_IN ? 'Toggle IN/OUT' : 'Toggle OUT/IN';
-  $('#toggleModeBtn').classList.toggle('bg-emerald-600');
-  $('#toggleModeBtn').classList.toggle('bg-amber-600');
-};
 $('#torchBtn').onclick = async ()=>{ 
   if(!currentTrack) return alert('Start camera first'); 
   const caps = currentTrack.getCapabilities?.(); 
@@ -836,6 +1006,9 @@ $('#clearBtn').onclick = async ()=>{
   if(!confirm('Clear ALL inventory?')) return; 
   await tx('inventory','readwrite', s=>s.clear()); 
   await tx('log','readwrite', s=>s.clear()); 
+  await tx('pending','readwrite', s=>s.clear()); 
+  pendingItems = [];
+  $('#pendingSection').classList.add('hidden');
   renderTable(); 
   scannedBarcodes.clear();
 };
@@ -854,6 +1027,9 @@ $('#addItemBtn').onclick = async ()=>{
   await upsertItem({ barcode, name, qty }); 
   renderTable(); 
 };
+
+// Submit all pending items
+$('#submitAllBtn').onclick = submitAllPendingItems;
 
 // Camera selection change event
 $('#cameraSelect').addEventListener('change', switchCamera);
