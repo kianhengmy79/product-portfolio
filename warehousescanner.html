@@ -16,7 +16,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
       width: 70%;
-      height: 50%; /* Increased height */
+      height: 50%;
       border: 2px solid rgba(0, 255, 0, 0.5);
       box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
       pointer-events: none;
@@ -186,7 +186,7 @@
 
   <script>
 const $ = sel => document.querySelector(sel);
-const DB_NAME = 'ws-upgraded-db', DB_VER = 3; // Version increased for schema changes
+const DB_NAME = 'ws-upgraded-db', DB_VER = 3;
 let db;
 let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
 let appsScriptUrl = '';
@@ -200,7 +200,6 @@ let scanRegion = null;
 let scanRegionRect = null;
 let pendingItems = [];
 
-// === NEW CODE: Save and Load Settings ===
 function saveSettings() {
   const settings = {
     appsScriptUrl: $('#appsScriptUrl').value.trim(),
@@ -217,7 +216,6 @@ function loadSettings() {
     $('#sheetId').value = settings.sheetId || '';
   }
 }
-// === END NEW CODE ===
 
 async function openDB(){
   return new Promise((resolve,reject)=>{
@@ -254,6 +252,7 @@ async function tx(store, mode, fn){
     t.onerror = ()=> reject(t.error);
   });
 }
+
 async function getAll(store){
   return new Promise((resolve,reject)=>{
     const req = db.transaction(store).objectStore(store).getAll();
@@ -342,12 +341,11 @@ async function adjustQty(barcode, delta, name = ''){
       const item = req.result || { barcode, name: name || '', qty:0, lastScan:null, lastUser: null };
       item.qty = Math.max(0, (item.qty||0) + delta);
       item.lastScan = new Date().toISOString();
-      item.lastUser = currentUser.username; // Record username
+      item.lastUser = currentUser.username;
       s.put(item);
       lastAction = { barcode, delta };
       renderTable();
       
-      // Log the action with username
       await tx('log','readwrite', ss => ss.add({ 
         ts: new Date().toISOString(), 
         user: currentUser.username, 
@@ -355,7 +353,6 @@ async function adjustQty(barcode, delta, name = ''){
         delta 
       }));
       
-      // Sync to cloud
       await syncRowToCloud(item);
     };
   });
@@ -385,7 +382,6 @@ async function syncRowToCloud(item, retries = 3) {
       console.warn('syncRowToCloud attempt ' + (i+1), e); 
     }
     
-    // Wait before retrying (exponential backoff)
     if (i < retries - 1) {
       await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
     }
@@ -416,7 +412,6 @@ async function deleteFromCloud(barcode, retries = 3) {
       console.warn('deleteFromCloud attempt ' + (i+1), e); 
     }
     
-    // Wait before retrying (exponential backoff)
     if (i < retries - 1) {
       await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
     }
@@ -536,7 +531,6 @@ async function renderTable(){
 
 async function removeItem(barcode){
   await tx('inventory','readwrite', s=> s.delete(barcode));
-  // Also delete from Google Sheets
   await deleteFromCloud(barcode);
   renderTable();
 }
@@ -545,6 +539,12 @@ async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAct
 
 // Pending items functions
 async function addPendingItem(barcode, name = '') {
+  // Validate barcode length
+  if (barcode.length !== 13) {
+    setStatus('Invalid barcode: must be 13 digits');
+    return;
+  }
+  
   const timestamp = new Date().toISOString();
   const pendingItem = {
     barcode,
@@ -555,13 +555,9 @@ async function addPendingItem(barcode, name = '') {
   };
   
   // Add to pending items array
+  const id = await tx('pending', 'readwrite', s => s.add(pendingItem));
+  pendingItem.id = id;
   pendingItems.push(pendingItem);
-  
-  // Save to database
-  const result = await tx('pending', 'readwrite', s => s.add(pendingItem));
-  
-  // Store the ID for later reference
-  pendingItem.id = result;
   
   // Show pending section
   $('#pendingSection').classList.remove('hidden');
@@ -695,7 +691,6 @@ async function startScan(){
     await stopScan();
     const deviceId = $('#cameraSelect').value || undefined;
     
-    // Improved camera constraints for better scanning
     const constraints = { 
       video: { 
         deviceId: deviceId ? { exact: deviceId } : undefined, 
@@ -777,17 +772,14 @@ async function loopBarcodeDetector(detector){
       canvas.height=video.videoHeight;
       
       try {
-        // If we have a scan region, only process that area for better performance
         let codes = [];
         
         if (scanRegionRect) {
-          // Create a temporary canvas for the scan region only
           const tempCanvas = document.createElement('canvas');
           const tempCtx = tempCanvas.getContext('2d');
           tempCanvas.width = scanRegionRect.width * (video.videoWidth / video.clientWidth);
           tempCanvas.height = scanRegionRect.height * (video.videoHeight / video.clientHeight);
           
-          // Draw only the scan region portion
           tempCtx.drawImage(
             video, 
             scanRegionRect.x * (video.videoWidth / video.clientWidth),
@@ -797,16 +789,13 @@ async function loopBarcodeDetector(detector){
             0, 0, tempCanvas.width, tempCanvas.height
           );
           
-          // Detect barcodes in the scan region only
           codes = await detector.detect(tempCanvas);
         } else {
-          // Fallback to full frame detection
           codes = await detector.detect(video);
         }
         
         ctx.clearRect(0,0,canvas.width,canvas.height);
         
-        // Draw scan region border
         if (scanRegionRect) {
           ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
           ctx.lineWidth = 2;
@@ -858,7 +847,6 @@ async function loopZXing(reader){
       canvas.width=video.videoWidth; 
       canvas.height=video.videoHeight;
       
-      // Draw scan region border
       if (scanRegionRect) {
         ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
         ctx.lineWidth = 2;
@@ -873,7 +861,6 @@ async function loopZXing(reader){
       try {
         let result = null;
         
-        // If we have a scan region, crop the image for ZXing
         if (scanRegionRect) {
           const tempCanvas = document.createElement('canvas');
           const tempCtx = tempCanvas.getContext('2d');
@@ -889,8 +876,6 @@ async function loopZXing(reader){
             0, 0, tempCanvas.width, tempCanvas.height
           );
           
-          // ZXing doesn't have a direct method for canvas, so we'd need to convert to ImageData
-          // For now, fall back to full frame if using ZXing with scan region
           result = await reader.decodeOnceFromVideoElement(video);
         } else {
           result = await reader.decodeOnceFromVideoElement(video);
@@ -907,6 +892,12 @@ async function loopZXing(reader){
 }
 
 async function onBarcode(code){
+  // Validate barcode length
+  if (code.length !== 13) {
+    setStatus('Invalid barcode: must be 13 digits');
+    return;
+  }
+  
   // Prevent duplicate scans of the same code
   if (scannedBarcodes.has(code)) {
     setStatus('Already scanned: ' + code);
@@ -943,6 +934,7 @@ function beep(){
     g.connect(ctx.destination); 
     o.start(); 
     g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); 
+    setTimeout(()=>{ o.stop(); ctx.close(); },170);
   } catch(e){} 
 }
 
