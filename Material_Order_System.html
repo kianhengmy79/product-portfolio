@@ -119,6 +119,18 @@
     .cart-item {
       border-left: 4px solid #3b82f6;
     }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -303,7 +315,7 @@
                 
                 <textarea id="orderNotes" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4" rows="2" placeholder="Add notes for this order..."></textarea>
                 
-                <button id="submitOrder" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                <button id="submitOrder" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center">
                   Submit Order
                 </button>
               </div>
@@ -527,24 +539,64 @@
       cartTotalQty.textContent = totalQty;
     }
     
-    // Submit order functionality
-    submitOrder.addEventListener('click', function() {
+    // Submit order functionality with Google Sheets integration
+    submitOrder.addEventListener('click', async function() {
       if (cart.length === 0) {
         alert('Your cart is empty. Add items before submitting.');
         return;
       }
       
-      // In a real app, this would send data to Google Sheets
-      // For demo, we'll just show an alert
-      const orderId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
-      const orderNotes = document.getElementById('orderNotes').value;
+      // Show loading state
+      const originalText = submitOrder.innerHTML;
+      submitOrder.innerHTML = '<div class="loading mr-2"></div> Processing...';
+      submitOrder.disabled = true;
       
-      alert(`Order ${orderId} submitted successfully!\n\nItems: ${cart.length}\nTotal Quantity: ${cartTotalQty.textContent}\n\nNotes: ${orderNotes || 'None'}`);
-      
-      // Clear cart and notes
-      cart = [];
-      document.getElementById('orderNotes').value = '';
-      updateCartUI();
+      try {
+        // Replace with your actual Google Apps Script Web App URL
+        const scriptUrl = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        
+        // For each item in cart, send to Google Sheets
+        for (const item of cart) {
+          const orderData = {
+            userId: currentUser.id,
+            userName: currentUser.name,
+            department: currentUser.department,
+            productCode: item.id,
+            productName: item.name,
+            quantity: item.quantity,
+            notes: document.getElementById('orderNotes').value
+          };
+          
+          const response = await fetch(scriptUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData)
+          });
+          
+          const result = await response.json();
+          
+          if (result.result !== 'success') {
+            throw new Error(result.error || 'Failed to submit order');
+          }
+        }
+        
+        alert('Order submitted successfully! Your items have been saved to Google Sheets.');
+        
+        // Clear cart and notes
+        cart = [];
+        document.getElementById('orderNotes').value = '';
+        updateCartUI();
+        
+      } catch (error) {
+        console.error('Error submitting order:', error);
+        alert('Failed to submit order: ' + error.message);
+      } finally {
+        // Restore button state
+        submitOrder.innerHTML = originalText;
+        submitOrder.disabled = false;
+      }
     });
     
     // Tab navigation functionality
@@ -567,7 +619,7 @@
     
     // Google Sheets integration info
     document.getElementById('syncBtn').addEventListener('click', function() {
-      alert('In a real implementation, this would sync with Google Sheets using:\n\n1. Google Apps Script as an API endpoint\n2. Sheet ID: [Your Google Sheet ID]\n3. Year-based sheet naming (e.g., "Orders_2024")');
+      alert('This system is now integrated with Google Sheets!\n\nYour orders are automatically saved to Google Sheets when you click "Submit Order".\n\nTo set up your own Google Sheets integration:\n1. Create a Google Apps Script with a doPost function\n2. Deploy it as a web app\n3. Update the scriptUrl variable in the code');
     });
   </script>
 </body>
