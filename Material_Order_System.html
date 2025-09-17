@@ -17,28 +17,6 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
       padding: 1.5rem;
     }
-    .table-container {
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 0.75rem 1rem;
-      text-align: left;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    th {
-      background-color: #f9fafb;
-      font-weight: 600;
-      color: #374151;
-      position: sticky;
-      top: 0;
-    }
-    tr:hover {
-      background-color: #f3f4f6;
-    }
     .product-image {
       width: 60px;
       height: 60px;
@@ -118,311 +96,278 @@
     .summary-card.completed {
       border-left-color: #10b981;
     }
-    .user-header {
-      background-color: #e0e7ff;
-      font-weight: 600;
-    }
-    .product-header {
-      text-align: center;
-      vertical-align: bottom;
-    }
-    .product-header-content {
+    .login-container {
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
-    .order-qty {
-      text-align: center;
-      font-weight: 600;
-      color: #4338ca;
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     }
-    .order-date {
-      font-size: 0.75rem;
-      color: #6b7280;
+    .order-item {
+      transition: all 0.2s;
+    }
+    .order-item:hover {
+      background-color: #f0f4ff;
+    }
+    .cart-item {
+      border-left: 4px solid #3b82f6;
     }
   </style>
 </head>
-<body class="bg-gray-50">
-  <div class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Header -->
-    <header class="flex justify-between items-center mb-8">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">Stationary Ordering System</h1>
-        <p class="text-gray-600">Manage and track stationary requests with live inventory updates</p>
-      </div>
-      <div class="flex items-center space-x-4">
-        <div class="relative">
-          <select id="yearSelector" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-            <option>2023</option>
-            <option selected>2024</option>
-            <option>2025</option>
-          </select>
+<body>
+  <!-- Login Page -->
+  <div id="loginPage" class="login-container">
+    <div class="login-card card">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 rounded-2xl bg-blue-100 grid place-items-center mx-auto mb-4">
+          <i class="fas fa-pencil-alt text-blue-600 text-2xl"></i>
         </div>
-        <button id="syncBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
-          <i class="fas fa-sync-alt mr-2"></i> Sync Data
-        </button>
-        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-          <span class="text-blue-600 font-bold">AD</span>
-        </div>
-      </div>
-    </header>
-
-    <!-- Navigation Tabs -->
-    <div class="flex space-x-1 mb-6">
-      <div class="nav-tab" data-tab="ordering">Ordering</div>
-      <div class="nav-tab" data-tab="inventory">Inventory</div>
-      <div class="nav-tab active" data-tab="history">Order History</div>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="summary-card total card">
-        <div class="flex items-center">
-          <div class="rounded-full bg-blue-100 p-3 mr-4">
-            <i class="fas fa-boxes text-blue-600 text-xl"></i>
-          </div>
-          <div>
-            <p class="text-gray-500 text-sm">Total Products</p>
-            <h3 class="text-2xl font-bold text-gray-800">47</h3>
-          </div>
-        </div>
-      </div>
-      <div class="summary-card pending card">
-        <div class="flex items-center">
-          <div class="rounded-full bg-amber-100 p-3 mr-4">
-            <i class="fas fa-clipboard-list text-amber-600 text-xl"></i>
-          </div>
-          <div>
-            <p class="text-gray-500 text-sm">Pending Requests</p>
-            <h3 class="text-2xl font-bold text-gray-800">12</h3>
-          </div>
-        </div>
-      </div>
-      <div class="summary-card completed card">
-        <div class="flex items-center">
-          <div class="rounded-full bg-green-100 p-3 mr-4">
-            <i class="fas fa-check-circle text-green-600 text-xl"></i>
-          </div>
-          <div>
-            <p class="text-gray-500 text-sm">Completed This Month</p>
-            <h3 class="text-2xl font-bold text-gray-800">28</h3>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ordering Tab Content -->
-    <div id="orderingTab" class="tab-content hidden">
-      <!-- Ordering content would go here -->
-    </div>
-
-    <!-- Inventory Tab Content -->
-    <div id="inventoryTab" class="tab-content hidden">
-      <!-- Inventory content would go here -->
-    </div>
-
-    <!-- History Tab Content -->
-    <div id="historyTab" class="tab-content">
-      <div class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold text-gray-800">Order History - User View</h2>
-          <div class="flex space-x-2">
-            <div class="relative">
-              <select class="pl-3 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>All Departments</option>
-                <option>Marketing</option>
-                <option>Sales</option>
-                <option>HR</option>
-                <option>Finance</option>
-              </select>
-            </div>
-            <div class="relative">
-              <input type="text" placeholder="Search user..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-            </div>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>User / Product</th>
-                <th class="product-header">
-                  <div class="product-header-content">
-                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image mb-1">
-                    <div>PAP-001</div>
-                    <div class="text-xs font-normal">A4 Paper</div>
-                  </div>
-                </th>
-                <th class="product-header">
-                  <div class="product-header-content">
-                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image mb-1">
-                    <div>PEN-002</div>
-                    <div class="text-xs font-normal">Blue Pen</div>
-                  </div>
-                </th>
-                <th class="product-header">
-                  <div class="product-header-content">
-                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image mb-1">
-                    <div>NOTE-003</div>
-                    <div class="text-xs font-normal">Notebook</div>
-                  </div>
-                </th>
-                <th class="product-header">
-                  <div class="product-header-content">
-                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image mb-1">
-                    <div>STPL-004</div>
-                    <div class="text-xs font-normal">Stapler</div>
-                  </div>
-                </th>
-                <th class="product-header">
-                  <div class="product-header-content">
-                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Clip" alt="Binder Clip" class="product-image mb-1">
-                    <div>CLIP-005</div>
-                    <div class="text-xs font-normal">Binder Clip</div>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="user-header">
-                <td colspan="6">Marketing Department</td>
-              </tr>
-              <tr>
-                <td class="font-medium">John Doe</td>
-                <td class="order-qty">5<span class="order-date block">10/15/2023</span></td>
-                <td class="order-qty">3<span class="order-date block">10/12/2023</span></td>
-                <td class="order-qty">2<span class="order-date block">10/18/2023</span></td>
-                <td class="order-qty">1<span class="order-date block">10/05/2023</span></td>
-                <td class="order-qty">10<span class="order-date block">10/22/2023</span></td>
-              </tr>
-              <tr>
-                <td class="font-medium">Jane Smith</td>
-                <td class="order-qty">8<span class="order-date block">10/14/2023</span></td>
-                <td class="order-qty">5<span class="order-date block">10/08/2023</span></td>
-                <td class="order-qty">3<span class="order-date block">10/16/2023</span></td>
-                <td class="order-qty">-</td>
-                <td class="order-qty">15<span class="order-date block">10/20/2023</span></td>
-              </tr>
-              
-              <tr class="user-header">
-                <td colspan="6">Sales Department</td>
-              </tr>
-              <tr>
-                <td class="font-medium">Robert Brown</td>
-                <td class="order-qty">12<span class="order-date block">10/11/2023</span></td>
-                <td class="order-qty">8<span class="order-date block">10/19/2023</span></td>
-                <td class="order-qty">5<span class="order-date block">10/05/2023</span></td>
-                <td class="order-qty">2<span class="order-date block">10/13/2023</span></td>
-                <td class="order-qty">20<span class="order-date block">10/21/2023</span></td>
-              </tr>
-              <tr>
-                <td class="font-medium">Sarah Johnson</td>
-                <td class="order-qty">6<span class="order-date block">10/17/2023</span></td>
-                <td class="order-qty">4<span class="order-date block">10/09/2023</span></td>
-                <td class="order-qty">2<span class="order-date block">10/15/2023</span></td>
-                <td class="order-qty">1<span class="order-date block">10/22/2023</span></td>
-                <td class="order-qty">12<span class="order-date block">10/07/2023</span></td>
-              </tr>
-              
-              <tr class="user-header">
-                <td colspan="6">HR Department</td>
-              </tr>
-              <tr>
-                <td class="font-medium">Michael Wilson</td>
-                <td class="order-qty">10<span class="order-date block">10/10/2023</span></td>
-                <td class="order-qty">6<span class="order-date block">10/18/2023</span></td>
-                <td class="order-qty">4<span class="order-date block">10/06/2023</span></td>
-                <td class="order-qty">-</td>
-                <td class="order-qty">8<span class="order-date block">10/14/2023</span></td>
-              </tr>
-              <tr>
-                <td class="font-medium">Emily Davis</td>
-                <td class="order-qty">7<span class="order-date block">10/13/2023</span></td>
-                <td class="order-qty">3<span class="order-date block">10/21/2023</span></td>
-                <td class="order-qty">5<span class="order-date block">10/09/2023</span></td>
-                <td class="order-qty">1<span class="order-date block">10/17/2023</span></td>
-                <td class="order-qty">10<span class="order-date block">10/05/2023</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <div class="mt-6 flex justify-between items-center">
-          <div class="text-sm text-gray-500">Showing 6 users out of 24 total</div>
-          <div class="flex space-x-2">
-            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              Previous
-            </button>
-            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              Next
-            </button>
-          </div>
-        </div>
+        <h1 class="text-2xl font-bold text-gray-800">Stationary Ordering System</h1>
+        <p class="text-gray-600">Please sign in to access your account</p>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <div class="card">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Requested Products</h3>
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image mr-3">
-                <div>
-                  <p class="font-medium">A4 Paper</p>
-                  <p class="text-sm text-gray-500">PAP-001</p>
+      <form id="loginForm">
+        <div class="mb-4">
+          <label for="username" class="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+          <input type="text" id="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your user ID" required>
+        </div>
+        
+        <div class="mb-6">
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your password" required>
+        </div>
+        
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+          Sign In
+        </button>
+      </form>
+      
+      <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+        <h3 class="font-medium text-blue-800 mb-2">Demo Credentials</h3>
+        <p class="text-sm text-blue-700">User ID: <span class="font-mono">employee01</span></p>
+        <p class="text-sm text-blue-700">Password: <span class="font-mono">password123</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application (Hidden Initially) -->
+  <div id="appPage" class="hidden">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Header -->
+      <header class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">Stationary Ordering System</h1>
+          <p class="text-gray-600" id="userInfo">Welcome, <span id="userName">User</span> | Department: <span id="userDept">Marketing</span></p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <select id="yearSelector" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+              <option>2023</option>
+              <option selected>2024</option>
+              <option>2025</option>
+            </select>
+          </div>
+          <button id="syncBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-sync-alt mr-2"></i> Sync Orders
+          </button>
+          <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- Navigation Tabs -->
+      <div class="flex space-x-1 mb-6">
+        <div class="nav-tab active" data-tab="ordering">Order Stationary</div>
+        <div class="nav-tab" data-tab="history">Order History</div>
+      </div>
+
+      <!-- Ordering Tab Content -->
+      <div id="orderingTab" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Product Catalog -->
+          <div class="lg:col-span-2">
+            <div class="card mb-6">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Available Products</h2>
+                <div class="relative">
+                  <input type="text" placeholder="Search products..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                 </div>
               </div>
-              <span class="text-blue-600 font-semibold">48 units</span>
+              
+              <div class="space-y-4" id="productList">
+                <!-- Product 1 -->
+                <div class="order-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div class="flex items-center">
+                    <img src="https://placehold.co/60x60/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image mr-4">
+                    <div>
+                      <h3 class="font-medium">A4 Copy Paper (500 sheets)</h3>
+                      <p class="text-sm text-gray-500">Code: PAP-001 | Size: 210x297mm</p>
+                      <p class="text-sm text-green-600">In stock: 142 units</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <input type="number" min="0" class="input-number mr-2" value="0">
+                    <button class="add-to-cart bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg">
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Product 2 -->
+                <div class="order-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div class="flex items-center">
+                    <img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image mr-4">
+                    <div>
+                      <h3 class="font-medium">Blue Ballpoint Pen (Box of 12)</h3>
+                      <p class="text-sm text-gray-500">Code: PEN-002 | Size: 14cm</p>
+                      <p class="text-sm text-green-600">In stock: 36 boxes</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <input type="number" min="0" class="input-number mr-2" value="0">
+                    <button class="add-to-cart bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg">
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Product 3 -->
+                <div class="order-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div class="flex items-center">
+                    <img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image mr-4">
+                    <div>
+                      <h3 class="font-medium">Spiral Notebook (80 pages)</h3>
+                      <p class="text-sm text-gray-500">Code: NOTE-003 | Size: A5</p>
+                      <p class="text-sm text-yellow-600">Low stock: 18 units</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <input type="number" min="0" class="input-number mr-2" value="0">
+                    <button class="add-to-cart bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg">
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Product 4 -->
+                <div class="order-item flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div class="flex items-center">
+                    <img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image mr-4">
+                    <div>
+                      <h3 class="font-medium">Standard Stapler</h3>
+                      <p class="text-sm text-gray-500">Code: STPL-004 | Size: Medium</p>
+                      <p class="text-sm text-red-600">Very low stock: 9 units</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <input type="number" min="0" class="input-number mr-2" value="0">
+                    <button class="add-to-cart bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg">
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Clip" alt="Binder Clip" class="product-image mr-3">
-                <div>
-                  <p class="font-medium">Binder Clips</p>
-                  <p class="text-sm text-gray-500">CLIP-005</p>
+          </div>
+          
+          <!-- Shopping Cart -->
+          <div>
+            <div class="card sticky top-4">
+              <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Cart</h2>
+              
+              <div id="cartItems" class="space-y-3 mb-4">
+                <!-- Cart items will be added here -->
+                <div class="text-gray-500 text-center py-4" id="emptyCart">
+                  Your cart is empty. Add items from the catalog.
                 </div>
               </div>
-              <span class="text-blue-600 font-semibold">65 units</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image mr-3">
-                <div>
-                  <p class="font-medium">Blue Pens</p>
-                  <p class="text-sm text-gray-500">PEN-002</p>
+              
+              <div class="border-t border-gray-200 pt-4">
+                <div class="flex justify-between mb-2">
+                  <span class="text-gray-600">Items:</span>
+                  <span id="cartCount">0</span>
                 </div>
+                <div class="flex justify-between mb-4">
+                  <span class="text-gray-600">Total Quantity:</span>
+                  <span id="cartTotalQty">0</span>
+                </div>
+                
+                <textarea id="orderNotes" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4" rows="2" placeholder="Add notes for this order..."></textarea>
+                
+                <button id="submitOrder" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                  Submit Order
+                </button>
               </div>
-              <span class="text-blue-600 font-semibold">29 units</span>
             </div>
           </div>
         </div>
-        
+      </div>
+
+      <!-- History Tab Content -->
+      <div id="historyTab" class="tab-content hidden">
         <div class="card">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Orders</h3>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p class="font-medium">John Doe (Marketing)</p>
-                <p class="text-sm text-gray-500">A4 Paper (5 units) • Blue Pens (3 units)</p>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Your Order History</h2>
+            <div class="flex space-x-2">
+              <div class="relative">
+                <select class="pl-3 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <option>All Orders</option>
+                  <option>Pending</option>
+                  <option>Approved</option>
+                  <option>Rejected</option>
+                </select>
               </div>
-              <span class="badge badge-success">Completed</span>
             </div>
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p class="font-medium">Robert Brown (Sales)</p>
-                <p class="text-sm text-gray-500">Notebooks (5 units) • Binder Clips (20 units)</p>
-              </div>
-              <span class="badge badge-info">Processing</span>
-            </div>
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p class="font-medium">Emily Davis (HR)</p>
-                <p class="text-sm text-gray-500">Stapler (1 unit) • Binder Clips (10 units)</p>
-              </div>
-              <span class="badge badge-warning">Pending</span>
-            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700">Order ID</th>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700">Date</th>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700">Items</th>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700">Total Quantity</th>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700">Status</th>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700">Notes</th>
+                </tr>
+              </thead>
+              <tbody id="orderHistory">
+                <tr>
+                  <td class="py-3 px-4 border-t border-gray-200 font-mono">ORD-1028</td>
+                  <td class="py-3 px-4 border-t border-gray-200">2023-10-25</td>
+                  <td class="py-3 px-4 border-t border-gray-200">A4 Paper (5), Blue Pens (3)</td>
+                  <td class="py-3 px-4 border-t border-gray-200">8</td>
+                  <td class="py-3 px-4 border-t border-gray-200"><span class="badge badge-info">Pending</span></td>
+                  <td class="py-3 px-4 border-t border-gray-200">For marketing department</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 border-t border-gray-200 font-mono">ORD-1025</td>
+                  <td class="py-3 px-4 border-t border-gray-200">2023-10-15</td>
+                  <td class="py-3 px-4 border-t border-gray-200">A4 Paper (5), Notebooks (2)</td>
+                  <td class="py-3 px-4 border-t border-gray-200">7</td>
+                  <td class="py-3 px-4 border-t border-gray-200"><span class="badge badge-success">Approved</span></td>
+                  <td class="py-3 px-4 border-t border-gray-200">Urgent request</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 border-t border-gray-200 font-mono">ORD-1022</td>
+                  <td class="py-3 px-4 border-t border-gray-200">2023-10-10</td>
+                  <td class="py-3 px-4 border-t border-gray-200">Stapler (1), Binder Clips (10)</td>
+                  <td class="py-3 px-4 border-t border-gray-200">11</td>
+                  <td class="py-3 px-4 border-t border-gray-200"><span class="badge badge-success">Approved</span></td>
+                  <td class="py-3 px-4 border-t border-gray-200">New employee setup</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -430,6 +375,178 @@
   </div>
 
   <script>
+    // User data (in a real app, this would come from a server)
+    const users = [
+      { id: 'employee01', password: 'password123', name: 'John Doe', department: 'Marketing' },
+      { id: 'employee02', password: 'password123', name: 'Jane Smith', department: 'Sales' },
+      { id: 'employee03', password: 'password123', name: 'Robert Brown', department: 'HR' }
+    ];
+    
+    // Product data
+    const products = [
+      { id: 'PAP-001', name: 'A4 Copy Paper (500 sheets)', size: '210x297mm', stock: 142, image: 'https://placehold.co/60x60/e2e8f0/6b7280?text=A4' },
+      { id: 'PEN-002', name: 'Blue Ballpoint Pen (Box of 12)', size: '14cm', stock: 36, image: 'https://placehold.co/60x60/e2e8f0/6b7280?text=Pen' },
+      { id: 'NOTE-003', name: 'Spiral Notebook (80 pages)', size: 'A5', stock: 18, image: 'https://placehold.co/60x60/e2e8f0/6b7280?text=Note' },
+      { id: 'STPL-004', name: 'Standard Stapler', size: 'Medium', stock: 9, image: 'https://placehold.co/60x60/e2e8f0/6b7280?text=Stpl' }
+    ];
+    
+    // Current user and cart
+    let currentUser = null;
+    let cart = [];
+    
+    // DOM elements
+    const loginPage = document.getElementById('loginPage');
+    const appPage = document.getElementById('appPage');
+    const loginForm = document.getElementById('loginForm');
+    const userNameEl = document.getElementById('userName');
+    const userDeptEl = document.getElementById('userDept');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const cartItems = document.getElementById('cartItems');
+    const emptyCart = document.getElementById('emptyCart');
+    const cartCount = document.getElementById('cartCount');
+    const cartTotalQty = document.getElementById('cartTotalQty');
+    const submitOrder = document.getElementById('submitOrder');
+    
+    // Login functionality
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      // Check credentials
+      const user = users.find(u => u.id === username && u.password === password);
+      
+      if (user) {
+        currentUser = user;
+        userNameEl.textContent = user.name;
+        userDeptEl.textContent = user.department;
+        
+        // Show app, hide login
+        loginPage.classList.add('hidden');
+        appPage.classList.remove('hidden');
+      } else {
+        alert('Invalid credentials. Please try again.');
+      }
+    });
+    
+    // Logout functionality
+    logoutBtn.addEventListener('click', function() {
+      currentUser = null;
+      cart = [];
+      updateCartUI();
+      
+      // Show login, hide app
+      appPage.classList.add('hidden');
+      loginPage.classList.remove('hidden');
+      
+      // Clear login form
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+    });
+    
+    // Add to cart functionality
+    document.querySelectorAll('.add-to-cart').forEach((button, index) => {
+      button.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        const quantity = parseInt(input.value);
+        
+        if (quantity > 0) {
+          const product = products[index];
+          
+          // Check if product already in cart
+          const existingItemIndex = cart.findIndex(item => item.id === product.id);
+          
+          if (existingItemIndex >= 0) {
+            // Update quantity if already in cart
+            cart[existingItemIndex].quantity += quantity;
+          } else {
+            // Add new item to cart
+            cart.push({
+              id: product.id,
+              name: product.name,
+              quantity: quantity,
+              image: product.image
+            });
+          }
+          
+          // Reset input
+          input.value = '0';
+          
+          // Update UI
+          updateCartUI();
+        }
+      });
+    });
+    
+    // Update cart UI
+    function updateCartUI() {
+      // Clear cart items
+      cartItems.innerHTML = '';
+      
+      if (cart.length === 0) {
+        cartItems.appendChild(emptyCart);
+        emptyCart.classList.remove('hidden');
+      } else {
+        emptyCart.classList.add('hidden');
+        
+        // Add each item to cart
+        cart.forEach((item, index) => {
+          const cartItem = document.createElement('div');
+          cartItem.className = 'cart-item bg-gray-50 p-3 rounded-lg';
+          cartItem.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div class="flex items-center">
+                <img src="${item.image}" alt="${item.name}" class="product-image mr-3">
+                <div>
+                  <h3 class="font-medium text-sm">${item.name}</h3>
+                  <p class="text-xs text-gray-500">Qty: ${item.quantity}</p>
+                </div>
+              </div>
+              <button class="remove-from-cart text-red-600 hover:text-red-800" data-index="${index}">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          `;
+          cartItems.appendChild(cartItem);
+        });
+        
+        // Add event listeners to remove buttons
+        document.querySelectorAll('.remove-from-cart').forEach(button => {
+          button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            cart.splice(index, 1);
+            updateCartUI();
+          });
+        });
+      }
+      
+      // Update cart counts
+      cartCount.textContent = cart.length;
+      const totalQty = cart.reduce((total, item) => total + item.quantity, 0);
+      cartTotalQty.textContent = totalQty;
+    }
+    
+    // Submit order functionality
+    submitOrder.addEventListener('click', function() {
+      if (cart.length === 0) {
+        alert('Your cart is empty. Add items before submitting.');
+        return;
+      }
+      
+      // In a real app, this would send data to Google Sheets
+      // For demo, we'll just show an alert
+      const orderId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
+      const orderNotes = document.getElementById('orderNotes').value;
+      
+      alert(`Order ${orderId} submitted successfully!\n\nItems: ${cart.length}\nTotal Quantity: ${cartTotalQty.textContent}\n\nNotes: ${orderNotes || 'None'}`);
+      
+      // Clear cart and notes
+      cart = [];
+      document.getElementById('orderNotes').value = '';
+      updateCartUI();
+    });
+    
     // Tab navigation functionality
     document.querySelectorAll('.nav-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -447,31 +564,10 @@
         document.getElementById(`${tabName}Tab`).classList.remove('hidden');
       });
     });
-
-    // Year selector change event
-    document.getElementById('yearSelector').addEventListener('change', function() {
-      // In a real application, this would fetch data for the selected year
-      console.log('Year changed to:', this.value);
-      // Show loading state
-      document.getElementById('syncBtn').innerHTML = '<i class="fas fa-sync-alt animate-spin mr-2"></i> Syncing...';
-      
-      // Simulate API call
-      setTimeout(() => {
-        document.getElementById('syncBtn').innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Sync Data';
-        alert(`Data synced for year ${this.value}`);
-      }, 1500);
-    });
-
-    // Sync button event
+    
+    // Google Sheets integration info
     document.getElementById('syncBtn').addEventListener('click', function() {
-      const year = document.getElementById('yearSelector').value;
-      this.innerHTML = '<i class="fas fa-sync-alt animate-spin mr-2"></i> Syncing...';
-      
-      // Simulate API call to Google Sheets
-      setTimeout(() => {
-        this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Sync Data';
-        alert(`Data successfully synced with Google Sheets for ${year}`);
-      }, 2000);
+      alert('In a real implementation, this would sync with Google Sheets using:\n\n1. Google Apps Script as an API endpoint\n2. Sheet ID: [Your Google Sheet ID]\n3. Year-based sheet naming (e.g., "Orders_2024")');
     });
   </script>
 </body>
