@@ -118,6 +118,28 @@
     .summary-card.completed {
       border-left-color: #10b981;
     }
+    .user-header {
+      background-color: #e0e7ff;
+      font-weight: 600;
+    }
+    .product-header {
+      text-align: center;
+      vertical-align: bottom;
+    }
+    .product-header-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .order-qty {
+      text-align: center;
+      font-weight: 600;
+      color: #4338ca;
+    }
+    .order-date {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -147,9 +169,9 @@
 
     <!-- Navigation Tabs -->
     <div class="flex space-x-1 mb-6">
-      <div class="nav-tab active" data-tab="ordering">Ordering</div>
+      <div class="nav-tab" data-tab="ordering">Ordering</div>
       <div class="nav-tab" data-tab="inventory">Inventory</div>
-      <div class="nav-tab" data-tab="history">Order History</div>
+      <div class="nav-tab active" data-tab="history">Order History</div>
     </div>
 
     <!-- Summary Cards -->
@@ -190,338 +212,32 @@
     </div>
 
     <!-- Ordering Tab Content -->
-    <div id="orderingTab" class="tab-content">
-      <div class="card mb-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold text-gray-800">Stationary Products</h2>
-          <div class="flex space-x-2">
-            <div class="relative">
-              <input type="text" placeholder="Search products..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-            </div>
-            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
-              <i class="fas fa-plus mr-2"></i> New Request
-            </button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Product Code</th>
-                <th>Product Visual</th>
-                <th>Description</th>
-                <th>Item Size</th>
-                <th>Current Stock</th>
-                <th>Jan</th>
-                <th>Feb</th>
-                <th>Mar</th>
-                <th>Apr</th>
-                <th>May</th>
-                <th>Jun</th>
-                <th>Jul</th>
-                <th>Aug</th>
-                <th>Sep</th>
-                <th>Oct</th>
-                <th>Nov</th>
-                <th>Dec</th>
-                <th>Total</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="font-mono">PAP-001</td>
-                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image"></td>
-                <td>A4 Copy Paper (500 sheets)</td>
-                <td>210x297mm</td>
-                <td>
-                  <div class="flex items-center">
-                    <span class="mr-2">142</span>
-                    <div class="progress-bar w-16">
-                      <div class="progress-fill progress-high" style="width: 75%"></div>
-                    </div>
-                  </div>
-                </td>
-                <td><input type="number" min="0" class="input-number" value="5"></td>
-                <td><input type="number" min="0" class="input-number" value="8"></td>
-                <td><input type="number" min="0" class="input-number" value="10"></td>
-                <td><input type="number" min="0" class="input-number" value="7"></td>
-                <td><input type="number" min="0" class="input-number" value="6"></td>
-                <td><input type="number" min="0" class="input-number" value="9"></td>
-                <td><input type="number" min="0" class="input-number" value="8"></td>
-                <td><input type="number" min="0" class="input-number" value="7"></td>
-                <td><input type="number" min="0" class="input-number" value="10"></td>
-                <td><input type="number" min="0" class="input-number" value="8"></td>
-                <td><input type="number" min="0" class="input-number" value="9"></td>
-                <td><input type="number" min="0" class="input-number" value="7"></td>
-                <td class="font-semibold">94</td>
-                <td>
-                  <button class="text-blue-600 hover:text-blue-800">
-                    <i class="fas fa-save"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-mono">PEN-002</td>
-                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image"></td>
-                <td>Blue Ballpoint Pen (Box of 12)</td>
-                <td>14cm</td>
-                <td>
-                  <div class="flex items-center">
-                    <span class="mr-2">36</span>
-                    <div class="progress-bar w-16">
-                      <div class="progress-fill progress-medium" style="width: 45%"></div>
-                    </div>
-                  </div>
-                </td>
-                <td><input type="number" min="0" class="input-number" value="2"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="2"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="2"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="2"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="2"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="2"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td class="font-semibold">30</td>
-                <td>
-                  <button class="text-blue-600 hover:text-blue-800">
-                    <i class="fas fa-save"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-mono">NOTE-003</td>
-                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image"></td>
-                <td>Spiral Notebook (80 pages)</td>
-                <td>A5</td>
-                <td>
-                  <div class="flex items-center">
-                    <span class="mr-2">18</span>
-                    <div class="progress-bar w-16">
-                      <div class="progress-fill progress-low" style="width: 20%"></div>
-                    </div>
-                  </div>
-                </td>
-                <td><input type="number" min="0" class="input-number" value="4"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="5"></td>
-                <td><input type="number" min="0" class="input-number" value="4"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="5"></td>
-                <td><input type="number" min="0" class="input-number" value="4"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="5"></td>
-                <td><input type="number" min="0" class="input-number" value="4"></td>
-                <td><input type="number" min="0" class="input-number" value="3"></td>
-                <td><input type="number" min="0" class="input-number" value="5"></td>
-                <td class="font-semibold">48</td>
-                <td>
-                  <button class="text-blue-600 hover:text-blue-800">
-                    <i class="fas fa-save"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-mono">STPL-004</td>
-                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image"></td>
-                <td>Standard Stapler</td>
-                <td>Medium</td>
-                <td>
-                  <div class="flex items-center">
-                    <span class="mr-2">9</span>
-                    <div class="progress-bar w-16">
-                      <div class="progress-fill progress-low" style="width: 15%"></div>
-                    </div>
-                  </div>
-                </td>
-                <td><input type="number" min="0" class="input-number" value="1"></td>
-                <td><input type="number" min="0" class="input-number" value="0"></td>
-                <td><input type="number" min="0" class="input-number" value="1"></td>
-                <td><input type="number" min="0" class="input-number" value="0"></td>
-                <td><input type="number" min="0" class="input-number" value="1"></td>
-                <td><input type="number" min="0" class="input-number" value="0"></td>
-                <td><input type="number" min="0" class="input-number" value="1"></td>
-                <td><input type="number" min="0" class="input-number" value="0"></td>
-                <td><input type="number" min="0" class="input-number" value="1"></td>
-                <td><input type="number" min="0" class="input-number" value="0"></td>
-                <td><input type="number" min="0" class="input-number" value="1"></td>
-                <td><input type="number" min="0" class="input-number" value="0"></td>
-                <td class="font-semibold">6</td>
-                <td>
-                  <button class="text-blue-600 hover:text-blue-800">
-                    <i class="fas fa-save"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="card">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Requests</h3>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p class="font-medium">A4 Paper (20 units)</p>
-                <p class="text-sm text-gray-500">Requested by: John Doe • 2 hours ago</p>
-              </div>
-              <span class="badge badge-warning">Pending</span>
-            </div>
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p class="font-medium">Blue Pens (5 boxes)</p>
-                <p class="text-sm text-gray-500">Requested by: Jane Smith • 5 hours ago</p>
-              </div>
-              <span class="badge badge-success">Approved</span>
-            </div>
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p class="font-medium">Notebooks (10 units)</p>
-                <p class="text-sm text-gray-500">Requested by: Robert Brown • Yesterday</p>
-              </div>
-              <span class="badge badge-info">Processing</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Monthly Order Summary</h3>
-          <div class="flex items-center justify-center">
-            <canvas id="monthlyChart" width="300" height="200"></canvas>
-          </div>
-        </div>
-      </div>
+    <div id="orderingTab" class="tab-content hidden">
+      <!-- Ordering content would go here -->
     </div>
 
     <!-- Inventory Tab Content -->
     <div id="inventoryTab" class="tab-content hidden">
-      <div class="card mb-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold text-gray-800">Inventory Management</h2>
-          <div class="flex space-x-2">
-            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
-              <i class="fas fa-file-export mr-2"></i> Export
-            </button>
-            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
-              <i class="fas fa-plus mr-2"></i> New Product
-            </button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Product Code</th>
-                <th>Product Visual</th>
-                <th>Description</th>
-                <th>Current Stock</th>
-                <th>Min Stock Level</th>
-                <th>Status</th>
-                <th>Last Updated</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="font-mono">PAP-001</td>
-                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image"></td>
-                <td>A4 Copy Paper (500 sheets)</td>
-                <td>142</td>
-                <td>50</td>
-                <td><span class="badge badge-success">In Stock</span></td>
-                <td>2023-10-15</td>
-                <td>
-                  <button class="text-blue-600 hover:text-blue-800 mr-2">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="text-red-600 hover:text-red-800">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-mono">PEN-002</td>
-                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image"></td>
-                <td>Blue Ballpoint Pen (Box of 12)</td>
-                <td>36</td>
-                <td>40</td>
-                <td><span class="badge badge-warning">Low Stock</span></td>
-                <td>2023-10-18</td>
-                <td>
-                  <button class="text-blue-600 hover:text-blue-800 mr-2">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="text-red-600 hover:text-red-800">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-mono">NOTE-003</td>
-                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image"></td>
-                <td>Spiral Notebook (80 pages)</td>
-                <td>18</td>
-                <td>25</td>
-                <td><span class="badge badge-warning">Low Stock</span></td>
-                <td>2023-10-20</td>
-                <td>
-                  <button class="text-blue-600 hover:text-blue-800 mr-2">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="text-red-600 hover:text-red-800">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-mono">STPL-004</td>
-                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image"></td>
-                <td>Standard Stapler</td>
-                <td>9</td>
-                <td>15</td>
-                <td><span class="badge badge-warning">Low Stock</span></td>
-                <td>2023-10-22</td>
-                <td>
-                  <button class="text-blue-600 hover:text-blue-800 mr-2">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="text-red-600 hover:text-red-800">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <!-- Inventory content would go here -->
     </div>
 
     <!-- History Tab Content -->
-    <div id="historyTab" class="tab-content hidden">
+    <div id="historyTab" class="tab-content">
       <div class="card">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold text-gray-800">Order History</h2>
+          <h2 class="text-xl font-semibold text-gray-800">Order History - User View</h2>
           <div class="flex space-x-2">
             <div class="relative">
               <select class="pl-3 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>All Status</option>
-                <option>Pending</option>
-                <option>Approved</option>
-                <option>Rejected</option>
-                <option>Completed</option>
+                <option>All Departments</option>
+                <option>Marketing</option>
+                <option>Sales</option>
+                <option>HR</option>
+                <option>Finance</option>
               </select>
             </div>
             <div class="relative">
-              <input type="text" placeholder="Search history..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <input type="text" placeholder="Search user..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
               <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
             </div>
           </div>
@@ -531,66 +247,183 @@
           <table>
             <thead>
               <tr>
-                <th>Order ID</th>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Requested By</th>
-                <th>Department</th>
-                <th>Date</th>
-                <th>Status</th>
+                <th>User / Product</th>
+                <th class="product-header">
+                  <div class="product-header-content">
+                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image mb-1">
+                    <div>PAP-001</div>
+                    <div class="text-xs font-normal">A4 Paper</div>
+                  </div>
+                </th>
+                <th class="product-header">
+                  <div class="product-header-content">
+                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image mb-1">
+                    <div>PEN-002</div>
+                    <div class="text-xs font-normal">Blue Pen</div>
+                  </div>
+                </th>
+                <th class="product-header">
+                  <div class="product-header-content">
+                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image mb-1">
+                    <div>NOTE-003</div>
+                    <div class="text-xs font-normal">Notebook</div>
+                  </div>
+                </th>
+                <th class="product-header">
+                  <div class="product-header-content">
+                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image mb-1">
+                    <div>STPL-004</div>
+                    <div class="text-xs font-normal">Stapler</div>
+                  </div>
+                </th>
+                <th class="product-header">
+                  <div class="product-header-content">
+                    <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Clip" alt="Binder Clip" class="product-image mb-1">
+                    <div>CLIP-005</div>
+                    <div class="text-xs font-normal">Binder Clip</div>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="font-mono">ORD-1025</td>
-                <td class="flex items-center">
-                  <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image mr-2">
-                  <span>A4 Paper</span>
-                </td>
-                <td>5 units</td>
-                <td>John Doe</td>
-                <td>Marketing</td>
-                <td>2023-10-15</td>
-                <td><span class="badge badge-success">Completed</span></td>
+              <tr class="user-header">
+                <td colspan="6">Marketing Department</td>
               </tr>
               <tr>
-                <td class="font-mono">ORD-1024</td>
-                <td class="flex items-center">
-                  <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image mr-2">
-                  <span>Blue Pens</span>
-                </td>
-                <td>3 boxes</td>
-                <td>Jane Smith</td>
-                <td>Sales</td>
-                <td>2023-10-14</td>
-                <td><span class="badge badge-info">Processing</span></td>
+                <td class="font-medium">John Doe</td>
+                <td class="order-qty">5<span class="order-date block">10/15/2023</span></td>
+                <td class="order-qty">3<span class="order-date block">10/12/2023</span></td>
+                <td class="order-qty">2<span class="order-date block">10/18/2023</span></td>
+                <td class="order-qty">1<span class="order-date block">10/05/2023</span></td>
+                <td class="order-qty">10<span class="order-date block">10/22/2023</span></td>
               </tr>
               <tr>
-                <td class="font-mono">ORD-1023</td>
-                <td class="flex items-center">
-                  <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image mr-2">
-                  <span>Notebooks</span>
-                </td>
-                <td>10 units</td>
-                <td>Robert Brown</td>
-                <td>HR</td>
-                <td>2023-10-12</td>
-                <td><span class="badge badge-success">Completed</span></td>
+                <td class="font-medium">Jane Smith</td>
+                <td class="order-qty">8<span class="order-date block">10/14/2023</span></td>
+                <td class="order-qty">5<span class="order-date block">10/08/2023</span></td>
+                <td class="order-qty">3<span class="order-date block">10/16/2023</span></td>
+                <td class="order-qty">-</td>
+                <td class="order-qty">15<span class="order-date block">10/20/2023</span></td>
+              </tr>
+              
+              <tr class="user-header">
+                <td colspan="6">Sales Department</td>
               </tr>
               <tr>
-                <td class="font-mono">ORD-1022</td>
-                <td class="flex items-center">
-                  <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image mr-2">
-                  <span>Staplers</span>
-                </td>
-                <td>2 units</td>
-                <td>Sarah Johnson</td>
-                <td>Finance</td>
-                <td>2023-10-10</td>
-                <td><span class="badge badge-success">Completed</span></td>
+                <td class="font-medium">Robert Brown</td>
+                <td class="order-qty">12<span class="order-date block">10/11/2023</span></td>
+                <td class="order-qty">8<span class="order-date block">10/19/2023</span></td>
+                <td class="order-qty">5<span class="order-date block">10/05/2023</span></td>
+                <td class="order-qty">2<span class="order-date block">10/13/2023</span></td>
+                <td class="order-qty">20<span class="order-date block">10/21/2023</span></td>
+              </tr>
+              <tr>
+                <td class="font-medium">Sarah Johnson</td>
+                <td class="order-qty">6<span class="order-date block">10/17/2023</span></td>
+                <td class="order-qty">4<span class="order-date block">10/09/2023</span></td>
+                <td class="order-qty">2<span class="order-date block">10/15/2023</span></td>
+                <td class="order-qty">1<span class="order-date block">10/22/2023</span></td>
+                <td class="order-qty">12<span class="order-date block">10/07/2023</span></td>
+              </tr>
+              
+              <tr class="user-header">
+                <td colspan="6">HR Department</td>
+              </tr>
+              <tr>
+                <td class="font-medium">Michael Wilson</td>
+                <td class="order-qty">10<span class="order-date block">10/10/2023</span></td>
+                <td class="order-qty">6<span class="order-date block">10/18/2023</span></td>
+                <td class="order-qty">4<span class="order-date block">10/06/2023</span></td>
+                <td class="order-qty">-</td>
+                <td class="order-qty">8<span class="order-date block">10/14/2023</span></td>
+              </tr>
+              <tr>
+                <td class="font-medium">Emily Davis</td>
+                <td class="order-qty">7<span class="order-date block">10/13/2023</span></td>
+                <td class="order-qty">3<span class="order-date block">10/21/2023</span></td>
+                <td class="order-qty">5<span class="order-date block">10/09/2023</span></td>
+                <td class="order-qty">1<span class="order-date block">10/17/2023</span></td>
+                <td class="order-qty">10<span class="order-date block">10/05/2023</span></td>
               </tr>
             </tbody>
           </table>
+        </div>
+        
+        <div class="mt-6 flex justify-between items-center">
+          <div class="text-sm text-gray-500">Showing 6 users out of 24 total</div>
+          <div class="flex space-x-2">
+            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              Previous
+            </button>
+            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div class="card">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Requested Products</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image mr-3">
+                <div>
+                  <p class="font-medium">A4 Paper</p>
+                  <p class="text-sm text-gray-500">PAP-001</p>
+                </div>
+              </div>
+              <span class="text-blue-600 font-semibold">48 units</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Clip" alt="Binder Clip" class="product-image mr-3">
+                <div>
+                  <p class="font-medium">Binder Clips</p>
+                  <p class="text-sm text-gray-500">CLIP-005</p>
+                </div>
+              </div>
+              <span class="text-blue-600 font-semibold">65 units</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image mr-3">
+                <div>
+                  <p class="font-medium">Blue Pens</p>
+                  <p class="text-sm text-gray-500">PEN-002</p>
+                </div>
+              </div>
+              <span class="text-blue-600 font-semibold">29 units</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Orders</h3>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p class="font-medium">John Doe (Marketing)</p>
+                <p class="text-sm text-gray-500">A4 Paper (5 units) • Blue Pens (3 units)</p>
+              </div>
+              <span class="badge badge-success">Completed</span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p class="font-medium">Robert Brown (Sales)</p>
+                <p class="text-sm text-gray-500">Notebooks (5 units) • Binder Clips (20 units)</p>
+              </div>
+              <span class="badge badge-info">Processing</span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p class="font-medium">Emily Davis (HR)</p>
+                <p class="text-sm text-gray-500">Stapler (1 unit) • Binder Clips (10 units)</p>
+              </div>
+              <span class="badge badge-warning">Pending</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -640,45 +473,6 @@
         alert(`Data successfully synced with Google Sheets for ${year}`);
       }, 2000);
     });
-
-    // Input number change events
-    document.querySelectorAll('.input-number').forEach(input => {
-      input.addEventListener('change', function() {
-        // Calculate row total when any monthly value changes
-        const row = this.closest('tr');
-        const inputs = row.querySelectorAll('.input-number');
-        let total = 0;
-        
-        inputs.forEach(input => {
-          total += parseInt(input.value || 0);
-        });
-        
-        row.querySelector('td:last-of-type').previousElementSibling.textContent = total;
-      });
-    });
-
-    // Simple chart for monthly orders (mock)
-    const ctx = document.getElementById('monthlyChart').getContext('2d');
-    // This would be replaced with a real chart library in production
-    ctx.fillStyle = '#3b82f6';
-    ctx.fillRect(10, 180 - 160, 20, 160); // Jan
-    ctx.fillRect(40, 180 - 120, 20, 120); // Feb
-    ctx.fillRect(70, 180 - 140, 20, 140); // Mar
-    ctx.fillRect(100, 180 - 100, 20, 100); // Apr
-    ctx.fillRect(130, 180 - 80, 20, 80);  // May
-    ctx.fillRect(160, 180 - 130, 20, 130); // Jun
-    ctx.fillRect(190, 180 - 150, 20, 150); // Jul
-    ctx.fillRect(220, 180 - 110, 20, 110); // Aug
-    ctx.fillRect(250, 180 - 90, 20, 90);  // Sep
-    ctx.fillRect(280, 180 - 70, 20, 70);  // Oct
-    
-    // Add month labels
-    ctx.fillStyle = '#6b7280';
-    ctx.font = '10px Arial';
-    const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-    for (let i = 0; i < 10; i++) {
-      ctx.fillText(months[i], 15 + i * 30, 195);
-    }
   </script>
 </body>
 </html>
