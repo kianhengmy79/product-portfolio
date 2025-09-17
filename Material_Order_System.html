@@ -1,1075 +1,684 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Material Ordering System — Login + Google Sheets Sync</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stationary Ordering System</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-    .hidden { display:none !important; }
-    .badge { font-size: .75rem; padding:.25rem .5rem; border-radius:999px; }
-    .mirrored { transform: scaleX(-1); }
-    .scan-region {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 70%;
-      height: 50%; /* Increased height */
-      border: 2px solid rgba(0, 255, 0, 0.5);
-      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
-      pointer-events: none;
-      z-index: 10;
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9fafb;
     }
-    .scan-line {
-      position: absolute;
-      height: 2px;
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      padding: 1.5rem;
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
       width: 100%;
-      background: rgba(0, 255, 0, 0.8);
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background-color: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+      position: sticky;
       top: 0;
-      animation: scan 2s infinite linear;
     }
-    @keyframes scan {
-      0% { top: 0; }
-      100% { top: 100%; }
+    tr:hover {
+      background-color: #f3f4f6;
     }
-    .pending-item {
-      background-color: #fef3cd;
+    .product-image {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 8px;
+      background-color: #f3f4f6;
+      padding: 4px;
+    }
+    .input-number {
+      width: 80px;
+      text-align: center;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.4rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-success {
+      background-color: #dcfce7;
+      color: #16a34a;
+    }
+    .badge-warning {
+      background-color: #fef3c7;
+      color: #d97706;
+    }
+    .badge-info {
+      background-color: #dbeafe;
+      color: #2563eb;
+    }
+    .progress-bar {
+      height: 8px;
+      border-radius: 4px;
+      background-color: #e5e7eb;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+    .progress-low {
+      background-color: #ef4444;
+    }
+    .progress-medium {
+      background-color: #f59e0b;
+    }
+    .progress-high {
+      background-color: #10b981;
+    }
+    .nav-tab {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px 8px 0 0;
+      background-color: #f3f4f6;
+      color: #6b7280;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-tab.active {
+      background-color: white;
+      color: #3b82f6;
+      border-top: 3px solid #3b82f6;
+    }
+    .summary-card {
+      border-left: 4px solid;
+    }
+    .summary-card.total {
+      border-left-color: #3b82f6;
+    }
+    .summary-card.pending {
+      border-left-color: #f59e0b;
+    }
+    .summary-card.completed {
+      border-left-color: #10b981;
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
-  <div class="max-w-4xl mx-auto p-6">
-    <div id="loginCard" class="bg-white rounded-2xl shadow p-6 max-w-md mx-auto">
-      <h1 class="text-2xl font-bold mb-2">Material Ordering System — Login</h1>
-      <p class="text-sm text-slate-500 mb-4">Sign in to track who scans inventory. You can store users in Google Sheet (recommended) or use local fallback users.</p>
-      <label class="block mb-2"><span class="text-sm">Apps Script Sync URL (optional)</span>
-        <input id="appsScriptUrl" class="mt-1 block w-full rounded-lg border p-2" placeholder="https://script.google.com/macros/s/XXXX/exec (optional)" />
-      </label>
-      <label class="block mb-2"><span class="text-sm">Sheet ID (optional)</span>
-        <input id="sheetId" class="mt-1 block w-full rounded-lg border p-2" placeholder="13T36w322JzTMFLNK3PEVAJAPa_pAMpWvDWWr7B9EC-A" />
-      </label>
-      <label class="block mb-2"><span class="text-sm">Username</span>
-        <input id="loginUser" class="mt-1 block w-full rounded-lg border p-2" placeholder="username" />
-      </label>
-      <label class="block mb-4"><span class="text-sm">Password</span>
-        <input id="loginPass" type="password" class="mt-1 block w-full rounded-lg border p-2" placeholder="password" />
-      </label>
-      <div class="flex gap-2">
-        <button id="loginBtn" class="px-4 py-2 rounded-xl bg-sky-600 text-white">Sign in</button>
-        <button id="demoBtn" class="px-4 py-2 rounded-xl bg-slate-200">Use Demo (no sheet)</button>
-        <button id="howBtn" class="ml-auto px-3 py-2 rounded-xl bg-amber-100">Instructions</button>
+<body class="bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">Stationary Ordering System</h1>
+        <p class="text-gray-600">Manage and track stationary requests with live inventory updates</p>
       </div>
-      <p class="text-xs text-slate-400 mt-3">Tip: If you want cloud sync, deploy a tiny Google Apps Script web app (instructions available) and paste its URL above. The app will proxy reads/writes to your Sheet securely.</p>
+      <div class="flex items-center space-x-4">
+        <div class="relative">
+          <select id="yearSelector" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+            <option>2023</option>
+            <option selected>2024</option>
+            <option>2025</option>
+          </select>
+        </div>
+        <button id="syncBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+          <i class="fas fa-sync-alt mr-2"></i> Sync Data
+        </button>
+        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+          <span class="text-blue-600 font-bold">AD</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="flex space-x-1 mb-6">
+      <div class="nav-tab active" data-tab="ordering">Ordering</div>
+      <div class="nav-tab" data-tab="inventory">Inventory</div>
+      <div class="nav-tab" data-tab="history">Order History</div>
     </div>
 
-    <!-- Main App -->
-    <div id="app" class="hidden mt-6">
-      <header class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-2xl bg-sky-100 grid place-items-center"><span class="text-sky-600 font-bold">WS</span></div>
-        <div>
-          <h1 id="title" class="text-2xl md:text-3xl font-bold">Material Ordering System</h1>
-          <p id="subtitle" class="text-sm text-slate-500 -mt-1">Scan • Auto-update • Cloud sync</p>
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="summary-card total card">
+        <div class="flex items-center">
+          <div class="rounded-full bg-blue-100 p-3 mr-4">
+            <i class="fas fa-boxes text-blue-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Total Products</p>
+            <h3 class="text-2xl font-bold text-gray-800">47</h3>
+          </div>
         </div>
-        <div class="ml-auto flex items-center gap-3">
-          <span id="userBadge" class="badge bg-indigo-100 text-indigo-700">—</span>
-          <button id="logoutBtn" class="px-3 py-1 rounded-lg bg-rose-100 text-rose-700">Logout</button>
+      </div>
+      <div class="summary-card pending card">
+        <div class="flex items-center">
+          <div class="rounded-full bg-amber-100 p-3 mr-4">
+            <i class="fas fa-clipboard-list text-amber-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Pending Requests</p>
+            <h3 class="text-2xl font-bold text-gray-800">12</h3>
+          </div>
         </div>
-      </header>
+      </div>
+      <div class="summary-card completed card">
+        <div class="flex items-center">
+          <div class="rounded-full bg-green-100 p-3 mr-4">
+            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Completed This Month</p>
+            <h3 class="text-2xl font-bold text-gray-800">28</h3>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <section class="grid lg:grid-cols-[520px_1fr] gap-6">
-        <!-- Scanner pane -->
-        <div class="space-y-4">
-          <div class="bg-white rounded-2xl shadow p-4">
-            <div class="flex items-center gap-2 mb-3">
-              <button id="startBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white">Start Scan</button>
-              <button id="stopBtn" class="px-3 py-2 rounded-xl bg-slate-200">Stop</button>
-              <label class="ml-auto text-sm text-slate-600 flex items-center gap-2">Qty
-                <input id="qtyStep" type="number" value="1" min="1" class="w-16 px-2 py-1 rounded-lg border" />
-              </label>
+    <!-- Ordering Tab Content -->
+    <div id="orderingTab" class="tab-content">
+      <div class="card mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800">Stationary Products</h2>
+          <div class="flex space-x-2">
+            <div class="relative">
+              <input type="text" placeholder="Search products..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
             </div>
-            <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden grid place-items-center relative">
-              <video id="video" class="w-full h-full object-cover"></video>
-              <div id="scanRegion" class="scan-region hidden">
-                <div class="scan-line"></div>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+              <i class="fas fa-plus mr-2"></i> New Request
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Product Code</th>
+                <th>Product Visual</th>
+                <th>Description</th>
+                <th>Item Size</th>
+                <th>Current Stock</th>
+                <th>Jan</th>
+                <th>Feb</th>
+                <th>Mar</th>
+                <th>Apr</th>
+                <th>May</th>
+                <th>Jun</th>
+                <th>Jul</th>
+                <th>Aug</th>
+                <th>Sep</th>
+                <th>Oct</th>
+                <th>Nov</th>
+                <th>Dec</th>
+                <th>Total</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-mono">PAP-001</td>
+                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image"></td>
+                <td>A4 Copy Paper (500 sheets)</td>
+                <td>210x297mm</td>
+                <td>
+                  <div class="flex items-center">
+                    <span class="mr-2">142</span>
+                    <div class="progress-bar w-16">
+                      <div class="progress-fill progress-high" style="width: 75%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><input type="number" min="0" class="input-number" value="5"></td>
+                <td><input type="number" min="0" class="input-number" value="8"></td>
+                <td><input type="number" min="0" class="input-number" value="10"></td>
+                <td><input type="number" min="0" class="input-number" value="7"></td>
+                <td><input type="number" min="0" class="input-number" value="6"></td>
+                <td><input type="number" min="0" class="input-number" value="9"></td>
+                <td><input type="number" min="0" class="input-number" value="8"></td>
+                <td><input type="number" min="0" class="input-number" value="7"></td>
+                <td><input type="number" min="0" class="input-number" value="10"></td>
+                <td><input type="number" min="0" class="input-number" value="8"></td>
+                <td><input type="number" min="0" class="input-number" value="9"></td>
+                <td><input type="number" min="0" class="input-number" value="7"></td>
+                <td class="font-semibold">94</td>
+                <td>
+                  <button class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-save"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-mono">PEN-002</td>
+                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image"></td>
+                <td>Blue Ballpoint Pen (Box of 12)</td>
+                <td>14cm</td>
+                <td>
+                  <div class="flex items-center">
+                    <span class="mr-2">36</span>
+                    <div class="progress-bar w-16">
+                      <div class="progress-fill progress-medium" style="width: 45%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><input type="number" min="0" class="input-number" value="2"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="2"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="2"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="2"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="2"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="2"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td class="font-semibold">30</td>
+                <td>
+                  <button class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-save"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-mono">NOTE-003</td>
+                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image"></td>
+                <td>Spiral Notebook (80 pages)</td>
+                <td>A5</td>
+                <td>
+                  <div class="flex items-center">
+                    <span class="mr-2">18</span>
+                    <div class="progress-bar w-16">
+                      <div class="progress-fill progress-low" style="width: 20%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><input type="number" min="0" class="input-number" value="4"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="5"></td>
+                <td><input type="number" min="0" class="input-number" value="4"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="5"></td>
+                <td><input type="number" min="0" class="input-number" value="4"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="5"></td>
+                <td><input type="number" min="0" class="input-number" value="4"></td>
+                <td><input type="number" min="0" class="input-number" value="3"></td>
+                <td><input type="number" min="0" class="input-number" value="5"></td>
+                <td class="font-semibold">48</td>
+                <td>
+                  <button class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-save"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-mono">STPL-004</td>
+                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image"></td>
+                <td>Standard Stapler</td>
+                <td>Medium</td>
+                <td>
+                  <div class="flex items-center">
+                    <span class="mr-2">9</span>
+                    <div class="progress-bar w-16">
+                      <div class="progress-fill progress-low" style="width: 15%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><input type="number" min="0" class="input-number" value="1"></td>
+                <td><input type="number" min="0" class="input-number" value="0"></td>
+                <td><input type="number" min="0" class="input-number" value="1"></td>
+                <td><input type="number" min="0" class="input-number" value="0"></td>
+                <td><input type="number" min="0" class="input-number" value="1"></td>
+                <td><input type="number" min="0" class="input-number" value="0"></td>
+                <td><input type="number" min="0" class="input-number" value="1"></td>
+                <td><input type="number" min="0" class="input-number" value="0"></td>
+                <td><input type="number" min="0" class="input-number" value="1"></td>
+                <td><input type="number" min="0" class="input-number" value="0"></td>
+                <td><input type="number" min="0" class="input-number" value="1"></td>
+                <td><input type="number" min="0" class="input-number" value="0"></td>
+                <td class="font-semibold">6</td>
+                <td>
+                  <button class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-save"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="card">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Requests</h3>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p class="font-medium">A4 Paper (20 units)</p>
+                <p class="text-sm text-gray-500">Requested by: John Doe • 2 hours ago</p>
               </div>
-              <canvas id="overlay" class="absolute inset-0"></canvas>
+              <span class="badge badge-warning">Pending</span>
             </div>
-            <div class="flex items-center gap-2 mt-3">
-              <select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
-              <button id="torchBtn" class="px-3 py-2 rounded-xl bg-slate-200">Toggle Torch</button>
-            </div>
-            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-              <input id="manualInput" placeholder="Manual barcode entry…" class="px-3 py-2 rounded-xl border" />
-              <button id="manualSubmit" class="px-3 py-2 rounded-xl bg-slate-800 text-white">Submit Manual</button>
-            </div>
-          </div>
-
-          <!-- Pending Items Section -->
-          <div id="pendingSection" class="bg-white rounded-2xl shadow p-4 hidden">
-            <h2 class="font-semibold mb-3">Pending Items</h2>
-            <div class="overflow-auto rounded-xl border max-h-60">
-              <table class="min-w-full text-sm">
-                <thead class="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th class="text-left p-2">Barcode</th>
-                    <th class="text-left p-2">Name</th>
-                    <th class="text-right p-2">Qty</th>
-                    <th class="text-left p-2">Time</th>
-                    <th class="text-left p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="pendingTbody"></tbody>
-              </table>
-            </div>
-            <div class="mt-3 flex justify-end">
-              <button id="submitAllBtn" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Submit All</button>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-            <h2 class="font-semibold">Import / Export</h2>
-            <div class="grid md:grid-cols-2 gap-2">
-              <div class="flex items-center gap-2">
-                <input id="csvFile" type="file" accept=".csv" class="block w-full text-sm" />
-                <button id="importBtn" class="px-3 py-2 rounded-xl bg-slate-200">Import CSV</button>
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p class="font-medium">Blue Pens (5 boxes)</p>
+                <p class="text-sm text-gray-500">Requested by: Jane Smith • 5 hours ago</p>
               </div>
-              <div class="flex items-center gap-2">
-                <button id="exportInvBtn" class="px-3 py-2 rounded-xl bg-sky-600 text-white w-full">Export Inventory CSV</button>
-                <button id="exportLogBtn" class="px-3 py-2 rounded-xl bg-slate-800 text-white w-full">Export Log CSV</button>
-              </div>
+              <span class="badge badge-success">Approved</span>
             </div>
-            <p class="text-xs text-slate-500">CSV: <code>barcode, name, qty</code>. You can also sync to Sheet.</p>
-          </div>
-
-          <div class="bg-white rounded-2xl shadow p-4 flex items-center gap-2">
-            <button id="undoBtn" class="px-3 py-2 rounded-xl bg-amber-500 text-white">Undo Last</button>
-            <button id="resetBtn" class="ml-auto px-3 py-2 rounded-xl bg-slate-200">Reset App</button>
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p class="font-medium">Notebooks (10 units)</p>
+                <p class="text-sm text-gray-500">Requested by: Robert Brown • Yesterday</p>
+              </div>
+              <span class="badge badge-info">Processing</span>
+            </div>
           </div>
         </div>
 
-        <!-- Inventory pane -->
-        <div class="bg-white rounded-2xl shadow p-4">
-          <div class="flex flex-col md:flex-row md:items-center gap-2 mb-3">
-            <div class="relative flex-1">
-              <input id="search" placeholder="Search name or barcode…" class="w-full px-3 py-2 rounded-xl border" />
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="addItemBtn" class="px-3 py-2 rounded-xl bg-slate-200">Add Item</button>
-              <span class="text-sm text-slate-500">Total SKUs: <span id="skuCount">0</span></span>
-            </div>
-          </div>
-          <div class="overflow-auto rounded-xl border">
-            <table class="min-w-full text-sm">
-              <thead class="bg-slate-50 text-slate-600">
-                <tr>
-                  <th class="text-left p-3">Barcode</th>
-                  <th class="text-left p-3">Name</th>
-                  <th class="text-right p-3">Qty</th>
-                  <th class="text-left p-3">Last Scan</th>
-                  <th class="text-left p-3">User</th>
-                  <th class="text-left p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="tbody"></tbody>
-            </table>
+        <div class="card">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Monthly Order Summary</h3>
+          <div class="flex items-center justify-center">
+            <canvas id="monthlyChart" width="300" height="200"></canvas>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
 
-      <footer class="text-center text-xs text-slate-400 mt-6">Data stored locally (IndexedDB). Cloud sync uses Apps Script endpoint if provided.</footer>
+    <!-- Inventory Tab Content -->
+    <div id="inventoryTab" class="tab-content hidden">
+      <div class="card mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800">Inventory Management</h2>
+          <div class="flex space-x-2">
+            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
+              <i class="fas fa-file-export mr-2"></i> Export
+            </button>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+              <i class="fas fa-plus mr-2"></i> New Product
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Product Code</th>
+                <th>Product Visual</th>
+                <th>Description</th>
+                <th>Current Stock</th>
+                <th>Min Stock Level</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-mono">PAP-001</td>
+                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image"></td>
+                <td>A4 Copy Paper (500 sheets)</td>
+                <td>142</td>
+                <td>50</td>
+                <td><span class="badge badge-success">In Stock</span></td>
+                <td>2023-10-15</td>
+                <td>
+                  <button class="text-blue-600 hover:text-blue-800 mr-2">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-mono">PEN-002</td>
+                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image"></td>
+                <td>Blue Ballpoint Pen (Box of 12)</td>
+                <td>36</td>
+                <td>40</td>
+                <td><span class="badge badge-warning">Low Stock</span></td>
+                <td>2023-10-18</td>
+                <td>
+                  <button class="text-blue-600 hover:text-blue-800 mr-2">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-mono">NOTE-003</td>
+                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image"></td>
+                <td>Spiral Notebook (80 pages)</td>
+                <td>18</td>
+                <td>25</td>
+                <td><span class="badge badge-warning">Low Stock</span></td>
+                <td>2023-10-20</td>
+                <td>
+                  <button class="text-blue-600 hover:text-blue-800 mr-2">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-mono">STPL-004</td>
+                <td><img src="https://placehold.co/60x60/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image"></td>
+                <td>Standard Stapler</td>
+                <td>9</td>
+                <td>15</td>
+                <td><span class="badge badge-warning">Low Stock</span></td>
+                <td>2023-10-22</td>
+                <td>
+                  <button class="text-blue-600 hover:text-blue-800 mr-2">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Tab Content -->
+    <div id="historyTab" class="tab-content hidden">
+      <div class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800">Order History</h2>
+          <div class="flex space-x-2">
+            <div class="relative">
+              <select class="pl-3 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option>All Status</option>
+                <option>Pending</option>
+                <option>Approved</option>
+                <option>Rejected</option>
+                <option>Completed</option>
+              </select>
+            </div>
+            <div class="relative">
+              <input type="text" placeholder="Search history..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Requested By</th>
+                <th>Department</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-mono">ORD-1025</td>
+                <td class="flex items-center">
+                  <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=A4" alt="A4 Paper" class="product-image mr-2">
+                  <span>A4 Paper</span>
+                </td>
+                <td>5 units</td>
+                <td>John Doe</td>
+                <td>Marketing</td>
+                <td>2023-10-15</td>
+                <td><span class="badge badge-success">Completed</span></td>
+              </tr>
+              <tr>
+                <td class="font-mono">ORD-1024</td>
+                <td class="flex items-center">
+                  <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Pen" alt="Blue Pen" class="product-image mr-2">
+                  <span>Blue Pens</span>
+                </td>
+                <td>3 boxes</td>
+                <td>Jane Smith</td>
+                <td>Sales</td>
+                <td>2023-10-14</td>
+                <td><span class="badge badge-info">Processing</span></td>
+              </tr>
+              <tr>
+                <td class="font-mono">ORD-1023</td>
+                <td class="flex items-center">
+                  <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Note" alt="Notebook" class="product-image mr-2">
+                  <span>Notebooks</span>
+                </td>
+                <td>10 units</td>
+                <td>Robert Brown</td>
+                <td>HR</td>
+                <td>2023-10-12</td>
+                <td><span class="badge badge-success">Completed</span></td>
+              </tr>
+              <tr>
+                <td class="font-mono">ORD-1022</td>
+                <td class="flex items-center">
+                  <img src="https://placehold.co/40x40/e2e8f0/6b7280?text=Stpl" alt="Stapler" class="product-image mr-2">
+                  <span>Staplers</span>
+                </td>
+                <td>2 units</td>
+                <td>Sarah Johnson</td>
+                <td>Finance</td>
+                <td>2023-10-10</td>
+                <td><span class="badge badge-success">Completed</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
-  <script id="zxingScript"></script>
-
   <script>
-const $ = sel => document.querySelector(sel);
-const DB_NAME = 'ws-upgraded-db', DB_VER = 3; // Version increased for schema changes
-let db;
-let currentStream = null, currentTrack = null, scanning=false, lastAction=null;
-let appsScriptUrl = '';
-let sheetId = '';
-let currentUser = null;
-let cameraList = [];
-let lastScannedCode = null;
-let scanCooldown = false;
-let scannedBarcodes = new Set();
-let scanRegion = null;
-let scanRegionRect = null;
-let pendingItems = [];
-
-// === NEW CODE: Save and Load Settings ===
-function saveSettings() {
-  const settings = {
-    appsScriptUrl: $('#appsScriptUrl').value.trim(),
-    sheetId: $('#sheetId').value.trim()
-  };
-  localStorage.setItem('warehouseScannerSettings', JSON.stringify(settings));
-}
-
-function loadSettings() {
-  const saved = localStorage.getItem('warehouseScannerSettings');
-  if (saved) {
-    const settings = JSON.parse(saved);
-    $('#appsScriptUrl').value = settings.appsScriptUrl || '';
-    $('#sheetId').value = settings.sheetId || '';
-  }
-}
-// === END NEW CODE ===
-
-async function openDB(){
-  return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = ()=>{
-      const d = req.result;
-      if(!d.objectStoreNames.contains('inventory')) {
-        const s = d.createObjectStore('inventory', { keyPath: 'barcode' });
-        s.createIndex('name','name',{unique:false});
-      }
-      if(!d.objectStoreNames.contains('log')) {
-        const logStore = d.createObjectStore('log',{keyPath:'id',autoIncrement:true});
-        logStore.createIndex('barcode', 'barcode', {unique: false});
-        logStore.createIndex('user', 'user', {unique: false});
-        logStore.createIndex('ts', 'ts', {unique: false});
-      }
-      if(!d.objectStoreNames.contains('pending')) {
-        const pendingStore = d.createObjectStore('pending', {keyPath: 'id', autoIncrement: true});
-        pendingStore.createIndex('barcode', 'barcode', {unique: false});
-        pendingStore.createIndex('ts', 'ts', {unique: false});
-      }
-    };
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-
-async function tx(store, mode, fn){
-  return new Promise((resolve,reject)=>{
-    const t = db.transaction(store, mode);
-    const s = t.objectStore(store);
-    const r = fn(s);
-    t.oncomplete = ()=> resolve(r);
-    t.onerror = ()=> reject(t.error);
-  });
-}
-async function getAll(store){
-  return new Promise((resolve,reject)=>{
-    const req = db.transaction(store).objectStore(store).getAll();
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-
-function setStatus(msg){ $('#subtitle').textContent = msg || ''; }
-function setUserBadge(){ $('#userBadge').textContent = currentUser ? currentUser.username : '—'; }
-
-function fallbackUsers(){
-  return [{username:'admin',password:'admin123'},{username:'staff',password:'staff123'}];
-}
-
-async function fetchUsersFromSheet(){
-  if(!appsScriptUrl || !sheetId) return null;
-  try {
-    const url = new URL(appsScriptUrl);
-    url.searchParams.set('action','getUsers');
-    url.searchParams.set('sheetId', sheetId);
-    const res = await fetch(url.toString());
-    if(!res.ok) throw new Error('Apps Script error');
-    const rows = await res.json();
-    const out = rows.map(r => ({ username: String(r[0]||''), password: String(r[1]||'') })).filter(u=>u.username);
-    return out;
-  } catch(e){ console.warn('fetchUsersFromSheet', e); return null; }
-}
-
-async function tryLogin(username,password){
-  appsScriptUrl = $('#appsScriptUrl').value.trim();
-  sheetId = $('#sheetId').value.trim();
-  const sheetUsers = await fetchUsersFromSheet();
-  if(sheetUsers){
-    const found = sheetUsers.find(u => u.username === username && u.password === password);
-    if(found) return { username: found.username, via: 'sheet' };
-  }
-  const local = fallbackUsers().find(u=>u.username===username && u.password===password);
-  if(local) return { username: local.username, via: 'local' };
-  return null;
-}
-
-async function loginFlow(){
-  const u = $('#loginUser').value.trim();
-  const p = $('#loginPass').value;
-  if(!u || !p) return alert('Enter username and password');
-  setStatus('Authenticating…');
-  
-  appsScriptUrl = $('#appsScriptUrl').value.trim();
-  sheetId = $('#sheetId').value.trim();
-  saveSettings();
-
-  const res = await tryLogin(u,p);
-  if(!res){ setStatus('Login failed'); return alert('Invalid credentials'); }
-  currentUser = { username: res.username, via: res.via };
-  $('#loginCard').classList.add('hidden');
-  $('#app').classList.remove('hidden');
-  setUserBadge();
-  await initApp();
-}
-
-$('#loginBtn').onclick = loginFlow;
-$('#demoBtn').onclick = ()=>{
-  $('#loginUser').value = 'admin'; $('#loginPass').value='admin123';
-  $('#loginBtn').click();
-};
-$('#howBtn').onclick = ()=> alert('Instructions:\\n1) (Optional) Deploy Apps Script web app and paste URL + sheet ID.\\n2) Create a \"users\" sheet with username,password rows, and an \"inventory\" sheet with barcode,name,qty rows.\\n3) Login and start scanning. See file comments for Apps Script code.');
-
-$('#logoutBtn').onclick = async ()=>{
-  currentUser=null;
-  $('#app').classList.add('hidden');
-  $('#loginCard').classList.remove('hidden');
-  setStatus('');
-  scannedBarcodes.clear();
-};
-
-// Inventory functions
-async function upsertItem({barcode,name='',qty=0}){
-  await tx('inventory','readwrite', s => s.put({ barcode, name, qty, lastScan: null, lastUser: null }));
-}
-
-async function adjustQty(barcode, delta, name = ''){
-  await tx('inventory','readwrite', s=>{
-    const req = s.get(barcode);
-    req.onsuccess = async ()=>{
-      const item = req.result || { barcode, name: name || '', qty:0, lastScan:null, lastUser: null };
-      item.qty = Math.max(0, (item.qty||0) + delta);
-      item.lastScan = new Date().toISOString();
-      item.lastUser = currentUser.username; // Record username
-      s.put(item);
-      lastAction = { barcode, delta };
-      renderTable();
-      
-      // Log the action with username
-      await tx('log','readwrite', ss => ss.add({ 
-        ts: new Date().toISOString(), 
-        user: currentUser.username, 
-        barcode, 
-        delta 
-      }));
-      
-      // Sync to cloud
-      await syncRowToCloud(item);
-    };
-  });
-}
-
-async function syncRowToCloud(item, retries = 3) {
-  if(!appsScriptUrl || !sheetId) return;
-  
-  for (let i = 0; i < retries; i++) {
-    try {
-      const url = new URL(appsScriptUrl);
-      url.searchParams.set('action','setRow');
-      url.searchParams.set('sheetId', sheetId);
-      url.searchParams.set('barcode', item.barcode);
-      url.searchParams.set('name', item.name||'');
-      url.searchParams.set('qty', String(item.qty||0));
-      url.searchParams.set('user', currentUser.username);
-      
-      const response = await fetch(url.toString());
-      if (response.ok) {
-        console.log('Successfully synced to Google Sheets');
-        return true;
-      } else {
-        console.warn('Google Sheets sync failed:', response.status);
-      }
-    } catch(e){ 
-      console.warn('syncRowToCloud attempt ' + (i+1), e); 
-    }
-    
-    // Wait before retrying (exponential backoff)
-    if (i < retries - 1) {
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
-    }
-  }
-  
-  console.error('All sync attempts failed');
-  return false;
-}
-
-async function deleteFromCloud(barcode, retries = 3) {
-  if(!appsScriptUrl || !sheetId) return;
-  
-  for (let i = 0; i < retries; i++) {
-    try {
-      const url = new URL(appsScriptUrl);
-      url.searchParams.set('action','deleteRow');
-      url.searchParams.set('sheetId', sheetId);
-      url.searchParams.set('barcode', barcode);
-      
-      const response = await fetch(url.toString());
-      if (response.ok) {
-        console.log('Successfully deleted from Google Sheets');
-        return true;
-      } else {
-        console.warn('Google Sheets delete failed:', response.status);
-      }
-    } catch(e){ 
-      console.warn('deleteFromCloud attempt ' + (i+1), e); 
-    }
-    
-    // Wait before retrying (exponential backoff)
-    if (i < retries - 1) {
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
-    }
-  }
-  
-  console.error('All delete attempts failed');
-  return false;
-}
-
-async function fetchInventoryFromCloud(){
-  if(!appsScriptUrl || !sheetId) return null;
-  try {
-    const url = new URL(appsScriptUrl);
-    url.searchParams.set('action','getInventory');
-    url.searchParams.set('sheetId', sheetId);
-    const res = await fetch(url.toString());
-    if(!res.ok) throw new Error('Apps Script fetch failed');
-    const rows = await res.json();
-    return rows.map(r => ({ barcode: String(r[0]||''), name: String(r[1]||''), qty: Number(r[2]||0) })).filter(x=>x.barcode);
-  } catch(e){ console.warn('fetchInventoryFromCloud', e); return null; }
-}
-
-async function importCSVText(text){
-  const rows = text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
-  for(const r of rows){
-    const [barcode,name,qty] = r.split(',').map(cell => cell.trim());
-    if(!barcode) continue;
-    await upsertItem({ barcode, name: name || '', qty: Number(qty||0) });
-    
-    if(appsScriptUrl && sheetId) {
-      await syncRowToCloud({ barcode, name: name || '', qty: Number(qty||0) });
-    }
-  }
-  renderTable();
-}
-
-function downloadCSV(rows, filename){
-  const csvContent = rows.map(row => {
-    return row.map(cell => {
-      if (cell === null || cell === undefined) return '""';
-      const stringCell = String(cell);
-      if (stringCell.includes('"') || stringCell.includes(',') || stringCell.includes('\n')) {
-        return '"' + stringCell.replace(/"/g, '""') + '"';
-      }
-      return stringCell;
-    }).join(',');
-  }).join('\r\n');
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a'); 
-  const url = URL.createObjectURL(blob);
-  a.href = url;
-  a.download = filename;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 100);
-}
-
-async function exportInventoryCSV(){
-  const items = await getAll('inventory');
-  const rows = [['barcode','name','qty','lastScan','lastUser'], ...items.map(i=>[i.barcode,i.name||'',i.qty||0,i.lastScan||'',i.lastUser||''])];
-  downloadCSV(rows, `inventory-${new Date().toISOString().slice(0,10)}.csv`);
-}
-
-async function exportLogCSV(){
-  const items = await getAll('log');
-  const rows = [['id','ts','user','barcode','delta'], ...items.map((i,idx)=>[idx+1,i.ts,i.user||'',i.barcode,i.delta])];
-  downloadCSV(rows, `scanlog-${new Date().toISOString().slice(0,10)}.csv`);
-}
-
-async function renderTable(){
-  const q = $('#search').value.toLowerCase();
-  const items = await getAll('inventory');
-  items.sort((a,b)=> (b.lastScan||'').localeCompare(a.lastScan||''));
-  const filtered = items.filter(i => (i.barcode+' '+(i.name||'')).toLowerCase().includes(q));
-  $('#skuCount').textContent = String(items.length);
-  const tbody = $('#tbody'); tbody.innerHTML = '';
-  for(const it of filtered){
-    const tr = document.createElement('tr'); tr.className='border-t border-slate-100 hover:bg-slate-50';
-    tr.innerHTML = `
-      <td class="p-3 font-mono text-xs">${it.barcode}</td>
-      <td class="p-3"><input data-bc="${it.barcode}" class="nameInput w-full bg-transparent outline-none" value="${(it.name||'').replaceAll('"','&quot;')}" /></td>
-      <td class="p-3 text-right font-semibold tabular-nums">${it.qty||0}</td>
-      <td class="p-3 text-xs text-slate-500">${it.lastScan ? new Date(it.lastScan).toLocaleString() : '-'}</td>
-      <td class="p-3 text-xs text-slate-500">${it.lastUser || '-'}</td>
-      <td class="p-3 flex items-center gap-2">
-        <button data-bc="${it.barcode}" class="inc px-2 py-1 rounded-lg bg-slate-200">+1</button>
-        <button data-bc="${it.barcode}" class="dec px-2 py-1 rounded-lg bg-slate-200">-1</button>
-        <button data-bc="${it.barcode}" class="del px-2 py-1 rounded-lg bg-rose-600 text-white">Delete</button>
-      </td>`;
-    tbody.appendChild(tr);
-  }
-  tbody.querySelectorAll('.inc').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, +1));
-  tbody.querySelectorAll('.dec').forEach(b=>b.onclick=()=>adjustQty(b.dataset.bc, -1));
-  tbody.querySelectorAll('.del').forEach(b=>b.onclick=async ()=>{ 
-    if(confirm('Delete this SKU?')) await removeItem(b.dataset.bc); 
-  });
-  tbody.querySelectorAll('.nameInput').forEach(inp=>{
-    inp.onchange = async ()=> {
-      await tx('inventory','readwrite', s=>{
-        const req = s.get(inp.dataset.bc);
-        req.onsuccess = ()=>{ 
-          const it=req.result; 
-          it.name=inp.value; 
-          s.put(it); 
-          syncRowToCloud(it); 
-        };
+    // Tab navigation functionality
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Remove active class from all tabs
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        
+        // Add active class to clicked tab
+        tab.classList.add('active');
+        
+        // Hide all tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+        
+        // Show the selected tab content
+        const tabName = tab.getAttribute('data-tab');
+        document.getElementById(`${tabName}Tab`).classList.remove('hidden');
       });
-    };
-  });
-}
-
-async function removeItem(barcode){
-  await tx('inventory','readwrite', s=> s.delete(barcode));
-  // Also delete from Google Sheets
-  await deleteFromCloud(barcode);
-  renderTable();
-}
-
-async function undoLast(){ if(!lastAction) return; const {barcode,delta}=lastAction; await adjustQty(barcode, -delta); lastAction=null; }
-
-// Pending items functions
-async function addPendingItem(barcode, name = '') {
-  const timestamp = new Date().toISOString();
-  const pendingItem = {
-    barcode,
-    name,
-    qty: 1,
-    ts: timestamp,
-    user: currentUser.username
-  };
-  
-  // Add to pending items array
-  pendingItems.push(pendingItem);
-  
-  // Save to database
-  const result = await tx('pending', 'readwrite', s => s.add(pendingItem));
-  
-  // Store the ID for later reference
-  pendingItem.id = result;
-  
-  // Show pending section
-  $('#pendingSection').classList.remove('hidden');
-  
-  // Update pending items display
-  renderPendingItems();
-}
-
-async function removePendingItem(id) {
-  // Remove from array
-  pendingItems = pendingItems.filter(item => item.id !== id);
-  
-  // Remove from database
-  await tx('pending', 'readwrite', s => s.delete(id));
-  
-  // Update display
-  renderPendingItems();
-  
-  // Hide section if no more pending items
-  if (pendingItems.length === 0) {
-    $('#pendingSection').classList.add('hidden');
-  }
-}
-
-async function updatePendingItemQty(id, newQty) {
-  // Find item in array
-  const itemIndex = pendingItems.findIndex(item => item.id === id);
-  if (itemIndex !== -1) {
-    pendingItems[itemIndex].qty = newQty;
-    
-    // Update in database
-    await tx('pending', 'readwrite', s => {
-      const req = s.get(id);
-      req.onsuccess = () => {
-        const item = req.result;
-        item.qty = newQty;
-        s.put(item);
-      };
     });
-    
-    // Update display
-    renderPendingItems();
-  }
-}
 
-async function submitPendingItem(id) {
-  // Find item
-  const itemIndex = pendingItems.findIndex(item => item.id === id);
-  if (itemIndex !== -1) {
-    const item = pendingItems[itemIndex];
-    
-    // Update inventory
-    await adjustQty(item.barcode, item.qty, item.name);
-    
-    // Remove from pending
-    await removePendingItem(id);
-  }
-}
-
-async function submitAllPendingItems() {
-  for (const item of pendingItems) {
-    await adjustQty(item.barcode, item.qty, item.name);
-  }
-  
-  // Clear all pending items
-  await tx('pending', 'readwrite', s => s.clear());
-  pendingItems = [];
-  $('#pendingSection').classList.add('hidden');
-}
-
-function renderPendingItems() {
-  const tbody = $('#pendingTbody');
-  tbody.innerHTML = '';
-  
-  for (const item of pendingItems) {
-    const tr = document.createElement('tr');
-    tr.className = 'border-t border-slate-100 hover:bg-slate-50 pending-item';
-    tr.innerHTML = `
-      <td class="p-2 font-mono text-xs">${item.barcode}</td>
-      <td class="p-2">${item.name || '—'}</td>
-      <td class="p-2 text-right">
-        <input type="number" value="${item.qty}" min="1" class="w-16 px-1 py-0.5 rounded border pending-qty" data-id="${item.id}" />
-      </td>
-      <td class="p-2 text-xs text-slate-500">${new Date(item.ts).toLocaleTimeString()}</td>
-      <td class="p-2 flex items-center gap-1">
-        <button class="submit-pending px-2 py-1 rounded-lg bg-emerald-600 text-white text-xs" data-id="${item.id}">Submit</button>
-        <button class="remove-pending px-2 py-1 rounded-lg bg-rose-600 text-white text-xs" data-id="${item.id}">Remove</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  }
-  
-  // Add event listeners
-  tbody.querySelectorAll('.pending-qty').forEach(input => {
-    input.addEventListener('change', (e) => {
-      const id = parseInt(e.target.dataset.id);
-      const newQty = parseInt(e.target.value);
-      if (newQty > 0) {
-        updatePendingItemQty(id, newQty);
-      }
+    // Year selector change event
+    document.getElementById('yearSelector').addEventListener('change', function() {
+      // In a real application, this would fetch data for the selected year
+      console.log('Year changed to:', this.value);
+      // Show loading state
+      document.getElementById('syncBtn').innerHTML = '<i class="fas fa-sync-alt animate-spin mr-2"></i> Syncing...';
+      
+      // Simulate API call
+      setTimeout(() => {
+        document.getElementById('syncBtn').innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Sync Data';
+        alert(`Data synced for year ${this.value}`);
+      }, 1500);
     });
-  });
-  
-  tbody.querySelectorAll('.submit-pending').forEach(button => {
-    button.addEventListener('click', (e) => {
-      const id = parseInt(e.target.dataset.id);
-      submitPendingItem(id);
+
+    // Sync button event
+    document.getElementById('syncBtn').addEventListener('click', function() {
+      const year = document.getElementById('yearSelector').value;
+      this.innerHTML = '<i class="fas fa-sync-alt animate-spin mr-2"></i> Syncing...';
+      
+      // Simulate API call to Google Sheets
+      setTimeout(() => {
+        this.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Sync Data';
+        alert(`Data successfully synced with Google Sheets for ${year}`);
+      }, 2000);
     });
-  });
-  
-  tbody.querySelectorAll('.remove-pending').forEach(button => {
-    button.addEventListener('click', (e) => {
-      const id = parseInt(e.target.dataset.id);
-      removePendingItem(id);
+
+    // Input number change events
+    document.querySelectorAll('.input-number').forEach(input => {
+      input.addEventListener('change', function() {
+        // Calculate row total when any monthly value changes
+        const row = this.closest('tr');
+        const inputs = row.querySelectorAll('.input-number');
+        let total = 0;
+        
+        inputs.forEach(input => {
+          total += parseInt(input.value || 0);
+        });
+        
+        row.querySelector('td:last-of-type').previousElementSibling.textContent = total;
+      });
     });
-  });
-}
 
-async function loadPendingItems() {
-  pendingItems = await getAll('pending');
-  if (pendingItems.length > 0) {
-    $('#pendingSection').classList.remove('hidden');
-    renderPendingItems();
-  } else {
-    $('#pendingSection').classList.add('hidden');
-  }
-}
-
-async function startScan(){
-  try {
-    await stopScan();
-    const deviceId = $('#cameraSelect').value || undefined;
+    // Simple chart for monthly orders (mock)
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    // This would be replaced with a real chart library in production
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(10, 180 - 160, 20, 160); // Jan
+    ctx.fillRect(40, 180 - 120, 20, 120); // Feb
+    ctx.fillRect(70, 180 - 140, 20, 140); // Mar
+    ctx.fillRect(100, 180 - 100, 20, 100); // Apr
+    ctx.fillRect(130, 180 - 80, 20, 80);  // May
+    ctx.fillRect(160, 180 - 130, 20, 130); // Jun
+    ctx.fillRect(190, 180 - 150, 20, 150); // Jul
+    ctx.fillRect(220, 180 - 110, 20, 110); // Aug
+    ctx.fillRect(250, 180 - 90, 20, 90);  // Sep
+    ctx.fillRect(280, 180 - 70, 20, 70);  // Oct
     
-    // Improved camera constraints for better scanning
-    const constraints = { 
-      video: { 
-        deviceId: deviceId ? { exact: deviceId } : undefined, 
-        facingMode: 'environment',
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        focusMode: 'continuous'
-      }, 
-      audio: false 
-    };
-    
-    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-    const video = $('#video'); 
-    video.srcObject = currentStream; 
-    
-    const selectedCamera = cameraList.find(cam => cam.deviceId === deviceId);
-    if (selectedCamera) {
-      const isFrontCamera = selectedCamera.label.toLowerCase().includes('front') || 
-                           selectedCamera.label.toLowerCase().includes('facetime');
-      
-      if (isFrontCamera) {
-        video.classList.add('mirrored');
-      } else {
-        video.classList.remove('mirrored');
-      }
-    } else {
-      video.classList.remove('mirrored');
+    // Add month labels
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '10px Arial';
+    const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+    for (let i = 0; i < 10; i++) {
+      ctx.fillText(months[i], 15 + i * 30, 195);
     }
-    
-    await video.play();
-    currentTrack = currentStream.getVideoTracks()[0];
-    scanning = true; 
-    setStatus('Scanning…');
-    
-    // Show scan region
-    $('#scanRegion').classList.remove('hidden');
-    
-    // Reset scan tracking
-    lastScannedCode = null;
-    scanCooldown = false;
-    
-    // Get scan region dimensions for focused scanning
-    setTimeout(() => {
-      scanRegion = $('#scanRegion');
-      scanRegionRect = scanRegion.getBoundingClientRect();
-      const videoRect = video.getBoundingClientRect();
-      
-      // Calculate relative position for scanning region
-      scanRegionRect = {
-        x: scanRegionRect.left - videoRect.left,
-        y: scanRegionRect.top - videoRect.top,
-        width: scanRegionRect.width,
-        height: scanRegionRect.height
-      };
-    }, 500);
-    
-    if('BarcodeDetector' in window){
-      const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
-      const bd = new window.BarcodeDetector({ formats });
-      loopBarcodeDetector(bd);
-    } else {
-      await loadZXing();
-      const reader = new ZXing.BrowserMultiFormatReader();
-      loopZXing(reader);
-    }
-  } catch(e){ console.error(e); alert('Camera error: '+e.message); setStatus('Camera error'); }
-}
-
-let rafId=null;
-async function loopBarcodeDetector(detector){
-  const video = $('#video'); 
-  const canvas = $('#overlay'); 
-  const ctx = canvas.getContext('2d');
-  
-  const step = async ()=>{
-    if(!scanning) return;
-    if(video.readyState>=2){
-      canvas.width=video.videoWidth; 
-      canvas.height=video.videoHeight;
-      
-      try {
-        // If we have a scan region, only process that area for better performance
-        let codes = [];
-        
-        if (scanRegionRect) {
-          // Create a temporary canvas for the scan region only
-          const tempCanvas = document.createElement('canvas');
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCanvas.width = scanRegionRect.width * (video.videoWidth / video.clientWidth);
-          tempCanvas.height = scanRegionRect.height * (video.videoHeight / video.clientHeight);
-          
-          // Draw only the scan region portion
-          tempCtx.drawImage(
-            video, 
-            scanRegionRect.x * (video.videoWidth / video.clientWidth),
-            scanRegionRect.y * (video.videoHeight / video.clientHeight),
-            tempCanvas.width,
-            tempCanvas.height,
-            0, 0, tempCanvas.width, tempCanvas.height
-          );
-          
-          // Detect barcodes in the scan region only
-          codes = await detector.detect(tempCanvas);
-        } else {
-          // Fallback to full frame detection
-          codes = await detector.detect(video);
-        }
-        
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        
-        // Draw scan region border
-        if (scanRegionRect) {
-          ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(
-            scanRegionRect.x * (video.videoWidth / video.clientWidth),
-            scanRegionRect.y * (video.videoHeight / video.clientHeight),
-            scanRegionRect.width * (video.videoWidth / video.clientWidth),
-            scanRegionRect.height * (video.videoHeight / video.clientHeight)
-          );
-        }
-        
-        if(codes && codes.length && !scanCooldown){ 
-          const val = codes[0].rawValue; 
-          drawBox(ctx, codes[0].boundingBox); 
-          await onBarcode(val); 
-        }
-      } catch(e){ console.log('Detection error:', e); }
-    }
-    rafId = requestAnimationFrame(step);
-  }; 
-  step();
-}
-
-function drawBox(ctx, box){ 
-  if(!box) return; 
-  ctx.lineWidth=3; 
-  ctx.strokeStyle='lime'; 
-  ctx.strokeRect(box.x, box.y, box.width, box.height); 
-}
-
-async function loadZXing(){
-  return new Promise((resolve,reject)=>{
-    const s = document.getElementById('zxingScript');
-    if(s.getAttribute('src')) return resolve();
-    s.onload = ()=>resolve();
-    s.onerror = ()=>reject(new Error('Failed to load ZXing'));
-    s.src = 'https://unpkg.com/@zxing/library@0.21.2/esm/index.min.js';
-  });
-}
-
-async function loopZXing(reader){
-  const video = $('#video'); 
-  const canvas = $('#overlay'); 
-  const ctx = canvas.getContext('2d');
-  
-  const step = async ()=>{
-    if(!scanning) return;
-    if(video.readyState>=2){
-      canvas.width=video.videoWidth; 
-      canvas.height=video.videoHeight;
-      
-      // Draw scan region border
-      if (scanRegionRect) {
-        ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(
-          scanRegionRect.x * (video.videoWidth / video.clientWidth),
-          scanRegionRect.y * (video.videoHeight / video.clientHeight),
-          scanRegionRect.width * (video.videoWidth / video.clientWidth),
-          scanRegionRect.height * (video.videoHeight / video.clientHeight)
-        );
-      }
-      
-      try {
-        let result = null;
-        
-        // If we have a scan region, crop the image for ZXing
-        if (scanRegionRect) {
-          const tempCanvas = document.createElement('canvas');
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCanvas.width = scanRegionRect.width * (video.videoWidth / video.clientWidth);
-          tempCanvas.height = scanRegionRect.height * (video.videoHeight / video.clientHeight);
-          
-          tempCtx.drawImage(
-            video, 
-            scanRegionRect.x * (video.videoWidth / video.clientWidth),
-            scanRegionRect.y * (video.videoHeight / video.clientHeight),
-            tempCanvas.width,
-            tempCanvas.height,
-            0, 0, tempCanvas.width, tempCanvas.height
-          );
-          
-          // ZXing doesn't have a direct method for canvas, so we'd need to convert to ImageData
-          // For now, fall back to full frame if using ZXing with scan region
-          result = await reader.decodeOnceFromVideoElement(video);
-        } else {
-          result = await reader.decodeOnceFromVideoElement(video);
-        }
-        
-        if(result && result.text && !scanCooldown){ 
-          await onBarcode(result.text); 
-        }
-      } catch(e){}
-    }
-    rafId = requestAnimationFrame(step);
-  }; 
-  step();
-}
-
-async function onBarcode(code){
-  // Prevent duplicate scans of the same code
-  if (scannedBarcodes.has(code)) {
-    setStatus('Already scanned: ' + code);
-    return;
-  }
-  
-  // Set cooldown to prevent multiple scans
-  scanCooldown = true;
-  lastScannedCode = code;
-  
-  setStatus('Scanned: ' + code);
-  beep();
-  
-  // Add to scanned barcodes set to prevent re-scanning
-  scannedBarcodes.add(code);
-  
-  // Add to pending items instead of directly updating inventory
-  await addPendingItem(code);
-  
-  // Reset cooldown after 1.5 seconds for other barcodes
-  setTimeout(() => {
-    scanCooldown = false;
-  }, 1500);
-}
-
-function beep(){ 
-  try{ 
-    const ctx = new (window.AudioContext||window.webkitAudioContext)(); 
-    const o=ctx.createOscillator(); 
-    const g=ctx.createGain(); 
-    o.type='sine'; 
-    o.frequency.value=880; 
-    o.connect(g); 
-    g.connect(ctx.destination); 
-    o.start(); 
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15); 
-  } catch(e){} 
-}
-
-async function stopScan(){ 
-  scanning=false; 
-  if(rafId) cancelAnimationFrame(rafId); 
-  if(currentTrack) try{ currentTrack.stop(); }catch(_){} 
-  if(currentStream) currentStream.getTracks().forEach(t=>t.stop()); 
-  currentTrack=null; 
-  currentStream=null; 
-  setStatus(''); 
-  
-  // Hide scan region
-  $('#scanRegion').classList.add('hidden');
-  scanRegionRect = null;
-}
-
-async function listCameras(){
-  try{
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cams = devices.filter(d=>d.kind==='videoinput');
-    cameraList = cams;
-    
-    $('#cameraSelect').innerHTML = cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Camera '+(i+1)}</option>`).join('');
-  }catch(e){}
-}
-
-// Function to switch camera
-async function switchCamera() {
-  if (scanning) {
-    await stopScan();
-    await startScan();
-  }
-}
-
-async function initApp(){
-  db = await openDB();
-  setUserBadge();
-  await listCameras();
-  appsScriptUrl = $('#appsScriptUrl').value.trim();
-  sheetId = $('#sheetId').value.trim();
-  if(appsScriptUrl && sheetId){
-    setStatus('Syncing from cloud…');
-    const rows = await fetchInventoryFromCloud();
-    if(rows){
-      await tx('inventory','readwrite', s=> s.clear());
-      for(const r of rows){ 
-        await upsertItem(r); 
-      }
-    }
-    setStatus('');
-  }
-  
-  // Load pending items
-  await loadPendingItems();
-  
-  renderTable();
-}
-
-$('#startBtn').onclick = startScan; 
-$('#stopBtn').onclick = stopScan;
-$('#torchBtn').onclick = async ()=>{ 
-  if(!currentTrack) return alert('Start camera first'); 
-  const caps = currentTrack.getCapabilities?.(); 
-  if(!caps||!caps.torch) return alert('Torch unsupported'); 
-  const settings = currentTrack.getSettings(); 
-  const torchOn = !settings.torch; 
-  await currentTrack.applyConstraints({ advanced:[{ torch: torchOn }] }); 
-};
-$('#manualSubmit').onclick = async ()=>{ 
-  const v = $('#manualInput').value.trim(); 
-  if(!v) return; 
-  await onBarcode(v); 
-  $('#manualInput').value=''; 
-};
-$('#manualInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#manualSubmit').click(); });
-
-$('#importBtn').onclick = async ()=>{
-  const f = $('#csvFile').files?.[0]; 
-  if(!f) return alert('Choose CSV'); 
-  const text = await f.text(); 
-  await importCSVText(text);
-};
-$('#exportInvBtn').onclick = exportInventoryCSV; 
-$('#exportLogBtn').onclick = exportLogCSV;
-$('#undoBtn').onclick = undoLast;
-$('#resetBtn').onclick = async ()=>{ 
-  if(!confirm('Reset app (delete DB)?')) return; 
-  await stopScan(); 
-  const req = indexedDB.deleteDatabase(DB_NAME); 
-  req.onsuccess = ()=> location.reload(); 
-};
-$('#search').oninput = renderTable;
-$('#addItemBtn').onclick = async ()=>{ 
-  const barcode = prompt('Barcode?'); 
-  if(!barcode) return; 
-  const name = prompt('Name (optional)')||''; 
-  const qty = Number(prompt('Qty (default 0)')||0)||0; 
-  await upsertItem({ barcode, name, qty }); 
-  renderTable(); 
-};
-
-// Submit all pending items
-$('#submitAllBtn').onclick = submitAllPendingItems;
-
-// Camera selection change event
-$('#cameraSelect').addEventListener('change', switchCamera);
-
-// Password verification function
-async function verifyPassword(password) {
-  if (currentUser && currentUser.via === 'sheet') {
-    const sheetUsers = await fetchUsersFromSheet();
-    if (sheetUsers) {
-      return sheetUsers.some(u => u.username === currentUser.username && u.password === password);
-    }
-  }
-  
-  return fallbackUsers().some(u => u.username === currentUser.username && u.password === password);
-}
-
-document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#loginBtn').click(); });
-
-(async function preinit(){ 
-  db = await openDB(); 
-  loadSettings();
-  setStatus('Ready'); 
-})();
   </script>
 </body>
 </html>
