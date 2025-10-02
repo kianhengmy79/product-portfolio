@@ -417,8 +417,25 @@ async function adjustQty(barcode, delta, name = ''){
   });
 }
 
+// FIXED syncRowToCloud function with header checks
 async function syncRowToCloud(item, retries = 3) {
-  if(!appsScriptUrl || !sheetId) return;
+  // Check if appsScriptUrl is defined
+  if(!appsScriptUrl) {
+    console.log('Apps Script URL not configured');
+    return;
+  }
+  
+  // PREVENT HEADER ROW SYNC - ADD THIS CHECK
+  if (!item.barcode || 
+      String(item.barcode).toLowerCase() === 'barcode' || 
+      String(item.name).toLowerCase() === 'name' ||
+      String(item.qty).toLowerCase() === 'qty' ||
+      String(item.barcode).toLowerCase() === 'last scan' ||
+      String(item.barcode).toLowerCase() === 'user' ||
+      isNaN(Number(item.qty))) {
+    console.log('Skipping header row or invalid data:', item.barcode);
+    return;
+  }
   
   for (let i = 0; i < retries; i++) {
     try {
@@ -502,15 +519,30 @@ async function fetchInventoryFromCloud(){
 
 async function importCSVText(text){
   const rows = text.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
+  let importCount = 0;
+  
   for(const r of rows){
     const [barcode,name,qty] = r.split(',').map(cell => cell.trim());
-    if(!barcode) continue;
+    
+    // SKIP HEADER ROWS IN CSV
+    if(!barcode || 
+       barcode.toLowerCase() === 'barcode' || 
+       barcode.toLowerCase() === 'name' ||
+       barcode.toLowerCase() === 'qty' ||
+       isNaN(Number(qty))) {
+      console.log('Skipping header row in CSV:', barcode);
+      continue;
+    }
+    
     await upsertItem({ barcode, name: name || '', qty: Number(qty||0) });
     
     if(appsScriptUrl && sheetId) {
       await syncRowToCloud({ barcode, name: name || '', qty: Number(qty||0) });
     }
+    importCount++;
   }
+  
+  setStatus(`Imported ${importCount} items from CSV`);
   renderTable();
 }
 
@@ -1234,7 +1266,7 @@ $('#addItemBtn').onclick = async ()=>{
 // Submit all pending items
 $('#submitAllBtn').onclick = submitAllPendingItems;
 
-// Manual sync to Google Sheets
+// Manual sync to Google Sheets - UPDATED with header checks
 $('#syncBtn').onclick = async () => {
   if(!appsScriptUrl || !sheetId) {
     alert('Please configure Apps Script URL and Sheet ID first');
@@ -1244,11 +1276,25 @@ $('#syncBtn').onclick = async () => {
   setStatus('Syncing to Google Sheets...');
   const items = await getAll('inventory');
   
+  let syncCount = 0;
   for (const item of items) {
+    // ADD HEADER CHECK HERE TOO
+    if (!item.barcode || 
+        String(item.barcode).toLowerCase() === 'barcode' || 
+        String(item.name).toLowerCase() === 'name' ||
+        String(item.qty).toLowerCase() === 'qty' ||
+        String(item.barcode).toLowerCase() === 'last scan' ||
+        String(item.barcode).toLowerCase() === 'user' ||
+        isNaN(Number(item.qty))) {
+      console.log('Skipping header row during manual sync:', item.barcode);
+      continue;
+    }
+    
     await syncRowToCloud(item);
+    syncCount++;
   }
   
-  setStatus('Sync completed');
+  setStatus(`Sync completed: ${syncCount} items synced`);
 };
 
 // Camera selection change event
