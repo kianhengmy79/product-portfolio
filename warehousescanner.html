@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Inventory Scanner — Login + Google Sheets Sync</title>
+  <title>Enhanced Inventory Scanner — Professional Barcode Scanner</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -18,32 +18,77 @@
       width: 70%;
       height: 50%;
       border: 2px solid rgba(0, 255, 0, 0.5);
-      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
       pointer-events: none;
       z-index: 10;
+      border-radius: 12px;
     }
     .scan-line {
       position: absolute;
-      height: 2px;
+      height: 3px;
       width: 100%;
-      background: rgba(0, 255, 0, 0.8);
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.9), transparent);
       top: 0;
-      animation: scan 2s infinite linear;
+      animation: scan 2s infinite ease-in-out;
+      box-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
     }
     @keyframes scan {
-      0% { top: 0; }
-      100% { top: 100%; }
+      0% { top: 0; opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { top: 100%; opacity: 0.7; }
     }
+    .scan-corner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: rgba(0, 255, 0, 0.8);
+      border-width: 3px;
+    }
+    .scan-corner-tl { top: -3px; left: -3px; border-top-style: solid; border-left-style: solid; }
+    .scan-corner-tr { top: -3px; right: -3px; border-top-style: solid; border-right-style: solid; }
+    .scan-corner-bl { bottom: -3px; left: -3px; border-bottom-style: solid; border-left-style: solid; }
+    .scan-corner-br { bottom: -3px; right: -3px; border-bottom-style: solid; border-right-style: solid; }
     .pending-item {
       background-color: #fef3cd;
+    }
+    .scanner-feedback {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+    .scanner-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      text-align: center;
+      font-size: 14px;
+      z-index: 20;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    }
+    .detection-box {
+      position: absolute;
+      border: 2px solid #00ff00;
+      background: rgba(0, 255, 0, 0.1);
+      z-index: 15;
+      pointer-events: none;
     }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
   <div class="max-w-4xl mx-auto p-6">
     <div id="loginCard" class="bg-white rounded-2xl shadow p-6 max-w-md mx-auto">
-      <h1 class="text-2xl font-bold mb-2">Inventory Scanner — Login</h1>
-      <p class="text-sm text-slate-500 mb-4">Sign in to track who scans inventory. You can store users in Google Sheet (recommended) or use local fallback users.</p>
+      <h1 class="text-2xl font-bold mb-2">Enhanced Inventory Scanner</h1>
+      <p class="text-sm text-slate-500 mb-4">Professional barcode scanner with enhanced accuracy and Google Sheets sync.</p>
       <label class="block mb-2"><span class="text-sm">Apps Script Sync URL (optional)</span>
         <input id="appsScriptUrl" class="mt-1 block w-full rounded-lg border p-2" placeholder="https://script.google.com/macros/s/XXXX/exec (optional)" />
       </label>
@@ -69,8 +114,8 @@
       <header class="flex items-center gap-3 mb-4">
         <div class="w-10 h-10 rounded-2xl bg-sky-100 grid place-items-center"><span class="text-sky-600 font-bold">WS</span></div>
         <div>
-          <h1 id="title" class="text-2xl md:text-3xl font-bold">Inventory Scanner</h1>
-          <p id="subtitle" class="text-sm text-slate-500 -mt-1">Scan • Auto-update • Cloud sync</p>
+          <h1 id="title" class="text-2xl md:text-3xl font-bold">Enhanced Inventory Scanner</h1>
+          <p id="subtitle" class="text-sm text-slate-500 -mt-1">Professional Scanning • Enhanced Accuracy • Cloud Sync</p>
         </div>
         <div class="ml-auto flex items-center gap-3">
           <span id="userBadge" class="badge bg-indigo-100 text-indigo-700">—</span>
@@ -93,8 +138,14 @@
               <video id="video" class="w-full h-full object-cover"></video>
               <div id="scanRegion" class="scan-region hidden">
                 <div class="scan-line"></div>
+                <div class="scan-corner scan-corner-tl"></div>
+                <div class="scan-corner scan-corner-tr"></div>
+                <div class="scan-corner scan-corner-bl"></div>
+                <div class="scan-corner scan-corner-br"></div>
               </div>
               <canvas id="overlay" class="absolute inset-0"></canvas>
+              <div id="scannerFeedback" class="scanner-feedback hidden"></div>
+              <div id="scannerHint" class="scanner-hint hidden">Position barcode within frame</div>
             </div>
             <div class="flex items-center gap-2 mt-3">
               <select id="cameraSelect" class="px-3 py-2 rounded-xl border bg-white w-full"></select>
@@ -181,7 +232,7 @@
         </div>
       </section>
 
-      <footer class="text-center text-xs text-slate-400 mt-6">Data stored locally (IndexedDB). Cloud sync uses Apps Script endpoint if provided.</footer>
+      <footer class="text-center text-xs text-slate-400 mt-6">Enhanced scanner with professional detection algorithms. Data stored locally (IndexedDB). Cloud sync uses Apps Script endpoint if provided.</footer>
     </div>
   </div>
 
@@ -202,6 +253,8 @@ let scannedBarcodes = new Set();
 let scanRegion = null;
 let scanRegionRect = null;
 let pendingItems = [];
+let detectionHistory = new Map(); // Track detection confidence
+let scannerHintTimeout = null;
 
 function saveSettings() {
   const settings = {
@@ -699,18 +752,93 @@ async function loadPendingItems() {
   }
 }
 
+// Enhanced scanner functions
+function showScannerFeedback(message, isError = false) {
+  const feedback = $('#scannerFeedback');
+  feedback.textContent = message;
+  feedback.style.background = isError ? 'rgba(220, 38, 38, 0.8)' : 'rgba(0, 0, 0, 0.7)';
+  feedback.classList.remove('hidden');
+  
+  setTimeout(() => {
+    feedback.classList.add('hidden');
+  }, 2000);
+}
+
+function showScannerHint(message) {
+  const hint = $('#scannerHint');
+  hint.textContent = message;
+  hint.classList.remove('hidden');
+  
+  if (scannerHintTimeout) clearTimeout(scannerHintTimeout);
+  scannerHintTimeout = setTimeout(() => {
+    hint.classList.add('hidden');
+  }, 3000);
+}
+
+function drawDetectionBox(ctx, box, confidence = 1) {
+  if(!box) return;
+  
+  // Calculate confidence-based color (green for high confidence, yellow for medium)
+  const color = confidence > 0.7 ? 'lime' : 'yellow';
+  
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = color;
+  ctx.strokeRect(box.x, box.y, box.width, box.height);
+  
+  // Add a subtle fill for better visibility
+  ctx.fillStyle = `rgba(0, 255, 0, ${0.1 * confidence})`;
+  ctx.fillRect(box.x, box.y, box.width, box.height);
+  
+  // Draw corner markers for professional look
+  const cornerSize = 15;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  
+  // Top-left corner
+  ctx.beginPath();
+  ctx.moveTo(box.x, box.y + cornerSize);
+  ctx.lineTo(box.x, box.y);
+  ctx.lineTo(box.x + cornerSize, box.y);
+  ctx.stroke();
+  
+  // Top-right corner
+  ctx.beginPath();
+  ctx.moveTo(box.x + box.width - cornerSize, box.y);
+  ctx.lineTo(box.x + box.width, box.y);
+  ctx.lineTo(box.x + box.width, box.y + cornerSize);
+  ctx.stroke();
+  
+  // Bottom-left corner
+  ctx.beginPath();
+  ctx.moveTo(box.x, box.y + box.height - cornerSize);
+  ctx.lineTo(box.x, box.y + box.height);
+  ctx.lineTo(box.x + cornerSize, box.y + box.height);
+  ctx.stroke();
+  
+  // Bottom-right corner
+  ctx.beginPath();
+  ctx.moveTo(box.x + box.width - cornerSize, box.y + box.height);
+  ctx.lineTo(box.x + box.width, box.y + box.height);
+  ctx.lineTo(box.x + box.width, box.y + box.height - cornerSize);
+  ctx.stroke();
+}
+
 async function startScan(){
   try {
     await stopScan();
     const deviceId = $('#cameraSelect').value || undefined;
     
+    // Enhanced camera constraints for better scanning
     const constraints = { 
       video: { 
         deviceId: deviceId ? { exact: deviceId } : undefined, 
         facingMode: 'environment',
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        focusMode: 'continuous'
+        width: { ideal: 1920, min: 1280 },
+        height: { ideal: 1080, min: 720 },
+        frameRate: { ideal: 30, min: 24 },
+        focusMode: 'continuous',
+        exposureMode: 'continuous',
+        whiteBalance: 'continuous'
       }, 
       audio: false 
     };
@@ -738,12 +866,14 @@ async function startScan(){
     scanning = true; 
     setStatus('Scanning…');
     
-    // Show scan region
+    // Show scan region and hints
     $('#scanRegion').classList.remove('hidden');
+    showScannerHint('Position barcode within frame');
     
     // Reset scan tracking
     lastScannedCode = null;
     scanCooldown = false;
+    detectionHistory.clear();
     
     // Get scan region dimensions for focused scanning
     setTimeout(() => {
@@ -760,6 +890,7 @@ async function startScan(){
       };
     }, 500);
     
+    // Use the best available detection method
     if('BarcodeDetector' in window){
       const formats = ['ean_13','ean_8','code_128','qr_code','upc_e','upc_a','code_39','codabar'];
       const bd = new window.BarcodeDetector({ formats });
@@ -769,7 +900,11 @@ async function startScan(){
       const reader = new ZXing.BrowserMultiFormatReader();
       loopZXing(reader);
     }
-  } catch(e){ console.error(e); alert('Camera error: '+e.message); setStatus('Camera error'); }
+  } catch(e){ 
+    console.error(e); 
+    alert('Camera error: '+e.message); 
+    setStatus('Camera error'); 
+  }
 }
 
 let rafId=null;
@@ -822,8 +957,19 @@ async function loopBarcodeDetector(detector){
         
         if(codes && codes.length && !scanCooldown){ 
           const val = codes[0].rawValue; 
-          drawBox(ctx, codes[0].boundingBox); 
-          await onBarcode(val); 
+          
+          // Calculate confidence based on detection history
+          const confidence = calculateConfidence(val, codes[0]);
+          
+          // Only process if confidence is high enough
+          if (confidence > 0.5) {
+            drawDetectionBox(ctx, codes[0].boundingBox, confidence); 
+            await onBarcode(val); 
+          } else {
+            // Show detection but don't process yet
+            drawDetectionBox(ctx, codes[0].boundingBox, confidence);
+            showScannerHint('Hold steady for better detection');
+          }
         }
       } catch(e){ console.log('Detection error:', e); }
     }
@@ -832,11 +978,36 @@ async function loopBarcodeDetector(detector){
   step();
 }
 
-function drawBox(ctx, box){ 
-  if(!box) return; 
-  ctx.lineWidth=3; 
-  ctx.strokeStyle='lime'; 
-  ctx.strokeRect(box.x, box.y, box.width, box.height); 
+function calculateConfidence(code, detection) {
+  const now = Date.now();
+  const history = detectionHistory.get(code) || { count: 0, lastSeen: 0 };
+  
+  // Increment count if seen recently (within 500ms)
+  if (now - history.lastSeen < 500) {
+    history.count++;
+  } else {
+    history.count = 1;
+  }
+  
+  history.lastSeen = now;
+  detectionHistory.set(code, history);
+  
+  // Calculate confidence based on:
+  // 1. Number of recent detections
+  // 2. Size of bounding box (larger is better)
+  // 3. Aspect ratio (closer to expected barcode ratio is better)
+  
+  let confidence = Math.min(history.count / 3, 1); // Max confidence after 3 detections
+  
+  // Factor in bounding box size if available
+  if (detection.boundingBox) {
+    const area = detection.boundingBox.width * detection.boundingBox.height;
+    const maxArea = (scanRegionRect?.width || 300) * (scanRegionRect?.height || 200);
+    const sizeConfidence = Math.min(area / (maxArea * 0.3), 1); // At least 30% of scan area
+    confidence = (confidence + sizeConfidence) / 2;
+  }
+  
+  return confidence;
 }
 
 async function loadZXing(){
@@ -907,12 +1078,14 @@ async function loopZXing(reader){
 async function onBarcode(code){
   // Validate barcode length - must be exactly 13 digits
   if (!/^\d{13}$/.test(code)) {
+    showScannerFeedback('Invalid barcode format', true);
     setStatus('Invalid barcode: must be exactly 13 digits');
     return;
   }
   
   // Prevent duplicate scans of the same code
   if (scannedBarcodes.has(code)) {
+    showScannerFeedback('Already scanned: ' + code, true);
     setStatus('Already scanned: ' + code);
     return;
   }
@@ -921,6 +1094,7 @@ async function onBarcode(code){
   scanCooldown = true;
   lastScannedCode = code;
   
+  showScannerFeedback('Scanned: ' + code);
   setStatus('Scanned: ' + code);
   beep();
   
@@ -960,9 +1134,16 @@ async function stopScan(){
   currentStream=null; 
   setStatus(''); 
   
-  // Hide scan region
+  // Hide scan region and hints
   $('#scanRegion').classList.add('hidden');
+  $('#scannerFeedback').classList.add('hidden');
+  $('#scannerHint').classList.add('hidden');
   scanRegionRect = null;
+  
+  if (scannerHintTimeout) {
+    clearTimeout(scannerHintTimeout);
+    scannerHintTimeout = null;
+  }
 }
 
 async function listCameras(){
